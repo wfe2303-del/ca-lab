@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>오픈카톡 인원 체크 (GitHub Pages)</title>
+  <style>
+    :root{--bg:#0b1020;--card:#12182b;--line:#24314d;--text:#e6eefc;--muted:#9ab0d6;--accent:#59a2ff;--ok:#22c55e;--warn:#f59e0b;--bad:#ef4444}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,Segoe UI,Apple SD Gothic Neo,Pretendard,sans-serif}
+    .wrap{max-width:960px;margin:24px auto;padding:16px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    textarea{width:100%;min-height:140px;background:#0e1427;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:10px}
+    button{background:var(--accent);border:0;color:#00122d;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .muted{color:var(--muted)}
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left}
+    .status-ok{color:var(--ok)} .status-warn{color:var(--warn)} .status-bad{color:var(--bad)}
+    .pill{display:inline-flex;gap:6px;align-items:center;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:#0e1427}
+    .kbd{font-family:ui-monospace,Consolas,monospace;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;padding:1px 6px;background:#0c1326}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>오픈카톡 인원 체크 <small class="muted">(GH Pages + Userscript)</small></h1>
+    <div class="card" style="margin-top:12px">
+      <div class="row">
+        <div style="flex:1 1 520px">
+          <label>오픈카톡 링크 목록 (한 줄에 하나)</label>
+          <textarea id="links" placeholder="https://open.kakao.com/o/xxxxxxx&#10;https://open.kakao.com/o/yyyyyyy"></textarea>
+          <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+            <button id="btnStart">인원 체크 시작</button>
+            <button id="btnExport" disabled>CSV 내보내기</button>
+            <span id="hint" class="muted">팝업 허용을 켜주세요 · Tampermonkey 스크립트 설치 필수</span>
+          </div>
+        </div>
+        <div style="flex:1 1 280px">
+          <div class="pill">진행상태: <strong id="status">대기 중</strong></div>
+          <div class="muted" style="margin-top:8px">
+            동작 방식: 이 페이지가 각 링크를 <b>새 탭</b>으로 열면,<br/>
+            <b>open.kakao.com 탭</b>에서 Userscript가 DOM을 읽어<br/>
+            이 창으로 숫자를 <code class="kbd">postMessage</code>로 보내 집계합니다.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:12px">
+      <h3 style="margin:0 0 8px">결과</h3>
+      <table id="table">
+        <thead>
+          <tr><th style="width:44%">URL</th><th style="width:18%">참여자</th><th style="width:18%">상태</th><th style="width:20%">시간(ms)</th></tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+
+    <div class="muted" style="margin-top:10px">
+      ※ 순수 HTML 앱은 CORS/동일출처 정책 때문에 다른 도메인 HTML을 직접 읽을 수 없습니다. 이 앱은 Userscript를 활용해 **해당 도메인 탭에서** 읽어온 결과만 집계합니다. :contentReference[oaicite:2]{index=2}
+    </div>
+  </div>
+  <script src="./app.js"></script>
+</body>
+</html>
