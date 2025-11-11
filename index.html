@@ -590,7 +590,7 @@ async function runMain(sfx){
       const rid = earliestIdByKey.get(key) || ''; // 공유시트 A열 고유번호
 
       report.push([
-        rid,                                // roster_id(A)
+        rid,                                // no
         r.name,
         rosterPhone ? r.phone : '',
         inAtt ? '입장' : '미입장',
@@ -786,3 +786,4 @@ document.addEventListener('DOMContentLoaded', ()=>{
 </script>
 </body>
 </html>
+
