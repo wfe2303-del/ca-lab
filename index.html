@@ -688,7 +688,7 @@ async function runMain(sfx){
       (rows||[]).forEach(r=>{ const tr=document.createElement('tr'); (r||[]).forEach(c=>{ const td=document.createElement('td'); td.textContent=(c==null?'':String(c)); tr.appendChild(td); }); tb.appendChild(tr); });
       t.appendChild(tb); wrap.appendChild(t); resultsEl.appendChild(wrap);
     }
-    resTbl('내 명단 기준 상태(읽기 시트)', ['roster_id(A)','name','phone','status','matched_id','notes'], report);
+    resTbl('내 명단 기준 상태(읽기 시트)', ['no','name','phone','status','matched_id','notes'], report);
     resTbl('명단 외 입장자', ['name/last4 or (번호없음)'], extra);
     resTbl('퇴장자 명단(최종)', ['name/last4 or (번호없음)'], leavers);
     resTbl('미확인 목록(공유 시트 동명이인/번호 문제)', ['name','reason'], unresolved);
@@ -786,4 +786,5 @@ document.addEventListener('DOMContentLoaded', ()=>{
 </script>
 </body>
 </html>
+
 
