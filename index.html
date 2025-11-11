@@ -10,8 +10,7 @@
       --bg:#fff; --card:#fff; --surface:#f8fafc; --line:#e5e7eb; --text:#0f172a; --muted:#64748b;
       --accent:#60a5fa; --accent-strong:#3b82f6; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444;
       --radius:12px; --ctl-h:42px; --gap:12px;
-      --logo-size: 112px;
-      --ca-logo-file: url("클어 로고.png");
+      --logo-size:112px;
     }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
@@ -42,53 +41,51 @@
     th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
     th{color:#0f172a;font-weight:600;background:#f1f5f9;position:sticky;top:0}
 
-    /* === 로고 + 제목 줄 === */
-    .brand{ display:flex; align-items:center; gap:14px; margin:0 0 6px; }
-    .brand h1{ margin:0; font-size:22px; }
-    .brand-logo{ width:var(--logo-size); height:var(--logo-size); flex:0 0 var(--logo-size); }
+    /* 로고/제목 */
+    .brand{display:flex;align-items:center;gap:14px;margin:0 0 6px}
+    .brand h1{margin:0;font-size:22px}
+    .brand-logo{width:var(--logo-size);height:var(--logo-size);flex:0 0 var(--logo-size)}
+    .logo-text{
+      font-family:'Nunito','Arial Rounded MT','SF Pro Rounded','Quicksand','Pretendard','Noto Sans KR',sans-serif;
+      font-weight:900; letter-spacing:-0.2px; fill:#0f172a; font-size:18px;
+      paint-order:stroke fill; stroke:#0f172a; stroke-width:.9px;
+    }
 
-    /* 관리자 UI(이전 스타일 톤) */
-    .admin-drawer{ width:520px; padding:14px 16px 18px; }
-    .admin-drawer .card{ background:#fff; border:1px solid var(--line); border-radius:16px; padding:14px 16px; box-shadow:none; margin:0 0 12px; }
-    .admin-drawer h4{ margin:0 0 8px; font-weight:700; }
-    .admin-drawer label{ color:#64748b; font-size:13px; margin:6px 0 4px; }
-    .admin-drawer input{ height:42px; border:1px solid var(--line); border-radius:12px; padding:10px 12px; }
-    .admin-drawer .btn{ height:36px; padding:0 12px; border-radius:12px; }
-    #admList{ border-collapse:collapse; width:100%; }
-    #admList th{ background:#f1f5f9; font-weight:600; padding:10px; }
-    #admList td{ padding:10px; border-top:1px solid var(--line); font-size:13px; vertical-align:middle; }
-    #admList tr:hover td{ background:#f9fafb; }
-    #admList .btn{ height:34px; padding:0 12px; border-radius:12px; }
-    #admMeta{ color:#94a3b8; margin-top:8px; }
-    .admin-drawer input[type="text"], .admin-drawer input:not([type]), .admin-drawer select, .admin-drawer textarea{ width:100%; box-sizing:border-box; }
-    :root{ --admin-h:44px; }
-    .admin-drawer input, .admin-drawer .btn{ height:var(--admin-h); line-height:calc(var(--admin-h) - 2px); border-radius:12px; }
+    /* 관리자 UI */
+    .admin-drawer{width:520px;padding:14px 16px 18px}
+    .admin-drawer .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:none;margin:0 0 12px}
+    .admin-drawer h4{margin:0 0 8px;font-weight:700}
+    .admin-drawer label{color:#64748b;font-size:13px;margin:6px 0 4px}
+    .admin-drawer input{height:42px;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+    .admin-drawer .btn{height:36px;padding:0 12px;border-radius:12px}
+    #admList{border-collapse:collapse;width:100%}
+    #admList th{background:#f1f5f9;font-weight:600;padding:10px}
+    #admList td{padding:10px;border-top:1px solid var(--line);font-size:13px;vertical-align:middle}
+    #admList tr:hover td{background:#f9fafb}
+    #admList .btn{height:34px;padding:0 12px;border-radius:12px}
+    #admMeta{color:#94a3b8;margin-top:8px}
+    .admin-drawer input[type="text"],.admin-drawer input:not([type]),.admin-drawer select,.admin-drawer textarea{width:100%;box-sizing:border-box}
+    :root{--admin-h:44px}
+    .admin-drawer input,.admin-drawer .btn{height:var(--admin-h);line-height:calc(var(--admin-h) - 2px);border-radius:12px}
 
-    /* panels */
+    /* 레이아웃 */
     .panels{display:grid;gap:16px}
     @media(min-width:1100px){ .panels{grid-template-columns:1fr 1fr} }
-    .panel-title{font-weight:700;margin:0 0 8px}
-
-    /* top control line (1 row) */
     .controls{display:grid;gap:var(--gap)}
-    .controls-line{ display:grid; align-items:end; gap:var(--gap); grid-template-columns: 1.2fr 1fr 1fr var(--ctl-h); }
-    .icon-btn{ width:var(--ctl-h); height:var(--ctl-h); border:1px solid var(--line); border-radius:10px; background:#fff; display:inline-flex; align-items:center; justify-content:center; cursor:pointer; }
-    .icon-btn:hover{border-color:var(--accent-strong); box-shadow:0 0 0 3px rgba(96,165,250,.2)}
+    .controls-line{display:grid;align-items:end;gap:var(--gap);grid-template-columns:1.2fr 1fr 1fr var(--ctl-h)}
+    .icon-btn{width:var(--ctl-h);height:var(--ctl-h);border:1px solid var(--line);border-radius:10px;background:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+    .icon-btn:hover{border-color:var(--accent-strong);box-shadow:0 0 0 3px rgba(96,165,250,.2)}
     .icon-btn svg{width:18px;height:18px}
 
-    /* file row */
     .filectl{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center}
-    .fname{ height:var(--ctl-h); line-height:var(--ctl-h); border:1px solid var(--line); border-radius:var(--radius); padding:0 10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; background:#fff; color:#9aa4b2;}
+    .fname{height:var(--ctl-h);line-height:var(--ctl-h);border:1px solid var(--line);border-radius:var(--radius);padding:0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#fff;color:#9aa4b2}
     .fname.has{color:#0f172a}
 
-    /* gear/admin */
     .gear-btn{position:fixed;top:16px;right:16px;z-index:50;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px;cursor:pointer}
-    .admin-overlay{position:fixed;inset:0;background:rgba(15,23,42,.28);backdrop-filter:saturate(140%) blur(2px);visibility:hidden; opacity:0; pointer-events:none; transition:.15s; z-index:60;}
-    .admin-overlay.open{visibility:visible; opacity:1; pointer-events:auto;}
-    .admin-drawer{position:fixed;top:0;right:0;height:100%;width:520px;max-width:92vw;background:#fff;border-left:1px solid var(--line);
-      box-shadow:-8px 0 24px rgba(0,0,0,.08);padding:16px 16px 24px;display:flex;flex-direction:column;gap:12px;z-index:70;
-      transform:translateX(12px); opacity:0; pointer-events:none; transition:transform .15s, opacity .15s}
-    .admin-drawer.open{transform:translateX(0); opacity:1; pointer-events:auto;}
+    .admin-overlay{position:fixed;inset:0;background:rgba(15,23,42,.28);backdrop-filter:saturate(140%) blur(2px);visibility:hidden;opacity:0;pointer-events:none;transition:.15s;z-index:60}
+    .admin-overlay.open{visibility:visible;opacity:1;pointer-events:auto}
+    .admin-drawer{position:fixed;top:0;right:0;height:100%;width:520px;max-width:92vw;background:#fff;border-left:1px solid var(--line);box-shadow:-8px 0 24px rgba(0,0,0,.08);padding:16px 16px 24px;display:flex;flex-direction:column;gap:12px;z-index:70;transform:translateX(12px);opacity:0;pointer-events:none;transition:transform .15s, opacity .15s}
+    .admin-drawer.open{transform:translateX(0);opacity:1;pointer-events:auto}
     .admin-head{display:flex;align-items:center;justify-content:space-between}
     .x-btn{appearance:none;border:1px solid var(--line);background:#fff;border-radius:10px;padding:6px 8px;cursor:pointer}
   </style>
@@ -97,17 +94,14 @@
   <button id="settingsBtn" class="gear-btn" title="설정" type="button" aria-label="관리자 설정 열기">⚙</button>
 
   <div class="wrap">
+    <!-- 로고+제목 -->
     <header class="brand">
-      <!-- 내장 SVG 로고 (파일 없어도 렌더됨) -->
       <svg class="brand-logo" viewBox="0 0 90 50" role="img" aria-label="ClassAround">
-        <defs>
-          <filter id="halo" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.2"/></filter>
-        </defs>
         <rect width="90" height="50" rx="10" fill="white"/>
         <circle cx="66" cy="10" r="8" fill="#6b8bd6"/>
         <circle cx="80" cy="18" r="5" fill="#ef4444"/>
-        <text x="8" y="24" font-weight="800" font-size="18" style="font-family:'Nunito','Arial Rounded MT','SF Pro Rounded','Quicksand','Pretendard','Noto Sans KR',sans-serif;fill:#0f172a;">Class</text>
-        <text x="8" y="42" font-weight="800" font-size="18" style="font-family:'Nunito','Arial Rounded MT','SF Pro Rounded','Quicksand','Pretendard','Noto Sans KR',sans-serif;fill:#0f172a;">Around</text>
+        <text x="8" y="24" class="logo-text">Class</text>
+        <text x="8" y="42" class="logo-text">Around</text>
       </svg>
       <h1>클래스어라운드 카카오톡 입장자 체크봇</h1>
     </header>
@@ -272,12 +266,13 @@ const val = (id, sfx)=>{ const el=sfx ? byPanel(id,sfx) : $$(id); return el?el.v
 function on(id, event, handler, sfx){ const el = sfx ? byPanel(id,sfx) : $$(id); if(!el){ console.warn("[bind skipped] #"+(sfx? id+sfx:id)); return; } el.addEventListener(event, e=>{ try{ handler(e); }catch(err){ console.error(err); }}); }
 function show(el){ el.classList.add('open'); el.setAttribute('aria-hidden','false'); }
 function hide(el){ el.classList.remove('open'); el.setAttribute('aria-hidden','true'); }
-function last4Digits(s){ const d=String(s||'').replace(/[^\d]/g,''); return d.slice(-4); }
+function digitsOnly(s){ return String(s||'').replace(/[^\d]/g,''); }
+function last4Digits(s){ const d=digitsOnly(s); return d.slice(-4); }
 function normalizeName(n){
   let s = String(n||'').trim();
-  s = s.replace(/[\s]*[\(\[\{（【][^)\]\}）】]*[\)\]\}）】]\s*$/,''); // 끝 괄호 태그 제거
-  s = s.replace(/[/_\-\s]+$/,'');                                   // 끝 구분자 제거
-  s = s.replace(/\s+/g,' ');                                        // 공백 정리
+  s = s.replace(/[\s]*[\(\[\{（【][^)\]\}）】]*[\)\]\}）】]\s*$/,''); // 끝 괄호태그 제거
+  s = s.replace(/[/_\-\s]+$/,'');                                // 끝 구분자 제거
+  s = s.replace(/\s+/g,' ');                                     // 공백 정리
   return s;
 }
 function isPaid(v){
@@ -291,6 +286,11 @@ function isPaid(v){
   if(/입금|납부|paid|완료|확인|ok|done|true|yes|\by\b|\bo\b|✓|✔|✅/.test(s)) return true;
   return false;
 }
+const earlierId = (a,b)=>{ // 숫자/문자 안전 비교(작은 값이 더 이른 번호)
+  const ai = parseInt(a,10), bi = parseInt(b,10);
+  if(!Number.isNaN(ai) && !Number.isNaN(bi)) return ai <= bi ? a : b;
+  return (String(a) <= String(b)) ? a : b;
+};
 
 /* ===== 전역 오류 UI ===== */
 (function(){
@@ -456,38 +456,11 @@ function parseChat(text){
   return {events, joinedCount, leftCount};
 }
 
-/* ===== 보조: 읽기시트 전화 열 자동 탐지 / 열 인덱스→문자 / 가장 작은 ID 선택 ===== */
-function colIndexToLetter(idx){ // 0-based index
-  let s = ''; idx = Number(idx);
-  while(idx >= 0){ s = String.fromCharCode((idx % 26) + 65) + s; idx = Math.floor(idx/26) - 1; }
-  return s;
-}
-async function detectPhoneColLetter(spreadsheetId, sheetName){
-  // 헤더는 보통 1행이라 가정. A1~AZ1까지 살펴보고 '전화/연락처/휴대폰/핸드폰/phone/번호' 패턴 찾기.
-  const head = await getRange(spreadsheetId, `${sheetName}!A1:AZ1`);
-  const vals = head.values && head.values[0] ? head.values[0] : [];
-  const re = /(전화|연락처|휴대|핸드|phone|번호)/i;
-  for(let i=0;i<vals.length;i++){
-    if(re.test(String(vals[i]||''))) return colIndexToLetter(i);
-  }
-  return null; // 못 찾으면 null
-}
-function earlierId(a,b){
-  if(!a) return b||'';
-  if(!b) return a||'';
-  const an=/^\d+$/.test(a), bn=/^\d+$/.test(b);
-  if(an && bn){
-    const ai=parseInt(a,10), bi=parseInt(b,10);
-    return ai<=bi? a:b;
-  }
-  return a<=b? a:b; // 문자열 비교
-}
-
 /* ===== 실행(패널별) ===== */
 async function runMain(sfx){
   try{
     txt('err','',sfx);
-    const resBox = byPanel('results', sfx); if(resBox) resBox.innerHTML='';
+    const resultsEl = byPanel('results', sfx); if(resultsEl) resultsEl.innerHTML='';
     const previewOnly = byPanel("previewOnly",sfx)?.checked;
 
     const chatFile=byPanel('chatFile',sfx)?.files?.[0]; if(!chatFile) throw new Error('대화 txt 파일을 선택하세요.');
@@ -498,14 +471,15 @@ async function runMain(sfx){
     const packs=loadPacks(); const pack=packs.find(x=>x.id===packSel.value); if(!pack) throw new Error('연결 정보를 찾을 수 없습니다.');
     const sheetId=pack.sheetId; const readCol=pack.readCol||'C';
 
-    // 1) 카톡 로그 파싱
+    // ── 1) 카톡 파싱 → 최종 활성/퇴장 상태
     const chatText = await readText(chatFile);
     const {events, joinedCount, leftCount} = parseChat(chatText);
 
     const NAME_ONLY_SENTINEL = '__NAMEONLY__';
-    const activeDigitsByName = new Map();
-    const leftFinalDigitsByName = new Map();
+    const activeDigitsByName = new Map();      // nameN -> Set(끝4 or sentinel)
+    const leftFinalDigitsByName = new Map();   // nameN -> Set(끝4 or sentinel) [최종 상태가 '밖'인 것]
     const nameOnlyJoin = new Set();
+
     const ensure = (map, key)=>{ if(!map.has(key)) map.set(key,new Set()); return map.get(key); };
 
     for(const ev of events){
@@ -521,7 +495,7 @@ async function runMain(sfx){
           if(L.size===0) leftFinalDigitsByName.delete(nN);
         }
         if(!s.digits){ nameOnlyJoin.add(nN); }
-      }else{
+      }else{ // leave/kick
         const A = ensure(activeDigitsByName, nN);
         if(s.digits){ A.delete(s.digits); }
         else { if(A.size===1 && A.has(NAME_ONLY_SENTINEL)) A.delete(NAME_ONLY_SENTINEL); }
@@ -529,77 +503,81 @@ async function runMain(sfx){
       }
     }
 
-    // 2) 읽기 시트: 이름/전화 읽기 (전화 열 자동 탐지)
-    const nameRange = await getRange(sheetId, `${readSheet}!${readCol}${READ_START_ROW}:${readCol}`);
-    const phoneCol  = await detectPhoneColLetter(sheetId, readSheet);
-    const phoneRange = phoneCol
-      ? await getRange(sheetId, `${readSheet}!${phoneCol}${READ_START_ROW}:${phoneCol}`)
-      : {values: []};
-
-    const names = nameRange.values || [];
-    const phones= phoneRange.values|| [];
-
-    const roster = [];
-    const R = Math.max(names.length, phones.length);
-    for(let i=0;i<R;i++){
-      const name  = (names[i] && names[i][0])  || '';
-      if(!String(name).trim()) continue;
-      const phone = (phones[i]&& phones[i][0]) || '';
-      roster.push({
-        name: String(name).trim(),
-        nameN: normalizeName(name),
-        phone: String(phone||'').trim(),
-        phoneDigits: String(phone||'').replace(/[^\d]/g,'')
-      });
+    // ── 2) 읽기 시트(명단 이름) 로드
+    const readNames = await getRange(sheetId, `${readSheet}!${readCol}${READ_START_ROW}:${readCol}`);
+    const readRows = readNames.values || [];
+    const rosterNames = [];
+    const rosterNamesN = [];
+    const rosterSetN = new Set();
+    for(let i=0;i<readRows.length;i++){
+      const nm = String(readRows[i]?.[0] ?? '').trim();
+      if(!nm) continue;
+      const nN = normalizeName(nm);
+      rosterNames.push(nm);
+      rosterNamesN.push(nN);
+      rosterSetN.add(nN);
     }
 
-    // 3) 공유 시트: A열(ID) + D/E(이름/전화) → (이름N|전화)별 가장 작은 ID
-    const writeRangeA1 = `${writeSheet}!D${WRITE_START_ROW}:S`; // D=이름, E=전화
-    const wdata   = await getRange(sheetId, writeRangeA1);
-    const rows    = wdata.values || [];
-    const idData  = await getRange(sheetId, `${writeSheet}!A${WRITE_START_ROW}:A`);
-    const writeIds= idData.values || [];
+    // ── 3) 공유 시트 A~E를 한 번에 읽어서 번호/이름/전화 매핑(가장 빠른 A열 번호 기준)
+    const wAtoE = await getRange(sheetId, `${writeSheet}!A${WRITE_START_ROW}:E`);
+    const wRowsAE = wAtoE.values || []; // [A=no, B=?, C=?, D=name, E=phone]
+    const earliestByKey = new Map();    // `${nameN}|${phone4}` -> {id, phoneFull}
+    const earliestByName = new Map();   // nameN -> {id, phoneFull, phone4}
 
-    const earliestIdByKey = new Map(); // key = nameN|phoneDigits
-    for(let i=0;i<rows.length;i++){
-      const r = rows[i] || [];
-      const id = (writeIds[i] && writeIds[i][0]) || '';
-      const nameRaw = String(r[0] ?? '').trim();   // D
-      if(!nameRaw) continue;
-      const nameN = normalizeName(nameRaw);
-      const phoneDigits = String(r[1] ?? '').replace(/[^\d]/g,''); // E
-      const key = nameN + '|' + (phoneDigits || '');
-      earliestIdByKey.set(key, earliestIdByKey.has(key) ? earlierId(earliestIdByKey.get(key), id) : id);
+    for(const r of wRowsAE){
+      const id  = (r[0] ?? '').toString().trim();
+      const nameRaw = (r[3] ?? '').toString().trim();
+      const phoneRaw= (r[4] ?? '').toString().trim();
+      if(!id || !nameRaw) continue;
+
+      const nN = normalizeName(nameRaw);
+      const p4 = last4Digits(phoneRaw);
+
+      // name+phone4 키
+      if(p4){
+        const key = nN + '|' + p4;
+        if(!earliestByKey.has(key)) earliestByKey.set(key, {id, phoneFull: phoneRaw, phone4:p4});
+        else{
+          const cur = earliestByKey.get(key);
+          earliestByKey.set(key, earlierId(cur.id,id)===cur.id ? cur : {id, phoneFull:phoneRaw, phone4:p4});
+        }
+      }
+      // name 단독 키(전화없어도 유지)
+      if(!earliestByName.has(nN)) earliestByName.set(nN, {id, phoneFull: phoneRaw, phone4:p4});
+      else{
+        const cur = earliestByName.get(nN);
+        earliestByName.set(nN, earlierId(cur.id,id)===cur.id ? cur : {id, phoneFull:phoneRaw, phone4:p4});
+      }
     }
 
-    // 4) 입장 대상 판단 + 보고서 (roster_id(A) 맨 앞으로)
-    const rosterSetN = new Set(roster.map(r => r.nameN));
-    const isAttendingNameN = (nN)=>{
+    // ── 4) 입장중 이름 판정
+    const isAttendingNameN = (nN)=> {
       const set = activeDigitsByName.get(nN);
       return (set && set.size>0) || nameOnlyJoin.has(nN);
     };
     const attendingSetN = new Set([...rosterSetN].filter(nN => isAttendingNameN(nN)));
 
+    // ── 5) 표1: 명단 기준 상태(읽기 시트)
     const report=[];
-    for(const r of roster){
-      const inAtt = attendingSetN.has(r.nameN);
-      const set = activeDigitsByName.get(r.nameN) || new Set();
-      const any4FromJoin = [...set].find(x=>x && x!==NAME_ONLY_SENTINEL) || '';
-      const rosterPhone  = r.phoneDigits ? r.phone : '';
-      const key = r.nameN + '|' + (r.phoneDigits || '');
-      const rid = earliestIdByKey.get(key) || ''; // 공유시트 A열 고유번호
+    for(let i=0;i<rosterNames.length;i++){
+      const nm = rosterNames[i];
+      const nN = rosterNamesN[i];
 
-      report.push([
-        rid,                                // no
-        r.name,
-        rosterPhone ? r.phone : '',
-        inAtt ? '입장' : '미입장',
-        any4FromJoin ? `${r.name}/${any4FromJoin}` : r.name,
-        any4FromJoin ? '' : '(번호없음)'
-      ]);
+      const phoneFull = earliestByName.get(nN)?.phoneFull || '';
+      const set = activeDigitsByName.get(nN) || new Set();
+      const any4 = [...set].find(x=>x!==NAME_ONLY_SENTINEL) || '';
+      const matchedId =
+        any4 && earliestByKey.get(nN+'|'+any4) ? earliestByKey.get(nN+'|'+any4).id :
+        earliestByName.get(nN)?.id || '';
+
+      const notes = (isAttendingNameN(nN) && !any4) ? '(번호없음)' : '';
+      const status = attendingSetN.has(nN) ? '입장' : '미입장';
+      const rosterNo = matchedId; // A열 번호
+
+      report.push([rosterNo, nm, phoneFull, status, any4 ? `${nm}/${any4}` : (status==='입장'?nm:''), notes]);
     }
 
-    // 5) 명단 외 입장자 / 퇴장자
+    // ── 6) 표2: 명단 외 입장자
     const extra=[];
     [...activeDigitsByName.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
       if(!rosterSetN.has(nN)){
@@ -609,6 +587,7 @@ async function runMain(sfx){
       }
     });
 
+    // ── 7) 표3: 퇴장자(최종)
     const leavers=[];
     [...leftFinalDigitsByName.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
       const activeSet = activeDigitsByName.get(nN);
@@ -620,14 +599,17 @@ async function runMain(sfx){
       });
     });
 
-    // 6) 공유 시트 갱신(결제완료 행만 S열에 '입장')
+    // ── 8) 공유 시트 갱신(S열)
+    const writeRange = `${writeSheet}!D${WRITE_START_ROW}:S`;
+    const wdata = await getRange(sheetId, writeRange);
+    const rows = wdata.values || [];
     const paidRowsIdx = [];
     const paidNameCountN = new Map();
     for(let i=0;i<rows.length;i++){
       const r = rows[i] || [];
       const paid = isPaid(r[5]); // I열
       if(!paid) continue;
-      const nameN = normalizeName(String(r[0] ?? ''));
+      const nameN = normalizeName(String(r[0] ?? '')); // D
       if(!nameN) continue;
       paidRowsIdx.push(i);
       paidNameCountN.set(nameN, (paidNameCountN.get(nameN)||0)+1);
@@ -641,7 +623,8 @@ async function runMain(sfx){
       const nameN   = normalizeName(nameRaw);
       const phone4  = last4Digits(r[1] ?? '');    // E
       if(!nameN) continue;
-      if(!attendingSetN.has(nameN)) continue;
+
+      if(!attendingSetN.has(nameN)) continue; // 최종 입장중이 아니면 기록 안 함
 
       const set = activeDigitsByName.get(nameN) || new Set();
       const isDupInPaid = (paidNameCountN.get(nameN)||0) > 1;
@@ -667,7 +650,7 @@ async function runMain(sfx){
       await batchUpdateValues(sheetId, updates);
     }
 
-    // 7) 상단 배지
+    // 상단 배지
     const pills=byPanel('pills',sfx); if(pills){ pills.innerHTML='';
       const mk=(t,c)=>{ const s=document.createElement('span'); s.className='pill '+c; s.textContent=t; return s; };
       pills.appendChild(mk(`입장로그 join ${joinedCount}`,'ok'));
@@ -676,8 +659,7 @@ async function runMain(sfx){
       if(previewOnly) pills.appendChild(mk('체크만','warn'));
     }
 
-    // 8) 표 렌더 (헤더 순서 변경 반영)
-    const resultsEl = byPanel("results", sfx);
+    // 렌더
     function resTbl(title, headers, rows){
       if(!resultsEl) return;
       const wrap=document.createElement('div'); wrap.className='card';
@@ -688,53 +670,171 @@ async function runMain(sfx){
       (rows||[]).forEach(r=>{ const tr=document.createElement('tr'); (r||[]).forEach(c=>{ const td=document.createElement('td'); td.textContent=(c==null?'':String(c)); tr.appendChild(td); }); tb.appendChild(tr); });
       t.appendChild(tb); wrap.appendChild(t); resultsEl.appendChild(wrap);
     }
-    resTbl('내 명단 기준 상태(읽기 시트)', ['no','name','phone','status','matched_id','notes'], report);
+    resTbl('내 명단 기준 상태(읽기 시트)', ['roster_id(A)','name','phone','status','matched_id','notes'], report);
     resTbl('명단 외 입장자', ['name/last4 or (번호없음)'], extra);
     resTbl('퇴장자 명단(최종)', ['name/last4 or (번호없음)'], leavers);
-    resTbl('미확인 목록(공유 시트 동명이인/번호 문제)', ['name','reason'], unresolved);
     resTbl(previewOnly ? '예상 갱신 결과(체크만 모드)' : '공유 시트 갱신 결과',
            ['updated_cells'], updates.map(u=>[u.range+' ← 입장']));
+    resTbl('미확인 목록(공유 시트 동명이인/번호 문제)', ['name','reason'], unresolved);
 
   }catch(e){ txt('err','오류: '+(e?.message||e),sfx); console.error(e); }
 }
 
-/* ===== 데모(패널별) ===== */
+/* ===== 데모(패널별) : 실제 섹션과 동일한 4표 출력 ===== */
 function runDemo(sfx){
   txt('err','',sfx);
-  const resultsEl = byPanel('results',sfx); if(resultsEl) resultsEl.innerHTML='';
-  const chatText=[
-    '2025.08.10 오후 8:01 - 권지혁/3788님이 입장하셨습니다',
-    '2025.08.10 오후 8:03 - 김예은_1715님이 입장하셨습니다',
-    '2025.08.10 오후 8:04 - 임규리-2514님이 들어왔습니다',
-    '2025.08.10 오후 8:05 - 이원철님을 내보냈습니다.',
-    '2025.08.10 오후 8:06 - 권지혁/3788님이 나갔습니다.',
-    '2025.08.10 오후 8:07 - 황현하 1472님이 입장했습니다',
-    '2025.08.10 오후 8:08 - 이정백4444님이 입장하셨습니다'
+  const resultsEl = byPanel('results',sfx);
+  if(resultsEl) resultsEl.innerHTML='';
+
+  // ❶ 데모용 명단(읽기 시트) — 번호/이름/전화
+  const roster = [
+    { id: 1, name: '황현하', phone: '010-1234-5678' },
+    { id: 3, name: '김혜영', phone: '010-3456-7890' },
+    { id: 4, name: '임규리', phone: '010-1717-1771' },
+    { id: 5, name: '김예은', phone: '010-1111-0000' },
+    { id: 6, name: '방예진', phone: '010-0000-9999' },
+  ];
+  const rosterSetN = new Set(roster.map(r => normalizeName(r.name)));
+
+  // ❷ 데모용 카톡 로그
+  const chatText = [
+    '2025.08.10 오후 8:01 - 김예은/0000님이 입장하셨습니다',
+    '2025.08.10 오후 8:02 - 황현하/5678님이 입장하셨습니다',
+    '2025.08.10 오후 8:03 - 방예진/9999님이 입장했습니다',
+    '2025.08.10 오후 8:04 - 임규리 1771님이 들어왔습니다',
+    '2025.08.10 오후 8:05 - 김혜영/7890님이 입장하셨습니다',
+    '2025.08.10 오후 8:06 - 이정백/4444님이 입장하셨습니다',   // 명단 외
+    '2025.08.10 오후 8:07 - 신조차모독하는천재이원철님이 입장하셨습니다',   // 명단 외
+    '2025.08.10 오후 8:08 - 세계제일의규리님당장찬양님이 나갔습니다.'          // 최종 퇴장 처리
   ].join('\n');
-  const {events}=parseChat(chatText);
+  const {events, joinedCount, leftCount} = parseChat(chatText);
+
+  // ❸ 활성/퇴장 상태 계산
   const NAME_ONLY_SENTINEL='__NAMEONLY__';
-  const active=new Map(); const leftFinal=new Map();
+  const active = new Map();           // nameN -> Set(last4 or sentinel)
+  const leftFinal = new Map();
   const ensure=(map,key)=>{ if(!map.has(key)) map.set(key,new Set()); return map.get(key); };
+
   for(const ev of events){
-    const s=splitNickname(ev.nick); if(!s) continue;
+    const s = splitNickname(ev.nick); if(!s) continue;
+    const nN = s.name;
     if(ev.type==='join'){
-      ensure(active, s.name).add(s.digits||NAME_ONLY_SENTINEL);
-      const L = leftFinal.get(s.name); if(L){ L.delete(s.digits||NAME_ONLY_SENTINEL); if(L.size===0) leftFinal.delete(s.name); }
+      ensure(active,nN).add(s.digits || NAME_ONLY_SENTINEL);
+      const L = leftFinal.get(nN);
+      if(L){ L.delete(s.digits || NAME_ONLY_SENTINEL); if(L.size===0) leftFinal.delete(nN); }
     }else{
-      const A = ensure(active, s.name); if(s.digits) A.delete(s.digits); else if(A.size===1 && A.has(NAME_ONLY_SENTINEL)) A.delete(NAME_ONLY_SENTINEL);
-      ensure(leftFinal, s.name).add(s.digits||NAME_ONLY_SENTINEL);
+      const A = ensure(active,nN);
+      if(s.digits) A.delete(s.digits);
+      else if(A.size===1 && A.has(NAME_ONLY_SENTINEL)) A.delete(NAME_ONLY_SENTINEL);
+      ensure(leftFinal,nN).add(s.digits || NAME_ONLY_SENTINEL);
     }
   }
-  function table(title, rows){
-    const wrap=document.createElement('div'); wrap.className='card'; const h=document.createElement('h3'); h.textContent=title; wrap.appendChild(h);
-    const t=document.createElement('table'); t.innerHTML='<thead><tr><th>value</th></tr></thead>';
-    const tb=document.createElement('tbody'); rows.forEach(r=>{ const tr=document.createElement('tr'); const td=document.createElement('td'); td.textContent=r; tr.appendChild(td); tb.appendChild(tr); }); t.appendChild(tb); wrap.appendChild(t);
-    byPanel('results',sfx).appendChild(wrap);
+
+  // ❹ 데모용 "공유 시트 결제완료" 행(D=이름, E=전화끝4) — 미확인 케이스 유도
+  const paidRows = [
+    { name: '김예은', phone4: '0000' },   // OK
+    { name: '방예진', phone4: '9999' },   // OK
+    { name: '황현하', phone4: '5678' },   // 동명이인 처리용(중복 추가)
+    { name: '황현하', phone4: '9999' },   // ↳ 번호 불일치 → 미확인
+    { name: '김혜영', phone4: '7890' },   // 명단 외이나 동명이인 유도
+    { name: '김혜영영', phone4: ''    },   // ↳ 번호없음 → 미확인
+  ];
+  const paidNameCountN = new Map();
+  for(const r of paidRows){
+    const nN = normalizeName(r.name);
+    paidNameCountN.set(nN,(paidNameCountN.get(nN)||0)+1);
   }
-  const actRows=[]; active.forEach((set,name)=>{ set.forEach(d=>{ if(d===NAME_ONLY_SENTINEL) actRows.push(`${name}(번호없음)`); else actRows.push(`${name}/${d}`); }); });
-  const leaveRows=[]; leftFinal.forEach((set,name)=>{ set.forEach(d=>{ if(!active.get(name)?.has(d)) leaveRows.push(d===NAME_ONLY_SENTINEL?`${name}(번호없음)`: `${name}/${d}`); }); });
-  table('데모 입장자', actRows);
-  table('데모 퇴장자(최종)', leaveRows);
+
+  // ❺ 표1: 명단기준 입장자(데모)
+  const report = [];
+  for(const r of roster){
+    const nN = normalizeName(r.name);
+    const set = active.get(nN) || new Set();
+    const isActive = set.size>0;
+    const any4 = [...set].find(x=>x!==NAME_ONLY_SENTINEL) || '';
+    report.push([
+      String(r.id),           // roster_id(A)
+      r.name,
+      r.phone,
+      isActive ? '입장' : '미입장',
+      isActive ? (any4 ? `${r.name}/${any4}` : r.name) : '',
+      isActive && !any4 ? '(번호없음)' : ''
+    ]);
+  }
+
+  // ❻ 표2: 명단 외 입장자(데모)
+  const extra = [];
+  [...active.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
+    if(!rosterSetN.has(nN)){
+      const digits=[...set].filter(x=>x!==NAME_ONLY_SENTINEL);
+      if(digits.length) digits.forEach(d=> extra.push([`${nN}/${d}`]));
+      if(set.has(NAME_ONLY_SENTINEL)) extra.push([`${nN}(번호없음)`]);
+    }
+  });
+
+  // ❼ 표3: 퇴장자 명단(데모)
+  const leavers = [];
+  [...leftFinal.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
+    const act = active.get(nN);
+    set.forEach(d=>{
+      if(!act || !act.has(d)){
+        leavers.push([ d===NAME_ONLY_SENTINEL ? `${nN}(번호없음)` : `${nN}/${d}` ]);
+      }
+    });
+  });
+
+  // ❽ 표4: 미확인 목록(데모) — 동명이인 + 번호 문제
+  const unresolved = [];
+  for(const r of paidRows){
+    const nN = normalizeName(r.name);
+    const set = active.get(nN) || new Set();
+    const isDupInPaid = (paidNameCountN.get(nN)||0) > 1;   // 동명이인 상황만 수집
+    if(!isDupInPaid) continue;
+
+    const p4 = (r.phone4||'').trim();
+    if(p4 && set.has(p4)) continue; // 정확히 매칭되면 미확인 아님
+
+    if(!p4){
+      unresolved.push([r.name,'공유시트 동명이인 + 입장로그 번호없음']);
+    }else{
+      unresolved.push([r.name,'공유시트 동명이인 + 번호불일치']);
+    }
+  }
+
+  // 상단 배지
+  const pills = byPanel('pills',sfx);
+  if(pills){
+    pills.innerHTML='';
+    const mk=(t,c)=>{const s=document.createElement('span');s.className='pill '+c;s.textContent=t;return s;};
+    const attendingCount = roster.filter(r => (active.get(normalizeName(r.name))||new Set()).size>0).length;
+    pills.appendChild(mk(`입장로그 join ${joinedCount}`,'ok'));
+    pills.appendChild(mk(`퇴장로그 leave ${leftCount}`,'bad'));
+    pills.appendChild(mk(`입장 대상(읽기시트) ${attendingCount}`,'warn'));
+    pills.appendChild(mk('체크만','warn'));
+  }
+
+  // 렌더
+  function resTbl(title, headers, rows){
+    if(!resultsEl) return;
+    const wrap=document.createElement('div'); wrap.className='card';
+    const h=document.createElement('h3'); h.textContent=title; h.style.margin='0 0 8px'; wrap.appendChild(h);
+    const t=document.createElement('table');
+    const thead=document.createElement('thead'); const trh=document.createElement('tr');
+    headers.forEach(x=>{ const th=document.createElement('th'); th.textContent=x; trh.appendChild(th); });
+    thead.appendChild(trh); t.appendChild(thead);
+    const tb=document.createElement('tbody');
+    (rows||[]).forEach(r=>{
+      const tr=document.createElement('tr');
+      (r||[]).forEach(c=>{ const td=document.createElement('td'); td.textContent=(c==null?'':String(c)); tr.appendChild(td); });
+      tb.appendChild(tr);
+    });
+    t.appendChild(tb); wrap.appendChild(t); resultsEl.appendChild(wrap);
+  }
+
+  resTbl('명단기준 입장자(데모)', ['roster_id(A)','name','phone','status','matched_id','notes'], report);
+  resTbl('명단 외 입장자(데모)', ['name/last4 or (번호없음)'], extra);
+  resTbl('퇴장자 명단(데모)', ['name/last4 or (번호없음)'], leavers);
+  resTbl('미확인 목록(데모)', ['name','reason'], unresolved);
 }
 
 /* ===== 파일 선택 바인딩 ===== */
@@ -786,5 +886,3 @@ document.addEventListener('DOMContentLoaded', ()=>{
 </script>
 </body>
 </html>
-
-
