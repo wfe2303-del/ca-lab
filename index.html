@@ -149,7 +149,8 @@
               <div class="filectl">
                 <button id="pickFileA" class="btn" type="button">파일 선택</button>
                 <span id="fileNameA" class="fname">선택된 파일 없음</span>
-                <input id="chatFileA" type="file" accept=".txt" hidden />
+                <!-- multiple 적용 -->
+                <input id="chatFileA" type="file" accept=".txt,text/plain" hidden multiple />
               </div>
             </div>
           </div>
@@ -157,7 +158,7 @@
           <div class="row" style="margin-top:10px">
             <label class="row" style="gap:6px;align-items:center">
               <input id="previewOnlyA" type="checkbox" />
-              <span class="hint">체크용</span>
+              <span class="hint">열람용</span>
             </label>
             <button id="runBtnA" class="btn acc" type="button">실행</button>
             <button id="demoBtnA" class="btn" type="button">데모</button>
@@ -201,7 +202,8 @@
               <div class="filectl">
                 <button id="pickFileB" class="btn" type="button">파일 선택</button>
                 <span id="fileNameB" class="fname">선택된 파일 없음</span>
-                <input id="chatFileB" type="file" accept=".txt" hidden />
+                <!-- multiple 적용 -->
+                <input id="chatFileB" type="file" accept=".txt,text/plain" hidden multiple />
               </div>
             </div>
           </div>
@@ -209,7 +211,7 @@
           <div class="row" style="margin-top:10px">
             <label class="row" style="gap:6px;align-items:center">
               <input id="previewOnlyB" type="checkbox" />
-              <span class="hint">체크용</span>
+              <span class="hint">열람용</span>
             </label>
             <button id="runBtnB" class="btn acc" type="button">실행</button>
             <button id="demoBtnB" class="btn" type="button">데모</button>
@@ -270,9 +272,9 @@ function digitsOnly(s){ return String(s||'').replace(/[^\d]/g,''); }
 function last4Digits(s){ const d=digitsOnly(s); return d.slice(-4); }
 function normalizeName(n){
   let s = String(n||'').trim();
-  s = s.replace(/[\s]*[\(\[\{（【][^)\]\}）】]*[\)\]\}）】]\s*$/,''); // 끝 괄호태그 제거
-  s = s.replace(/[/_\-\s]+$/,'');                                // 끝 구분자 제거
-  s = s.replace(/\s+/g,' ');                                     // 공백 정리
+  s = s.replace(/[\s]*[\(\[\{（【][^)\]\}）】]*[\)\]\}）】]\s*$/,'');
+  s = s.replace(/[/_\-\s]+$/,'');
+  s = s.replace(/\s+/g,' ');
   return s;
 }
 function isPaid(v){
@@ -286,7 +288,7 @@ function isPaid(v){
   if(/입금|납부|paid|완료|확인|ok|done|true|yes|\by\b|\bo\b|✓|✔|✅/.test(s)) return true;
   return false;
 }
-const earlierId = (a,b)=>{ // 숫자/문자 안전 비교(작은 값이 더 이른 번호)
+const earlierId = (a,b)=>{
   const ai = parseInt(a,10), bi = parseInt(b,10);
   if(!Number.isNaN(ai) && !Number.isNaN(bi)) return ai <= bi ? a : b;
   return (String(a) <= String(b)) ? a : b;
@@ -444,6 +446,11 @@ function splitNickname(nick){
   return { name, digits };
 }
 async function readText(file){ return await file.text(); }
+async function readAllTexts(fileList){
+  const files = Array.from(fileList || []);
+  const texts = await Promise.all(files.map(f => f.text()));
+  return texts.join('\n');
+}
 function parseChat(text){
   const lines=text.split(/\r?\n/);
   const events=[]; let joinedCount=0,leftCount=0;
@@ -463,7 +470,10 @@ async function runMain(sfx){
     const resultsEl = byPanel('results', sfx); if(resultsEl) resultsEl.innerHTML='';
     const previewOnly = byPanel("previewOnly",sfx)?.checked;
 
-    const chatFile=byPanel('chatFile',sfx)?.files?.[0]; if(!chatFile) throw new Error('대화 txt 파일을 선택하세요.');
+    const fileInput = byPanel('chatFile',sfx);
+    const files = fileInput?.files;
+    if(!files || files.length === 0) throw new Error('대화 txt 파일을 선택하세요.');
+
     const packSel=byPanel('sheetPackSelect',sfx); if(!packSel || !packSel.value) throw new Error('스프레드시트를 선택하세요.');
     const readSheet=val('readSheetSelect',sfx); if(!readSheet) throw new Error('읽기 시트를 선택하세요.');
     const writeSheet=val('writeSheetSelect',sfx); if(!writeSheet) throw new Error('공유 시트를 선택하세요.');
@@ -471,15 +481,14 @@ async function runMain(sfx){
     const packs=loadPacks(); const pack=packs.find(x=>x.id===packSel.value); if(!pack) throw new Error('연결 정보를 찾을 수 없습니다.');
     const sheetId=pack.sheetId; const readCol=pack.readCol||'C';
 
-    // ── 1) 카톡 파싱 → 최종 활성/퇴장 상태
-    const chatText = await readText(chatFile);
+    // ── 1) 카톡 파싱 → 최종 활성/퇴장 상태 (여러 파일 합쳐 파싱)
+    const chatText = await readAllTexts(files);
     const {events, joinedCount, leftCount} = parseChat(chatText);
 
     const NAME_ONLY_SENTINEL = '__NAMEONLY__';
-    const activeDigitsByName = new Map();      // nameN -> Set(끝4 or sentinel)
-    const leftFinalDigitsByName = new Map();   // nameN -> Set(끝4 or sentinel) [최종 상태가 '밖'인 것]
+    const activeDigitsByName = new Map();
+    const leftFinalDigitsByName = new Map();
     const nameOnlyJoin = new Set();
-
     const ensure = (map, key)=>{ if(!map.has(key)) map.set(key,new Set()); return map.get(key); };
 
     for(const ev of events){
@@ -495,7 +504,7 @@ async function runMain(sfx){
           if(L.size===0) leftFinalDigitsByName.delete(nN);
         }
         if(!s.digits){ nameOnlyJoin.add(nN); }
-      }else{ // leave/kick
+      }else{
         const A = ensure(activeDigitsByName, nN);
         if(s.digits){ A.delete(s.digits); }
         else { if(A.size===1 && A.has(NAME_ONLY_SENTINEL)) A.delete(NAME_ONLY_SENTINEL); }
@@ -518,9 +527,9 @@ async function runMain(sfx){
       rosterSetN.add(nN);
     }
 
-    // ── 3) 공유 시트 A~E를 한 번에 읽어서 번호/이름/전화 매핑(가장 빠른 A열 번호 기준)
+    // ── 3) 공유 시트 A~E 읽어서 번호/이름/전화 매핑
     const wAtoE = await getRange(sheetId, `${writeSheet}!A${WRITE_START_ROW}:E`);
-    const wRowsAE = wAtoE.values || []; // [A=no, B=?, C=?, D=name, E=phone]
+    const wRowsAE = wAtoE.values || [];
     const earliestByKey = new Map();    // `${nameN}|${phone4}` -> {id, phoneFull}
     const earliestByName = new Map();   // nameN -> {id, phoneFull, phone4}
 
@@ -533,7 +542,6 @@ async function runMain(sfx){
       const nN = normalizeName(nameRaw);
       const p4 = last4Digits(phoneRaw);
 
-      // name+phone4 키
       if(p4){
         const key = nN + '|' + p4;
         if(!earliestByKey.has(key)) earliestByKey.set(key, {id, phoneFull: phoneRaw, phone4:p4});
@@ -542,7 +550,6 @@ async function runMain(sfx){
           earliestByKey.set(key, earlierId(cur.id,id)===cur.id ? cur : {id, phoneFull:phoneRaw, phone4:p4});
         }
       }
-      // name 단독 키(전화없어도 유지)
       if(!earliestByName.has(nN)) earliestByName.set(nN, {id, phoneFull: phoneRaw, phone4:p4});
       else{
         const cur = earliestByName.get(nN);
@@ -572,7 +579,7 @@ async function runMain(sfx){
 
       const notes = (isAttendingNameN(nN) && !any4) ? '(번호없음)' : '';
       const status = attendingSetN.has(nN) ? '입장' : '미입장';
-      const rosterNo = matchedId; // A열 번호
+      const rosterNo = matchedId;
 
       report.push([rosterNo, nm, phoneFull, status, any4 ? `${nm}/${any4}` : (status==='입장'?nm:''), notes]);
     }
@@ -624,7 +631,7 @@ async function runMain(sfx){
       const phone4  = last4Digits(r[1] ?? '');    // E
       if(!nameN) continue;
 
-      if(!attendingSetN.has(nameN)) continue; // 최종 입장중이 아니면 기록 안 함
+      if(!attendingSetN.has(nameN)) continue;
 
       const set = activeDigitsByName.get(nameN) || new Set();
       const isDupInPaid = (paidNameCountN.get(nameN)||0) > 1;
@@ -656,6 +663,8 @@ async function runMain(sfx){
       pills.appendChild(mk(`입장로그 join ${joinedCount}`,'ok'));
       pills.appendChild(mk(`퇴장로그 leave ${leftCount}`,'bad'));
       pills.appendChild(mk(`입장 대상(읽기시트) ${attendingSetN.size}`,'warn'));
+      const fileCount = files.length;
+      pills.appendChild(mk(`파일 ${fileCount}개`,'ok'));
       if(previewOnly) pills.appendChild(mk('체크만','warn'));
     }
 
@@ -670,7 +679,7 @@ async function runMain(sfx){
       (rows||[]).forEach(r=>{ const tr=document.createElement('tr'); (r||[]).forEach(c=>{ const td=document.createElement('td'); td.textContent=(c==null?'':String(c)); tr.appendChild(td); }); tb.appendChild(tr); });
       t.appendChild(tb); wrap.appendChild(t); resultsEl.appendChild(wrap);
     }
-    resTbl('내 명단 기준 상태(읽기 시트)', ['roster_id(A)','name','phone','status','matched_id','notes'], report);
+    resTbl('내 명단 기준 상태(읽기 시트)', ['no','name','phone','status','matched_id','notes'], report);
     resTbl('명단 외 입장자', ['name/last4 or (번호없음)'], extra);
     resTbl('퇴장자 명단(최종)', ['name/last4 or (번호없음)'], leavers);
     resTbl(previewOnly ? '예상 갱신 결과(체크만 모드)' : '공유 시트 갱신 결과',
@@ -686,7 +695,6 @@ function runDemo(sfx){
   const resultsEl = byPanel('results',sfx);
   if(resultsEl) resultsEl.innerHTML='';
 
-  // ❶ 데모용 명단(읽기 시트) — 번호/이름/전화
   const roster = [
     { id: 1, name: '황현하', phone: '010-1234-5678' },
     { id: 3, name: '김혜영', phone: '010-3456-7890' },
@@ -696,24 +704,22 @@ function runDemo(sfx){
   ];
   const rosterSetN = new Set(roster.map(r => normalizeName(r.name)));
 
-  // ❷ 데모용 카톡 로그
   const chatText = [
     '김예은/0000님이 입장하셨습니다',
     '황현하/5678님이 입장하셨습니다',
     '방예진/9999님이 입장했습니다',
     '임규리 1771님이 들어왔습니다',
     '김혜영/7890님이 입장하셨습니다',
-    '진종범/2514님이 입장하셨습니다',   // 명단 외
-    '매드드라이버김지현님이 입장하셨습니다',   // 명단 외
-    '신조차모독하는천재이원철님이 입장하셨습니다',   // 명단 외
-    '세계제일의규리당장찬양님이 나갔습니다.',          // 최종 퇴장 처리
-    '송지현예쁘다님을 내보냈습니다.'          // 최종 퇴장 처리
+    '진종범/2514님이 입장하셨습니다',
+    '매드드라이버김지현님이 입장하셨습니다',
+    '신조차모독하는천재이원철님이 입장하셨습니다',
+    '세계제일의규리당장찬양님이 나갔습니다.',
+    '송지현예쁘다님을 내보냈습니다.'
   ].join('\n');
   const {events, joinedCount, leftCount} = parseChat(chatText);
 
-  // ❸ 활성/퇴장 상태 계산
   const NAME_ONLY_SENTINEL='__NAMEONLY__';
-  const active = new Map();           // nameN -> Set(last4 or sentinel)
+  const active = new Map();
   const leftFinal = new Map();
   const ensure=(map,key)=>{ if(!map.has(key)) map.set(key,new Set()); return map.get(key); };
 
@@ -732,14 +738,13 @@ function runDemo(sfx){
     }
   }
 
-  // ❹ 데모용 "공유 시트 결제완료" 행(D=이름, E=전화끝4) — 미확인 케이스 유도
   const paidRows = [
-    { name: '김예은', phone4: '0000' },   // OK
-    { name: '방예진', phone4: '9999' },   // OK
-    { name: '황현하', phone4: '5678' },   // 동명이인 처리용(중복 추가)
-    { name: '황현하', phone4: '9999' },   // ↳ 번호 불일치 → 미확인
-    { name: '김혜영', phone4: '7890' },   // 명단 외이나 동명이인 유도
-    { name: '김혜영', phone4: ''    },   // ↳ 번호없음 → 미확인
+    { name: '김예은', phone4: '0000' },
+    { name: '방예진', phone4: '9999' },
+    { name: '황현하', phone4: '5678' },
+    { name: '황현하', phone4: '9999' },
+    { name: '김혜영', phone4: '7890' },
+    { name: '김혜영', phone4: ''    },
   ];
   const paidNameCountN = new Map();
   for(const r of paidRows){
@@ -747,7 +752,6 @@ function runDemo(sfx){
     paidNameCountN.set(nN,(paidNameCountN.get(nN)||0)+1);
   }
 
-  // ❺ 표1: 명단기준 입장자(데모)
   const report = [];
   for(const r of roster){
     const nN = normalizeName(r.name);
@@ -755,16 +759,13 @@ function runDemo(sfx){
     const isActive = set.size>0;
     const any4 = [...set].find(x=>x!==NAME_ONLY_SENTINEL) || '';
     report.push([
-      String(r.id),           // no
-      r.name,
-      r.phone,
+      String(r.id), r.name, r.phone,
       isActive ? '입장' : '미입장',
       isActive ? (any4 ? `${r.name}/${any4}` : r.name) : '',
       isActive && !any4 ? '(번호없음)' : ''
     ]);
   }
 
-  // ❻ 표2: 명단 외 입장자(데모)
   const extra = [];
   [...active.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
     if(!rosterSetN.has(nN)){
@@ -774,7 +775,6 @@ function runDemo(sfx){
     }
   });
 
-  // ❼ 표3: 퇴장자 명단(데모)
   const leavers = [];
   [...leftFinal.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
     const act = active.get(nN);
@@ -785,16 +785,15 @@ function runDemo(sfx){
     });
   });
 
-  // ❽ 표4: 미확인 목록(데모) — 동명이인 + 번호 문제
   const unresolved = [];
   for(const r of paidRows){
     const nN = normalizeName(r.name);
     const set = active.get(nN) || new Set();
-    const isDupInPaid = (paidNameCountN.get(nN)||0) > 1;   // 동명이인 상황만 수집
+    const isDupInPaid = (paidNameCountN.get(nN)||0) > 1;
     if(!isDupInPaid) continue;
 
     const p4 = (r.phone4||'').trim();
-    if(p4 && set.has(p4)) continue; // 정확히 매칭되면 미확인 아님
+    if(p4 && set.has(p4)) continue;
 
     if(!p4){
       unresolved.push([r.name,'공유시트 동명이인 + 입장로그 번호없음']);
@@ -803,7 +802,6 @@ function runDemo(sfx){
     }
   }
 
-  // 상단 배지
   const pills = byPanel('pills',sfx);
   if(pills){
     pills.innerHTML='';
@@ -815,7 +813,6 @@ function runDemo(sfx){
     pills.appendChild(mk('체크만','warn'));
   }
 
-  // 렌더
   function resTbl(title, headers, rows){
     if(!resultsEl) return;
     const wrap=document.createElement('div'); wrap.className='card';
@@ -845,9 +842,17 @@ function bindFilePicker(sfx){
   if(pickBtn && fileInput && nameSpan){
     pickBtn.addEventListener('click',()=>fileInput.click());
     fileInput.addEventListener('change',()=>{
-      const f=fileInput.files?.[0];
-      nameSpan.textContent = f? f.name : '선택된 파일 없음';
-      nameSpan.classList.toggle('has', !!f);
+      const files = Array.from(fileInput.files || []);
+      if(files.length === 0){
+        nameSpan.textContent = '선택된 파일 없음';
+        nameSpan.classList.remove('has');
+      }else if(files.length === 1){
+        nameSpan.textContent = files[0].name;
+        nameSpan.classList.add('has');
+      }else{
+        nameSpan.textContent = `${files[0].name} 외 ${files.length-1}개`;
+        nameSpan.classList.add('has');
+      }
     });
   }
 }
@@ -888,8 +893,3 @@ document.addEventListener('DOMContentLoaded', ()=>{
 </script>
 </body>
 </html>
-
-
-
-
-
