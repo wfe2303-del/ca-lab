@@ -41,7 +41,6 @@
     th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
     th{color:#0f172a;font-weight:600;background:#f1f5f9;position:sticky;top:0}
 
-    /* 로고/제목 */
     .brand{display:flex;align-items:center;gap:14px;margin:0 0 6px}
     .brand h1{margin:0;font-size:22px}
     .brand-logo{width:var(--logo-size);height:var(--logo-size);flex:0 0 var(--logo-size)}
@@ -51,7 +50,6 @@
       paint-order:stroke fill; stroke:#0f172a; stroke-width:.9px;
     }
 
-    /* 관리자 UI */
     .admin-drawer{width:520px;padding:14px 16px 18px}
     .admin-drawer .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:none;margin:0 0 12px}
     .admin-drawer h4{margin:0 0 8px;font-weight:700}
@@ -59,16 +57,11 @@
     .admin-drawer input{height:42px;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
     .admin-drawer .btn{height:36px;padding:0 12px;border-radius:12px}
     #admList{border-collapse:collapse;width:100%}
-    #admList th{background:#f1f5f9;font-weight:600;padding:10px}
     #admList td{padding:10px;border-top:1px solid var(--line);font-size:13px;vertical-align:middle}
-    #admList tr:hover td{background:#f9fafb}
-    #admList .btn{height:34px;padding:0 12px;border-radius:12px}
     #admMeta{color:#94a3b8;margin-top:8px}
-    .admin-drawer input[type="text"],.admin-drawer input:not([type]),.admin-drawer select,.admin-drawer textarea{width:100%;box-sizing:border-box}
     :root{--admin-h:44px}
     .admin-drawer input,.admin-drawer .btn{height:var(--admin-h);line-height:calc(var(--admin-h) - 2px);border-radius:12px}
 
-    /* 레이아웃 */
     .panels{display:grid;gap:16px}
     @media(min-width:1100px){ .panels{grid-template-columns:1fr 1fr} }
     .controls{display:grid;gap:var(--gap)}
@@ -76,10 +69,6 @@
     .icon-btn{width:var(--ctl-h);height:var(--ctl-h);border:1px solid var(--line);border-radius:10px;background:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
     .icon-btn:hover{border-color:var(--accent-strong);box-shadow:0 0 0 3px rgba(96,165,250,.2)}
     .icon-btn svg{width:18px;height:18px}
-
-    .filectl{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center}
-    .fname{height:var(--ctl-h);line-height:var(--ctl-h);border:1px solid var(--line);border-radius:var(--radius);padding:0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#fff;color:#9aa4b2}
-    .fname.has{color:#0f172a}
 
     .gear-btn{position:fixed;top:16px;right:16px;z-index:50;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px;cursor:pointer}
     .admin-overlay{position:fixed;inset:0;background:rgba(15,23,42,.28);backdrop-filter:saturate(140%) blur(2px);visibility:hidden;opacity:0;pointer-events:none;transition:.15s;z-index:60}
@@ -94,7 +83,6 @@
   <button id="settingsBtn" class="gear-btn" title="설정" type="button" aria-label="관리자 설정 열기">⚙</button>
 
   <div class="wrap">
-    <!-- 로고+제목 -->
     <header class="brand">
       <svg class="brand-logo" viewBox="0 0 90 50" role="img" aria-label="ClassAround">
         <rect width="90" height="50" rx="10" fill="white"/>
@@ -106,7 +94,6 @@
       <h1>클래스어라운드 카카오톡 입장자 체크봇</h1>
     </header>
 
-    <!-- 로그인(공용) -->
     <div class="card">
       <div class="row">
         <button id="gsLoginBtn" class="btn acc" type="button">로그인</button>
@@ -144,17 +131,7 @@
               </div>
             </div>
 
-            <!-- 기존: 단일 파일 업로드 -->
-            <div>
-              <label>카카오톡 대화 <span class="hint">.txt (단일 업로드)</span></label>
-              <div class="filectl">
-                <button id="pickFileA" class="btn" type="button">파일 선택</button>
-                <span id="fileNameA" class="fname">선택된 파일 없음</span>
-                <input id="chatFileA" type="file" accept=".txt" hidden />
-              </div>
-            </div>
-
-            <!-- 추가: 로컬 폴더 연결 + 폴더 내 txt 드롭다운 -->
+            <!-- 폴더 연결 + 폴더 내 txt 드롭다운 (파일명만 표시) -->
             <div>
               <label>로컬 폴더에서 대화 파일 선택 <span class="hint">(.txt)</span></label>
               <div class="row" style="gap:8px">
@@ -212,17 +189,6 @@
               </div>
             </div>
 
-            <!-- 기존: 단일 파일 업로드 -->
-            <div>
-              <label>카카오톡 대화 <span class="hint">.txt (단일 업로드)</span></label>
-              <div class="filectl">
-                <button id="pickFileB" class="btn" type="button">파일 선택</button>
-                <span id="fileNameB" class="fname">선택된 파일 없음</span>
-                <input id="chatFileB" type="file" accept=".txt" hidden />
-              </div>
-            </div>
-
-            <!-- 추가: 로컬 폴더 연결 + 폴더 내 txt 드롭다운 -->
             <div>
               <label>로컬 폴더에서 대화 파일 선택 <span class="hint">(.txt)</span></label>
               <div class="row" style="gap:8px">
@@ -307,17 +273,10 @@ function normalizeName(n){
   s = s.replace(/\s+/g,' ');                                     // 공백 정리
   return s;
 }
-function isStudent(v){ // T열 값 판정
-  const s = String(v||'').trim();
-  return s.includes('수강생'); // 정확히 '수강생'이면 true. 포함으로 여유.
-}
-const earlierId = (a,b)=>{ // 숫자/문자 안전 비교(작은 값이 더 이른 번호)
-  const ai = parseInt(a,10), bi = parseInt(b,10);
-  if(!Number.isNaN(ai) && !Number.isNaN(bi)) return ai <= bi ? a : b;
-  return (String(a) <= String(b)) ? a : b;
-};
+function isStudent(v){ const s = String(v||'').trim(); return s.includes('수강생'); }
+const earlierId = (a,b)=>{ const ai = parseInt(a,10), bi = parseInt(b,10); if(!Number.isNaN(ai)&&!Number.isNaN(bi)) return ai<=bi?a:b; return (String(a)<=String(b))?a:b; };
 
-/* ===== 전역 오류 UI ===== */
+/* ===== 오류 집계 ===== */
 (function(){
   const pushErr = (msg, src, line, col, err)=> {
     const details = (err && err.stack) ? ('\n' + err.stack) : '';
@@ -465,7 +424,6 @@ function splitNickname(nick){
   const digits = digitsAll.length >= 4 ? digitsAll.slice(-4) : null;
   return { name, digits };
 }
-async function readText(file){ return await file.text(); }
 function parseChat(text){
   const lines=text.split(/\r?\n/);
   const events=[]; let joinedCount=0,leftCount=0;
@@ -482,8 +440,6 @@ function parseChat(text){
 const dirHandle = {A:null, B:null};
 let dirFiles = {A:[], B:[]}; // [{name, handle, size, mtime}...]
 
-function formatSize(n){ if(n>=1048576) return (n/1048576).toFixed(1)+'MB'; if(n>=1024) return (n/1024).toFixed(1)+'KB'; return n+'B'; }
-
 async function ensureDirPerm(h){
   if(!h) return false;
   const q = await h.queryPermission?.({mode:'read'});
@@ -498,7 +454,7 @@ async function pickDir(sfx){
     const h = await window.showDirectoryPicker();
     dirHandle[sfx] = h;
     await refreshDirList(sfx);
-  }catch(e){ /* 취소 등 무시 */ }
+  }catch(e){ /* 취소 */ }
 }
 
 async function refreshDirList(sfx){
@@ -517,28 +473,18 @@ async function refreshDirList(sfx){
       entries.push({name, handle});
     }
   }
+  // 최신순 정렬(수정시간 기준)
   const withMeta=[];
-  for(const e of entries){
-    const f = await e.handle.getFile();
-    withMeta.push({...e, size:f.size, mtime:f.lastModified});
-  }
-  withMeta.sort((a,b)=> b.mtime - a.mtime); // 최신순
+  for(const e of entries){ const f = await e.handle.getFile(); withMeta.push({...e, size:f.size, mtime:f.lastModified}); }
+  withMeta.sort((a,b)=> b.mtime - a.mtime);
   dirFiles[sfx] = withMeta;
 
   sel.appendChild(new Option('폴더 내 txt 선택',''));
-  withMeta.forEach((e,idx)=>{
-    const d = new Date(e.mtime);
-    const label = `${e.name} — ${d.toLocaleString()} • ${formatSize(e.size)}`;
-    sel.appendChild(new Option(label, String(idx)));
-  });
-  if(hint) hint.textContent = `${dir.name} · ${withMeta.length}개 파일`;
+  withMeta.forEach((e,idx)=>{ sel.appendChild(new Option(e.name, String(idx))); }); // 파일명만 표시
+  if(hint) hint.textContent = `폴더: ${dir.name} · ${withMeta.length}개 파일`;
 }
 
 async function getChatTextFromUI(sfx){
-  // 1) 단일 업로드 우선
-  const fi = byPanel('chatFile',sfx);
-  if(fi?.files?.[0]) return await fi.files[0].text();
-  // 2) 폴더 드롭다운 선택
   const sel = byPanel('dirFileSelect',sfx);
   const v = sel?.value || '';
   if(v !== ''){
@@ -549,7 +495,7 @@ async function getChatTextFromUI(sfx){
       return await f.text();
     }
   }
-  throw new Error('대화 txt 파일을 선택하거나, 폴더에서 파일을 선택하세요.');
+  throw new Error('폴더에서 대화 txt 파일을 선택하세요.');
 }
 
 /* ===== 실행(패널별) ===== */
@@ -566,13 +512,13 @@ async function runMain(sfx){
     const packs=loadPacks(); const pack=packs.find(x=>x.id===packSel.value); if(!pack) throw new Error('연결 정보를 찾을 수 없습니다.');
     const sheetId=pack.sheetId; const readCol=pack.readCol||'C';
 
-    // ── 1) 카톡 파싱 → 최종 활성/퇴장 상태
+    // 1) 카톡 파싱
     const chatText = await getChatTextFromUI(sfx);
     const {events, joinedCount, leftCount} = parseChat(chatText);
 
     const NAME_ONLY_SENTINEL = '__NAMEONLY__';
-    const activeDigitsByName = new Map();      // nameN -> Set(끝4 or sentinel)
-    const leftFinalDigitsByName = new Map();   // nameN -> Set(끝4 or sentinel) [최종 '밖']
+    const activeDigitsByName = new Map();
+    const leftFinalDigitsByName = new Map();
     const nameOnlyJoin = new Set();
     const ensure = (map, key)=>{ if(!map.has(key)) map.set(key,new Set()); return map.get(key); };
 
@@ -597,7 +543,7 @@ async function runMain(sfx){
       }
     }
 
-    // ── 2) 읽기 시트(명단 이름) 로드
+    // 2) 읽기 시트(명단) 로드
     const readNames = await getRange(sheetId, `${readSheet}!${readCol}${READ_START_ROW}:${readCol}`);
     const readRows = readNames.values || [];
     const rosterNames = [];
@@ -612,12 +558,11 @@ async function runMain(sfx){
       rosterSetN.add(nN);
     }
 
-    // ── 3) 공유 시트 A~E 읽어 A열(번호) 매칭 (가장 이른 번호 기준)
+    // 3) 공유 시트 A~E 읽어 A열(번호) 매칭
     const wAtoE = await getRange(sheetId, `${writeSheet}!A${WRITE_START_ROW}:E`);
-    const wRowsAE = wAtoE.values || []; // [A=no, B=?, C=?, D=name, E=phone]
-    const earliestByKey = new Map();    // `${nameN}|${phone4}` -> {id, phoneFull}
-    const earliestByName = new Map();   // nameN -> {id, phoneFull, phone4}
-
+    const wRowsAE = wAtoE.values || [];
+    const earliestByKey = new Map();
+    const earliestByName = new Map();
     for(const r of wRowsAE){
       const id  = (r[0] ?? '').toString().trim();
       const nameRaw = (r[3] ?? '').toString().trim();
@@ -642,14 +587,14 @@ async function runMain(sfx){
       }
     }
 
-    // ── 4) 입장중 이름 판정
+    // 4) 입장중 이름 집합
     const isAttendingNameN = (nN)=> {
       const set = activeDigitsByName.get(nN);
       return (set && set.size>0) || nameOnlyJoin.has(nN);
     };
     const attendingSetN = new Set([...rosterSetN].filter(nN => isAttendingNameN(nN)));
 
-    // ── 5) 표1: 명단 기준 상태(읽기 시트)
+    // 5) 표1
     const report=[];
     for(let i=0;i<rosterNames.length;i++){
       const nm = rosterNames[i];
@@ -664,12 +609,12 @@ async function runMain(sfx){
 
       const notes = (isAttendingNameN(nN) && !any4) ? '(번호없음)' : '';
       const status = attendingSetN.has(nN) ? '입장' : '미입장';
-      const rosterNo = matchedId; // A열 번호
+      const rosterNo = matchedId;
 
       report.push([rosterNo, nm, phoneFull, status, any4 ? `${nm}/${any4}` : (status==='입장'?nm:''), notes]);
     }
 
-    // ── 6) 표2: 명단 외 입장자
+    // 6) 표2
     const extra=[];
     [...activeDigitsByName.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
       if(!rosterSetN.has(nN)){
@@ -679,7 +624,7 @@ async function runMain(sfx){
       }
     });
 
-    // ── 7) 표3: 퇴장자(최종)
+    // 7) 표3
     const leavers=[];
     [...leftFinalDigitsByName.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
       const activeSet = activeDigitsByName.get(nN);
@@ -691,39 +636,36 @@ async function runMain(sfx){
       });
     });
 
-    // ── 8) 공유 시트 갱신: 기준을 T열('수강생')로 변경, 기록은 S열
-    const writeRange = `${writeSheet}!D${WRITE_START_ROW}:T`; // D..T 읽기
+    // 8) 공유 시트 갱신: 기준=T열 '수강생', 기록=S열 '입장'
+    const writeRange = `${writeSheet}!D${WRITE_START_ROW}:T`; // D..T
     const wdata = await getRange(sheetId, writeRange);
     const rows = wdata.values || [];
     const studentRowsIdx = [];
-    const paidNameCountN = new Map(); // 동명이인 판정용 (D열 이름 빈도)
-
+    const nameCountN = new Map();
     for(let i=0;i<rows.length;i++){
       const r = rows[i] || [];
       const nameN = normalizeName(String(r[0] ?? '')); // D
       const tVal  = r[16]; // T
       if(!nameN) continue;
       if(isStudent(tVal)) studentRowsIdx.push(i);
-      paidNameCountN.set(nameN, (paidNameCountN.get(nameN)||0)+1);
+      nameCountN.set(nameN, (nameCountN.get(nameN)||0)+1);
     }
 
     const updates = [];
     const unresolved = [];
-
     for(const i of studentRowsIdx){
       const r = rows[i] || [];
-      const nameRaw = String(r[0] ?? '').trim(); // D
+      const nameRaw = String(r[0] ?? '').trim();
       const nameN   = normalizeName(nameRaw);
-      const phone4  = last4Digits(r[1] ?? '');    // E
+      const phone4  = last4Digits(r[1] ?? '');
       if(!nameN) continue;
-
-      if(!attendingSetN.has(nameN)) continue; // 최종 입장중이 아니면 기록 안 함
+      if(!attendingSetN.has(nameN)) continue;
 
       const set = activeDigitsByName.get(nameN) || new Set();
-      const isDupInPaid = (paidNameCountN.get(nameN)||0) > 1;
+      const dup = (nameCountN.get(nameN)||0) > 1;
 
       let canWrite = false;
-      if(isDupInPaid){
+      if(dup){
         if(phone4 && set.has(phone4)) canWrite = true;
         else {
           if(set.has(NAME_ONLY_SENTINEL)) unresolved.push([nameRaw,'동명이인 + 입장로그 번호없음']);
@@ -735,7 +677,7 @@ async function runMain(sfx){
 
       if(canWrite){
         const rowNumber = WRITE_START_ROW + i;
-        updates.push({ range: `${writeSheet}!S${rowNumber}`, values: [['입장']] }); // S열에 기록
+        updates.push({ range: `${writeSheet}!S${rowNumber}`, values: [['입장']] });
       }
     }
 
@@ -743,7 +685,6 @@ async function runMain(sfx){
       await batchUpdateValues(sheetId, updates);
     }
 
-    // 상단 배지
     const pills=byPanel('pills',sfx); if(pills){ pills.innerHTML='';
       const mk=(t,c)=>{ const s=document.createElement('span'); s.className='pill '+c; s.textContent=t; return s; };
       pills.appendChild(mk(`입장로그 join ${joinedCount}`,'ok'));
@@ -752,7 +693,6 @@ async function runMain(sfx){
       if(previewOnly) pills.appendChild(mk('체크만','warn'));
     }
 
-    // 렌더
     function resTbl(title, headers, rows){
       if(!resultsEl) return;
       const wrap=document.createElement('div'); wrap.className='card';
@@ -773,13 +713,12 @@ async function runMain(sfx){
   }catch(e){ txt('err','오류: '+(e?.message||e),sfx); console.error(e); }
 }
 
-/* ===== 데모(패널별) : 동일 형식 4표 ===== */
+/* ===== 데모(동일 4표) ===== */
 function runDemo(sfx){
   txt('err','',sfx);
   const resultsEl = byPanel('results',sfx);
   if(resultsEl) resultsEl.innerHTML='';
 
-  // 데모 명단
   const roster = [
     { id: 1, name: '황현하', phone: '010-1234-5678' },
     { id: 3, name: '김혜영', phone: '010-3456-7890' },
@@ -789,17 +728,16 @@ function runDemo(sfx){
   ];
   const rosterSetN = new Set(roster.map(r => normalizeName(r.name)));
 
-  // 데모 로그
   const chatText = [
     '김예은/0000님이 입장하셨습니다',
     '황현하/5678님이 입장하셨습니다',
     '방예진/9999님이 입장했습니다',
     '임규리 1771님이 들어왔습니다',
     '김혜영/7890님이 입장하셨습니다',
-    '진종범/2514님이 입장하셨습니다',   // 명단 외
-    '매드드라이버김지현님이 입장하셨습니다',   // 명단 외
-    '세계제일의규리당장찬양님이 나갔습니다.',  // 최종 퇴장 처리
-    '송지현예쁘다님을 내보냈습니다.'           // 최종 퇴장 처리
+    '진종범/2514님이 입장하셨습니다',
+    '매드드라이버김지현님이 입장하셨습니다',
+    '세계제일의규리당장찬양님이 나갔습니다.',
+    '송지현예쁘다님을 내보냈습니다.'
   ].join('\n');
   const {events, joinedCount, leftCount} = parseChat(chatText);
 
@@ -820,19 +758,17 @@ function runDemo(sfx){
     }
   }
 
-  // 데모 '수강생' 행(동명이인 유도)
   const paidRows = [
     { name: '김예은', phone4: '0000' },
     { name: '방예진', phone4: '9999' },
     { name: '황현하', phone4: '5678' },
-    { name: '황현하', phone4: '9999' },   // 번호 불일치 → 미확인
-    { name: '김혜영', phone4: '7890' },   // 동명이인 가정
-    { name: '김혜영', phone4: ''    },   // 번호없음 → 미확인
+    { name: '황현하', phone4: '9999' },
+    { name: '김혜영', phone4: '7890' },
+    { name: '김혜영', phone4: ''    },
   ];
   const paidNameCountN = new Map();
   for(const r of paidRows){ const nN = normalizeName(r.name); paidNameCountN.set(nN,(paidNameCountN.get(nN)||0)+1); }
 
-  // 표1
   const report = [];
   for(const r of roster){
     const nN = normalizeName(r.name);
@@ -842,7 +778,6 @@ function runDemo(sfx){
     report.push([ String(r.id), r.name, r.phone, isActive?'입장':'미입장', isActive ? (any4? `${r.name}/${any4}`: r.name) : '', isActive&&!any4? '(번호없음)':'' ]);
   }
 
-  // 표2
   const extra = [];
   [...active.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
     if(!rosterSetN.has(nN)){
@@ -852,21 +787,18 @@ function runDemo(sfx){
     }
   });
 
-  // 표3
   const leavers = [];
   [...leftFinal.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
     const act = active.get(nN);
     set.forEach(d=>{ if(!act || !act.has(d)) leavers.push([ d===NAME_ONLY_SENTINEL ? `${nN}(번호없음)` : `${nN}/${d}` ]); });
   });
 
-  // 표4
   const unresolved = [];
   for(const r of paidRows){
     const nN = normalizeName(r.name);
     const set = active.get(nN) || new Set();
     const isDupInPaid = (paidNameCountN.get(nN)||0) > 1;
     if(!isDupInPaid) continue;
-
     const p4 = (r.phone4||'').trim();
     if(p4 && set.has(p4)) continue;
     if(!p4) unresolved.push([r.name,'동명이인 + 입장로그 번호없음']);
@@ -903,20 +835,7 @@ function runDemo(sfx){
   resTbl('미확인 목록(데모)', ['name','reason'], unresolved);
 }
 
-/* ===== 파일/폴더 선택 바인딩 ===== */
-function bindFilePicker(sfx){
-  const pickBtn=byPanel('pickFile',sfx), fileInput=byPanel('chatFile',sfx), nameSpan=byPanel('fileName',sfx);
-  if(pickBtn && fileInput && nameSpan){
-    pickBtn.addEventListener('click',()=>fileInput.click());
-    fileInput.addEventListener('change',()=>{
-      const f=fileInput.files?.[0];
-      nameSpan.textContent = f? f.name : '선택된 파일 없음';
-      nameSpan.classList.toggle('has', !!f);
-    });
-  }
-}
-
-/* ===== 초기화 ===== */
+/* ===== 이벤트 바인딩 ===== */
 window.addEventListener('load', ()=>{ if(window.google?.accounts?.oauth2) initAuth(); });
 document.addEventListener('DOMContentLoaded', ()=>{
   on('gsLoginBtn','click', requestAccess);
@@ -937,7 +856,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
   on('refreshMeta','click', ()=>refreshMeta('A'), 'A');
   on('runBtn','click', ()=>runMain('A'), 'A');
   on('demoBtn','click', ()=>runDemo('A'), 'A');
-  bindFilePicker('A');
   on('pickDir','click', ()=>pickDir('A'),'A');
   on('refreshDir','click', ()=>refreshDirList('A'),'A');
 
@@ -946,7 +864,6 @@ document.addEventListener('DOMContentLoaded', ()=>{
   on('refreshMeta','click', ()=>refreshMeta('B'), 'B');
   on('runBtn','click', ()=>runMain('B'), 'B');
   on('demoBtn','click', ()=>runDemo('B'), 'B');
-  bindFilePicker('B');
   on('pickDir','click', ()=>pickDir('B'),'B');
   on('refreshDir','click', ()=>refreshDirList('B'),'B');
 
