@@ -82,11 +82,12 @@
       grid-template-columns:auto minmax(120px,auto) minmax(240px,1fr) auto;
     }
     .dirlabel{
+      display:none; /* 기본 감춤 */
       color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
       font-weight:700;
     }
     .dirlabel::before{content:"📁";margin-right:8px;opacity:.9}
-    .dirlabel.connected{color:var(--accent-strong);font-weight:800}
+    .dirlabel.connected{display:inline-block;color:var(--accent-strong);font-weight:800}
 
     .filectl{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center}
     .fname{height:var(--ctl-h);line-height:var(--ctl-h);border:1px solid var(--line);
@@ -118,7 +119,7 @@
       <h1>클래스어라운드 카카오톡 입장자 체크봇</h1>
     </header>
 
-    <!-- 로그인(공용) -->
+    <!-- 로그인 -->
     <div class="card">
       <div class="row">
         <button id="gsLoginBtn" class="btn acc" type="button">로그인</button>
@@ -155,10 +156,10 @@
             <div class="hint" style="margin-top:-4px">공유 시트: <b>공유용 시트</b> (고정)</div>
 
             <!-- 로컬 폴더에서 대화 파일 선택 -->
-            <label style="margin-top:8px"></label>
+            <label style="margin-top:8px">로컬 폴더에서 대화 파일 선택 (.txt)</label>
             <div class="dirline">
               <button id="dirPickA" class="btn" type="button">폴더 연결</button>
-              <div class="dirlabel" id="dirNameA">폴더 미연결</div>
+              <div class="dirlabel" id="dirNameA"></div>
               <select id="dirFileSelectA"></select>
               <button id="dirRefreshA" class="icon-btn" type="button" title="폴더 다시 읽기" aria-label="폴더 다시 읽기">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -166,7 +167,6 @@
                 </svg>
               </button>
             </div>
-            <div class="hint" id="dirHintAA">폴더 미연결</div>
           </div>
 
           <div class="row" style="margin-top:10px">
@@ -209,11 +209,10 @@
 
             <div class="hint" style="margin-top:-4px">공유 시트: <b>공유용 시트</b> (고정)</div>
 
-            <!-- 로컬 폴더에서 대화 파일 선택 -->
-            <label style="margin-top:8px"></label>
+            <label style="margin-top:8px">로컬 폴더에서 대화 파일 선택 (.txt)</label>
             <div class="dirline">
               <button id="dirPickB" class="btn" type="button">폴더 연결</button>
-              <div class="dirlabel" id="dirNameB">폴더 미연결</div>
+              <div class="dirlabel" id="dirNameB"></div>
               <select id="dirFileSelectB"></select>
               <button id="dirRefreshB" class="icon-btn" type="button" title="폴더 다시 읽기" aria-label="폴더 다시 읽기">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -221,7 +220,6 @@
                 </svg>
               </button>
             </div>
-            <div class="hint" id="dirHintBB">폴더 미연결</div>
           </div>
 
           <div class="row" style="margin-top:10px">
@@ -241,7 +239,7 @@
     </div>
   </div>
 
-  <!-- 관리자 드로어(공용) -->
+  <!-- 관리자 드로어 -->
   <div id="adminOverlay" class="admin-overlay" aria-hidden="true"></div>
   <aside id="adminDrawer" class="admin-drawer" aria-hidden="true">
     <div class="admin-head">
@@ -288,9 +286,9 @@ function digitsOnly(s){ return String(s||'').replace(/[^\d]/g,''); }
 function last4Digits(s){ const d=digitsOnly(s); return d.slice(-4); }
 function normalizeName(n){
   let s = String(n||'').trim();
-  s = s.replace(/[\s]*[\(\[\{（【][^)\]\}）】]*[\)\]\}）】]\s*$/,''); // 끝 괄호태그 제거
-  s = s.replace(/[/_\-\s]+$/,'');                                // 끝 구분자 제거
-  s = s.replace(/\s+/g,' ');                                     // 공백 정리
+  s = s.replace(/[\s]*[\(\[\{（【][^)\]\}）】]*[\)\]\}）】]\s*$/,'');
+  s = s.replace(/[/_\-\s]+$/,'');
+  s = s.replace(/\s+/g,' ');
   return s;
 }
 const earlierId = (a,b)=>{ const ai = parseInt(a,10), bi = parseInt(b,10); if(!Number.isNaN(ai)&&!Number.isNaN(bi)) return ai<=bi?a:b; return (String(a)<=String(b))?a:b; };
@@ -300,7 +298,7 @@ const earlierId = (a,b)=>{ const ai = parseInt(a,10), bi = parseInt(b,10); if(!N
   const pushErr = (msg, src, line, col, err)=> {
     const details = (err && err.stack) ? ('\n' + err.stack) : '';
     PANEL_SUFFIXES.forEach(s=>{
-      const el = $$('#err'+s+s); // errAA, errBB
+      const el = $$('#err'+s+s);
       if (el) el.textContent = '오류: ' + msg + (src?`\n${src}:${line}:${col}`:'') + details;
     });
   };
@@ -311,7 +309,7 @@ const earlierId = (a,b)=>{ const ai = parseInt(a,10), bi = parseInt(b,10); if(!N
 /* ===== 설정 ===== */
 const READ_START_ROW  = 2;
 const WRITE_START_ROW = 2;
-const FIXED_WRITE_SHEET = '공유용 시트';   // 공유 시트 고정
+const FIXED_WRITE_SHEET = '공유용 시트';
 const CLIENT_ID = "18228268359-iifm4ck3j9kqj74eh1p90tco1k2mbpi0.apps.googleusercontent.com";
 
 /* ===== OAuth ===== */
@@ -431,7 +429,7 @@ function onPackChanged(sfx){
 
 /* ===== 로컬 폴더 API ===== */
 let dirHandle = {A:null,B:null};
-let dirFiles  = {A:[],B:[]}; // [{name, handle, mtime, size}...]
+let dirFiles  = {A:[],B:[]};
 
 async function ensureDirPerm(handle){
   if(!handle) return false;
@@ -452,22 +450,19 @@ async function pickDir(sfx){
 async function refreshDirList(sfx){
   const sel  = byPanel('dirFileSelect',sfx);
   const nameSpan = byPanel('dirName',sfx);
-  const hint = $$('#dirHint'+sfx+sfx);
   sel.innerHTML='';
   dirFiles[sfx] = [];
 
   const dir = dirHandle[sfx];
   if(!dir){
-    if(nameSpan){ nameSpan.textContent = '폴더 미연결'; nameSpan.classList.remove('connected'); }
+    if(nameSpan){ nameSpan.textContent = ''; nameSpan.classList.remove('connected'); }
     sel.appendChild(new Option('(폴더를 먼저 연결)',''));
-    if(hint) hint.textContent='폴더 미연결';
     return;
   }
   const ok = await ensureDirPerm(dir);
   if(!ok){
-    if(nameSpan){ nameSpan.textContent = '권한 필요'; nameSpan.classList.remove('connected'); }
+    if(nameSpan){ nameSpan.textContent = ''; nameSpan.classList.remove('connected'); }
     sel.appendChild(new Option('(폴더 권한 필요)',''));
-    if(hint) hint.textContent='권한 거부됨';
     return;
   }
 
@@ -488,7 +483,6 @@ async function refreshDirList(sfx){
   if(nameSpan){ nameSpan.textContent = dir.name; nameSpan.classList.add('connected'); }
   sel.appendChild(new Option('폴더 내 txt 선택',''));
   withMeta.forEach((e,idx)=> sel.appendChild(new Option(e.name, String(idx))));
-  if(hint) hint.textContent = `폴더: 카톡 입장 로그 · ${withMeta.length}개 파일`;
 }
 async function readSelectedTxt(sfx){
   const idxStr = val('dirFileSelect',sfx);
@@ -535,7 +529,7 @@ async function runMain(sfx){
     const resultsEl = byPanel('results', sfx); if(resultsEl) resultsEl.innerHTML='';
     const previewOnly = byPanel("previewOnly",sfx)?.checked;
 
-    const chatText = await readSelectedTxt(sfx); // 폴더에서 선택
+    const chatText = await readSelectedTxt(sfx);
     const packSel=byPanel('sheetPackSelect',sfx); if(!packSel || !packSel.value) throw new Error('스프레드시트를 선택하세요.');
     const readSheet=val('readSheetSelect',sfx); if(!readSheet) throw new Error('읽기 시트를 선택하세요.');
     const writeSheet = FIXED_WRITE_SHEET;
@@ -588,11 +582,11 @@ async function runMain(sfx){
       rosterSetN.add(nN);
     }
 
-    // 3) 공유 시트 A~E 읽어서 번호/전화 매핑(가장 빠른 A열 번호 기준)
+    // 3) 공유 시트 A~E 읽어 번호/전화 매핑
     const wAtoE = await getRange(sheetId, `${writeSheet}!A${WRITE_START_ROW}:E`);
-    const wRowsAE = wAtoE.values || []; // [A=no, B=?, C=?, D=name, E=phone]
-    const earliestByKey = new Map();    // `${nameN}|${phone4}` -> {id, phoneFull}
-    const earliestByName = new Map();   // nameN -> {id, phoneFull, phone4}
+    const wRowsAE = wAtoE.values || [];
+    const earliestByKey = new Map();
+    const earliestByName = new Map();
 
     for(const r of wRowsAE){
       const id  = (r[0] ?? '').toString().trim();
@@ -624,7 +618,7 @@ async function runMain(sfx){
     };
     const attendingSetN = new Set([...rosterSetN].filter(nN => isAttendingNameN(nN)));
 
-    // 4) 표1: 명단 기준 상태(읽기 시트)
+    // 4) 표1
     const report=[];
     for(let i=0;i<rosterNames.length;i++){
       const nm = rosterNames[i];
@@ -666,18 +660,18 @@ async function runMain(sfx){
       });
     });
 
-    // 7) 공유 시트 갱신 — 기준: T열 값이 '수강생'인 행만 S열에 '입장'
-    const readWriteRange = `${writeSheet}!D${WRITE_START_ROW}:T`; // D~T 포함
+    // 7) 공유 시트 갱신 — 기준: T열이 '수강생'인 행만 S열에 '입장'
+    const readWriteRange = `${writeSheet}!D${WRITE_START_ROW}:T`;
     const wdata = await getRange(sheetId, readWriteRange);
     const rows = wdata.values || [];
     const paidRowsIdx = [];
     const paidNameCountN = new Map();
     for(let i=0;i<rows.length;i++){
       const r = rows[i] || [];
-      const tVal = (r[16] ?? '').toString().trim(); // T열(20) - D열(4) = index 16
+      const tVal = (r[16] ?? '').toString().trim(); // D~T 중 T의 상대 index
       const isStudent = tVal === '수강생';
       if(!isStudent) continue;
-      const nameN = normalizeName(String(r[0] ?? '')); // D열=이름
+      const nameN = normalizeName(String(r[0] ?? '')); // D
       if(!nameN) continue;
       paidRowsIdx.push(i);
       paidNameCountN.set(nameN, (paidNameCountN.get(nameN)||0)+1);
@@ -718,7 +712,7 @@ async function runMain(sfx){
       await batchUpdateValues(sheetId, updates);
     }
 
-    // 상단 배지
+    // 배지
     const pills=byPanel('pills',sfx); if(pills){ pills.innerHTML='';
       const mk=(t,c)=>{ const s=document.createElement('span'); s.className='pill '+c; s.textContent=t; return s; };
       pills.appendChild(mk(`입장로그 join ${joinedCount}`,'ok'));
@@ -751,13 +745,12 @@ async function runMain(sfx){
   }
 }
 
-/* ===== 데모(패널별) : 실제 섹션과 동일한 4표 출력 ===== */
+/* ===== 데모(패널별) ===== */
 function runDemo(sfx){
   $$('#err'+sfx+sfx).textContent='';
   const resultsEl = byPanel('results',sfx);
   if(resultsEl) resultsEl.innerHTML='';
 
-  // 1) 데모용 명단
   const roster = [
     { id: 1, name: '황현하', phone: '010-1234-5678' },
     { id: 3, name: '김혜영', phone: '010-3456-7890' },
@@ -767,7 +760,6 @@ function runDemo(sfx){
   ];
   const rosterSetN = new Set(roster.map(r => normalizeName(r.name)));
 
-  // 2) 데모용 로그
   const chatText = [
     '김예은/0000님이 입장하셨습니다',
     '황현하/5678님이 입장하셨습니다',
@@ -798,13 +790,12 @@ function runDemo(sfx){
     }
   }
 
-  // 3) 데모용 공유시트 “수강생” 행 시뮬
   const paidRows = [
     { name: '김예은', phone4: '0000' },
     { name: '방예진', phone4: '9999' },
     { name: '황현하', phone4: '5678' },
-    { name: '황현하', phone4: '9999' }, // 불일치 유도
-    { name: '김혜영', phone4: ''     }, // 번호없음 유도
+    { name: '황현하', phone4: '9999' },
+    { name: '김혜영', phone4: ''     },
   ];
   const paidNameCountN = new Map();
   for(const r of paidRows){
@@ -812,7 +803,6 @@ function runDemo(sfx){
     paidNameCountN.set(nN,(paidNameCountN.get(nN)||0)+1);
   }
 
-  // 표1
   const report = [];
   for(const r of roster){
     const nN = normalizeName(r.name);
@@ -822,7 +812,6 @@ function runDemo(sfx){
     report.push([String(r.id), r.name, r.phone, isActive?'입장':'미입장', isActive?(any4?`${r.name}/${any4}`:r.name):'', isActive && !any4 ? '(번호없음)':'']);
   }
 
-  // 표2
   const extra = [];
   [...active.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
     if(!rosterSetN.has(nN)){
@@ -832,24 +821,20 @@ function runDemo(sfx){
     }
   });
 
-  // 표3
   const leavers = [];
   [...leftFinal.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
     const act = active.get(nN);
     set.forEach(d=>{ if(!act || !act.has(d)) leavers.push([ d===NAME_ONLY_SENTINEL ? `${nN}(번호없음)` : `${nN}/${d}` ]); });
   });
 
-  // 표4
   const unresolved = [];
   for(const r of paidRows){
     const nN = normalizeName(r.name);
     const set = active.get(nN) || new Set();
     const isDupInPaid = (paidNameCountN.get(nN)||0) > 1;
     if(!isDupInPaid) continue;
-
     const p4 = (r.phone4||'').trim();
     if(p4 && set.has(p4)) continue;
-
     unresolved.push([r.name, p4 ? '공유시트 동명이인 + 번호불일치' : '공유시트 동명이인 + 입장로그 번호없음']);
   }
 
@@ -868,12 +853,14 @@ function runDemo(sfx){
     if(!resultsEl) return;
     const wrap=document.createElement('div'); wrap.className='card';
     const h=document.createElement('h3'); h.textContent=title; h.style.margin='0 0 8px'; wrap.appendChild(h);
-    const t=document.createElement('table');
-    const thead=document.createElement('thead'); const trh=document.createElement('tr');
+    const t=document.createElement('table'); const thead=document.createElement('thead'); const trh=document.createElement('tr');
     headers.forEach(x=>{ const th=document.createElement('th'); th.textContent=x; trh.appendChild(th); });
     thead.appendChild(trh); t.appendChild(thead);
     const tb=document.createElement('tbody');
-    (rowsArr||[]).forEach(r=>{ const tr=document.createElement('tr'); (r||[]).forEach(c=>{ const td=document.createElement('td'); td.textContent=(c==null?'':String(c)); tr.appendChild(td); }); tb.appendChild(tr); });
+    (rowsArr||[]).forEach(r=>{ const tr=document.createElement('tr');
+      (r||[]).forEach(c=>{ const td=document.createElement('td'); td.textContent=(c==null?'':String(c)); tr.appendChild(td); });
+      tb.appendChild(tr);
+    });
     t.appendChild(tb); wrap.appendChild(t); resultsEl.appendChild(wrap);
   }
 
@@ -921,4 +908,3 @@ document.addEventListener('DOMContentLoaded', ()=>{
 </script>
 </body>
 </html>
-
