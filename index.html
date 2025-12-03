@@ -9,8 +9,7 @@
     :root{
       --bg:#fff; --card:#fff; --surface:#f8fafc; --line:#e5e7eb; --text:#0f172a; --muted:#64748b;
       --accent:#60a5fa; --accent-strong:#3b82f6; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444;
-      --radius:12px; --ctl-h:42px; --gap:12px;
-      --logo-size:112px;
+      --radius:12px; --ctl-h:42px; --gap:12px; --logo-size:112px;
     }
     *{box-sizing:border-box}
     body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
@@ -41,6 +40,7 @@
     th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
     th{color:#0f172a;font-weight:600;background:#f1f5f9;position:sticky;top:0}
 
+    /* 로고/제목 */
     .brand{display:flex;align-items:center;gap:14px;margin:0 0 6px}
     .brand h1{margin:0;font-size:22px}
     .brand-logo{width:var(--logo-size);height:var(--logo-size);flex:0 0 var(--logo-size)}
@@ -57,7 +57,13 @@
     .admin-drawer label{color:#64748b;font-size:13px;margin:6px 0 4px}
     .admin-drawer input{height:42px;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
     .admin-drawer .btn{height:36px;padding:0 12px;border-radius:12px}
+    #admList{border-collapse:collapse;width:100%}
+    #admList th{background:#f1f5f9;font-weight:600;padding:10px}
+    #admList td{padding:10px;border-top:1px solid var(--line);font-size:13px;vertical-align:middle}
+    #admList tr:hover td{background:#f9fafb}
+    #admList .btn{height:34px;padding:0 12px;border-radius:12px}
     #admMeta{color:#94a3b8;margin-top:8px}
+    .admin-drawer input[type="text"],.admin-drawer input:not([type]),.admin-drawer select,.admin-drawer textarea{width:100%;box-sizing:border-box}
     :root{--admin-h:44px}
     .admin-drawer input,.admin-drawer .btn{height:var(--admin-h);line-height:calc(var(--admin-h) - 2px);border-radius:12px}
 
@@ -65,17 +71,27 @@
     .panels{display:grid;gap:16px}
     @media(min-width:1100px){ .panels{grid-template-columns:1fr 1fr} }
     .controls{display:grid;gap:var(--gap)}
-    /* 공유 시트 선택 제거 → 3열(시트팩, 읽기 시트, 새로고침) */
     .controls-line{display:grid;align-items:end;gap:var(--gap);grid-template-columns:1.2fr 1fr var(--ctl-h)}
     .icon-btn{width:var(--ctl-h);height:var(--ctl-h);border:1px solid var(--line);border-radius:10px;background:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
     .icon-btn:hover{border-color:var(--accent-strong);box-shadow:0 0 0 3px rgba(96,165,250,.2)}
     .icon-btn svg{width:18px;height:18px}
 
-    /* 폴더 라인 */
-    .dirline{display:grid;align-items:center;gap:8px;grid-template-columns:auto minmax(120px,auto) minmax(220px,1fr) auto}
-    .dirlabel{color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .dirselect{min-width:220px}
-    @media(max-width:680px){ .dirline{grid-template-columns:1fr 1fr} }
+    /* 폴더 선택 라인 */
+    .dirline{
+      display:grid;align-items:center;gap:8px;
+      grid-template-columns:auto minmax(120px,auto) minmax(240px,1fr) auto;
+    }
+    .dirlabel{
+      color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+      font-weight:700;
+    }
+    .dirlabel::before{content:"📁";margin-right:8px;opacity:.9}
+    .dirlabel.connected{color:var(--accent-strong);font-weight:800}
+
+    .filectl{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center}
+    .fname{height:var(--ctl-h);line-height:var(--ctl-h);border:1px solid var(--line);
+      border-radius:var(--radius);padding:0 10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:#fff;color:#9aa4b2}
+    .fname.has{color:#0f172a}
 
     .gear-btn{position:fixed;top:16px;right:16px;z-index:50;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px;cursor:pointer}
     .admin-overlay{position:fixed;inset:0;background:rgba(15,23,42,.28);backdrop-filter:saturate(140%) blur(2px);visibility:hidden;opacity:0;pointer-events:none;transition:.15s;z-index:60}
@@ -135,23 +151,22 @@
                 </button>
               </div>
             </div>
-            <div class="hint">공유 시트: <b>공유용 시트</b> (고정)</div>
 
-            <!-- 폴더 선택 -->
-            <div>
-              <label>로컬 폴더에서 대화 파일 선택 <span class="hint">(.txt)</span></label>
-              <div class="dirline">
-                <button id="pickDirA" class="btn" type="button">폴더 연결</button>
-                <span id="dirNameA" class="dirlabel">미연결</span>
-                <select id="dirFileSelectA" class="dirselect"></select>
-                <button id="refreshDirA" class="icon-btn" type="button" title="폴더 새로고침" aria-label="폴더 새로고침">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/>
-                  </svg>
-                </button>
-              </div>
-              <div id="dirHintA" class="hint" style="margin-top:4px">폴더 미연결</div>
+            <div class="hint" style="margin-top:-4px">공유 시트: <b>공유용 시트</b> (고정)</div>
+
+            <!-- 로컬 폴더에서 대화 파일 선택 -->
+            <label style="margin-top:8px">로컬 폴더에서 대화 파일 선택 (.txt)</label>
+            <div class="dirline">
+              <button id="dirPickA" class="btn" type="button">폴더 연결</button>
+              <div class="dirlabel" id="dirNameA">폴더 미연결</div>
+              <select id="dirFileSelectA"></select>
+              <button id="dirRefreshA" class="icon-btn" type="button" title="폴더 다시 읽기" aria-label="폴더 다시 읽기">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/>
+                </svg>
+              </button>
             </div>
+            <div class="hint" id="dirHintAA">폴더 미연결</div>
           </div>
 
           <div class="row" style="margin-top:10px">
@@ -163,7 +178,7 @@
             <button id="demoBtnA" class="btn" type="button">데모</button>
             <span id="pillsA" class="row"></span>
           </div>
-          <div id="errA" class="err" style="margin-top:8px"></div>
+          <div id="errAA" class="err" style="margin-top:8px"></div>
         </div>
 
         <div id="resultsA" style="display:grid;gap:16px"></div>
@@ -191,22 +206,22 @@
                 </button>
               </div>
             </div>
-            <div class="hint">공유 시트: <b>공유용 시트</b> (고정)</div>
 
-            <div>
-              <label>로컬 폴더에서 대화 파일 선택 <span class="hint">(.txt)</span></label>
-              <div class="dirline">
-                <button id="pickDirB" class="btn" type="button">폴더 연결</button>
-                <span id="dirNameB" class="dirlabel">미연결</span>
-                <select id="dirFileSelectB" class="dirselect"></select>
-                <button id="refreshDirB" class="icon-btn" type="button" title="폴더 새로고침" aria-label="폴더 새로고침">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/>
-                  </svg>
-                </button>
-              </div>
-              <div id="dirHintB" class="hint" style="margin-top:4px">폴더 미연결</div>
+            <div class="hint" style="margin-top:-4px">공유 시트: <b>공유용 시트</b> (고정)</div>
+
+            <!-- 로컬 폴더에서 대화 파일 선택 -->
+            <label style="margin-top:8px">로컬 폴더에서 대화 파일 선택 (.txt)</label>
+            <div class="dirline">
+              <button id="dirPickB" class="btn" type="button">폴더 연결</button>
+              <div class="dirlabel" id="dirNameB">폴더 미연결</div>
+              <select id="dirFileSelectB"></select>
+              <button id="dirRefreshB" class="icon-btn" type="button" title="폴더 다시 읽기" aria-label="폴더 다시 읽기">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/>
+                </svg>
+              </button>
             </div>
+            <div class="hint" id="dirHintBB">폴더 미연결</div>
           </div>
 
           <div class="row" style="margin-top:10px">
@@ -218,7 +233,7 @@
             <button id="demoBtnB" class="btn" type="button">데모</button>
             <span id="pillsB" class="row"></span>
           </div>
-          <div id="errB" class="err" style="margin-top:8px"></div>
+          <div id="errBB" class="err" style="margin-top:8px"></div>
         </div>
 
         <div id="resultsB" style="display:grid;gap:16px"></div>
@@ -278,14 +293,16 @@ function normalizeName(n){
   s = s.replace(/\s+/g,' ');                                     // 공백 정리
   return s;
 }
-function isStudent(v){ const s = String(v||'').trim(); return s.includes('수강생'); }
 const earlierId = (a,b)=>{ const ai = parseInt(a,10), bi = parseInt(b,10); if(!Number.isNaN(ai)&&!Number.isNaN(bi)) return ai<=bi?a:b; return (String(a)<=String(b))?a:b; };
 
 /* ===== 전역 오류 UI ===== */
 (function(){
   const pushErr = (msg, src, line, col, err)=> {
     const details = (err && err.stack) ? ('\n' + err.stack) : '';
-    PANEL_SUFFIXES.forEach(s=>{ const el = byPanel('err', s); if (el) el.textContent = '오류: ' + msg + (src?`\n${src}:${line}:${col}`:'') + details; });
+    PANEL_SUFFIXES.forEach(s=>{
+      const el = $$('#err'+s+s); // errAA, errBB
+      if (el) el.textContent = '오류: ' + msg + (src?`\n${src}:${line}:${col}`:'') + details;
+    });
   };
   window.addEventListener('error', e=>{ pushErr(e.message, e.filename, e.lineno, e.colno, e.error); });
   window.addEventListener('unhandledrejection', e=>{ const r = e.reason || {}; pushErr(r.message || String(r), '', 0, 0, r); });
@@ -294,8 +311,8 @@ const earlierId = (a,b)=>{ const ai = parseInt(a,10), bi = parseInt(b,10); if(!N
 /* ===== 설정 ===== */
 const READ_START_ROW  = 2;
 const WRITE_START_ROW = 2;
+const FIXED_WRITE_SHEET = '공유용 시트';   // 공유 시트 고정
 const CLIENT_ID = "18228268359-iifm4ck3j9kqj74eh1p90tco1k2mbpi0.apps.googleusercontent.com";
-const FIXED_WRITE_SHEET = '공유용 시트';  // ★ 공유 시트 고정
 
 /* ===== OAuth ===== */
 let accessToken=null, tokenClient=null;
@@ -399,7 +416,7 @@ async function refreshMeta(sfx){
     const packs=loadPacks(); const idx=packs.findIndex(p=>p.id===id); if(idx<0) return;
     const titles = await listSheets(packs[idx].sheetId);
     packs[idx].sheets = titles; savePacks(packs); onPackChanged(sfx);
-  }catch(e){ txt('err','시트 목록 갱신 실패: '+e.message,sfx); }
+  }catch(e){ txt('err'+sfx+sfx,'시트 목록 갱신 실패: '+e.message); }
 }
 function onPackChanged(sfx){
   const sel=byPanel("sheetPackSelect",sfx); if(!sel) return;
@@ -410,6 +427,76 @@ function onPackChanged(sfx){
   if(!p){ return; }
   if(readSel) readSel.appendChild(new Option('읽기 시트 선택',''));
   (p.sheets||[]).forEach(t=>{ if(readSel) readSel.appendChild(new Option(t,t)); });
+}
+
+/* ===== 로컬 폴더 API ===== */
+let dirHandle = {A:null,B:null};
+let dirFiles  = {A:[],B:[]}; // [{name, handle, mtime, size}...]
+
+async function ensureDirPerm(handle){
+  if(!handle) return false;
+  const opt = {mode:'read'};
+  if (await handle.queryPermission(opt) === 'granted') return true;
+  if (await handle.requestPermission(opt) === 'granted') return true;
+  return false;
+}
+async function pickDir(sfx){
+  try{
+    const dir = await window.showDirectoryPicker();
+    dirHandle[sfx] = dir;
+    await refreshDirList(sfx);
+  }catch(e){
+    if(e?.name!=='AbortError') alert('폴더 선택 실패: '+e.message);
+  }
+}
+async function refreshDirList(sfx){
+  const sel  = byPanel('dirFileSelect',sfx);
+  const nameSpan = byPanel('dirName',sfx);
+  const hint = $$('#dirHint'+sfx+sfx);
+  sel.innerHTML='';
+  dirFiles[sfx] = [];
+
+  const dir = dirHandle[sfx];
+  if(!dir){
+    if(nameSpan){ nameSpan.textContent = '폴더 미연결'; nameSpan.classList.remove('connected'); }
+    sel.appendChild(new Option('(폴더를 먼저 연결)',''));
+    if(hint) hint.textContent='폴더 미연결';
+    return;
+  }
+  const ok = await ensureDirPerm(dir);
+  if(!ok){
+    if(nameSpan){ nameSpan.textContent = '권한 필요'; nameSpan.classList.remove('connected'); }
+    sel.appendChild(new Option('(폴더 권한 필요)',''));
+    if(hint) hint.textContent='권한 거부됨';
+    return;
+  }
+
+  const entries=[];
+  for await (const [fname,handle] of dir.entries()){
+    if(handle.kind==='file' && fname.toLowerCase().endsWith('.txt')){
+      entries.push({name:fname, handle});
+    }
+  }
+  const withMeta=[];
+  for(const e of entries){
+    const f = await e.handle.getFile();
+    withMeta.push({...e, size:f.size, mtime:f.lastModified});
+  }
+  withMeta.sort((a,b)=> b.mtime - a.mtime);
+  dirFiles[sfx] = withMeta;
+
+  if(nameSpan){ nameSpan.textContent = dir.name; nameSpan.classList.add('connected'); }
+  sel.appendChild(new Option('폴더 내 txt 선택',''));
+  withMeta.forEach((e,idx)=> sel.appendChild(new Option(e.name, String(idx))));
+  if(hint) hint.textContent = `폴더: 카톡 입장 로그 · ${withMeta.length}개 파일`;
+}
+async function readSelectedTxt(sfx){
+  const idxStr = val('dirFileSelect',sfx);
+  if(!idxStr) throw new Error('폴더 내 txt 파일을 선택하세요.');
+  const info = dirFiles[sfx][Number(idxStr)];
+  if(!info) throw new Error('선택한 파일을 찾을 수 없습니다.');
+  const file = await info.handle.getFile();
+  return await file.text();
 }
 
 /* ===== 카톡 파싱 ===== */
@@ -441,92 +528,22 @@ function parseChat(text){
   return {events, joinedCount, leftCount};
 }
 
-/* ===== 로컬 폴더(FSA) ===== */
-const dirHandle = {A:null, B:null};
-let dirFiles = {A:[], B:[]}; // [{name, handle, size, mtime}...]
-
-async function ensureDirPerm(h){
-  if(!h) return false;
-  const q = await h.queryPermission?.({mode:'read'});
-  if(q === 'granted') return true;
-  const r = await h.requestPermission?.({mode:'read'});
-  return r === 'granted';
-}
-async function pickDir(sfx){
-  if(!window.showDirectoryPicker){ alert('이 브라우저는 폴더 선택을 지원하지 않습니다. (Chromium 권장)'); return; }
-  try{
-    const h = await window.showDirectoryPicker();
-    dirHandle[sfx] = h;
-    await refreshDirList(sfx);
-  }catch(e){ /* cancel */ }
-}
-async function refreshDirList(sfx){
-  const sel  = byPanel('dirFileSelect',sfx);
-  const hint = byPanel('dirHint',sfx);
-  const nameSpan = byPanel('dirName',sfx);
-
-  sel.innerHTML='';
-  dirFiles[sfx] = [];
-  const dir = dirHandle[sfx];
-  if(!dir){
-    if(nameSpan) nameSpan.textContent = '미연결';
-    sel.appendChild(new Option('(폴더를 먼저 연결)',''));
-    if(hint) hint.textContent='폴더 미연결';
-    return;
-  }
-  const ok = await ensureDirPerm(dir);
-  if(!ok){
-    if(nameSpan) nameSpan.textContent = '권한 필요';
-    sel.appendChild(new Option('(폴더 권한 필요)',''));
-    if(hint) hint.textContent='권한 거부됨';
-    return;
-  }
-
-  const entries=[];
-  for await (const [fname,handle] of dir.entries()){
-    if(handle.kind==='file' && fname.toLowerCase().endsWith('.txt')){
-      entries.push({name:fname, handle});
-    }
-  }
-  const withMeta=[];
-  for(const e of entries){ const f = await e.handle.getFile(); withMeta.push({...e, size:f.size, mtime:f.lastModified}); }
-  withMeta.sort((a,b)=> b.mtime - a.mtime);
-  dirFiles[sfx] = withMeta;
-
-  if(nameSpan) nameSpan.textContent = dir.name;
-  sel.appendChild(new Option('폴더 내 txt 선택',''));
-  withMeta.forEach((e,idx)=> sel.appendChild(new Option(e.name, String(idx))));
-}
-async function getChatTextFromUI(sfx){
-  const sel = byPanel('dirFileSelect',sfx);
-  const v = sel?.value || '';
-  if(v !== ''){
-    const idx = parseInt(v,10);
-    const item = dirFiles[sfx][idx];
-    if(item){
-      const f = await item.handle.getFile();
-      return await f.text();
-    }
-  }
-  throw new Error('폴더에서 대화 txt 파일을 선택하세요.');
-}
-
-/* ===== 실행(패널별) — T열 "수강생" 기준 / S열 "입장" 기록 / 공유 시트 고정 ===== */
+/* ===== 실행(패널별) ===== */
 async function runMain(sfx){
   try{
-    txt('err','',sfx);
+    $$('#err'+sfx+sfx).textContent='';
     const resultsEl = byPanel('results', sfx); if(resultsEl) resultsEl.innerHTML='';
     const previewOnly = byPanel("previewOnly",sfx)?.checked;
 
+    const chatText = await readSelectedTxt(sfx); // 폴더에서 선택
     const packSel=byPanel('sheetPackSelect',sfx); if(!packSel || !packSel.value) throw new Error('스프레드시트를 선택하세요.');
     const readSheet=val('readSheetSelect',sfx); if(!readSheet) throw new Error('읽기 시트를 선택하세요.');
-    const writeSheet = FIXED_WRITE_SHEET; // 고정
+    const writeSheet = FIXED_WRITE_SHEET;
 
     const packs=loadPacks(); const pack=packs.find(x=>x.id===packSel.value); if(!pack) throw new Error('연결 정보를 찾을 수 없습니다.');
     const sheetId=pack.sheetId; const readCol=pack.readCol||'C';
 
     // 1) 카톡 파싱
-    const chatText = await getChatTextFromUI(sfx);
     const {events, joinedCount, leftCount} = parseChat(chatText);
 
     const NAME_ONLY_SENTINEL = '__NAMEONLY__';
@@ -556,22 +573,27 @@ async function runMain(sfx){
       }
     }
 
-    // 2) 읽기 시트(명단 이름)
+    // 2) 읽기 시트(명단 이름) 로드
     const readNames = await getRange(sheetId, `${readSheet}!${readCol}${READ_START_ROW}:${readCol}`);
     const readRows = readNames.values || [];
-    const rosterNames = [], rosterNamesN = [], rosterSetN = new Set();
+    const rosterNames = [];
+    const rosterNamesN = [];
+    const rosterSetN = new Set();
     for(let i=0;i<readRows.length;i++){
       const nm = String(readRows[i]?.[0] ?? '').trim();
       if(!nm) continue;
       const nN = normalizeName(nm);
-      rosterNames.push(nm); rosterNamesN.push(nN); rosterSetN.add(nN);
+      rosterNames.push(nm);
+      rosterNamesN.push(nN);
+      rosterSetN.add(nN);
     }
 
-    // 3) 공유 시트 A~E 읽어 A열(번호) 매칭
+    // 3) 공유 시트 A~E 읽어서 번호/전화 매핑(가장 빠른 A열 번호 기준)
     const wAtoE = await getRange(sheetId, `${writeSheet}!A${WRITE_START_ROW}:E`);
-    const wRowsAE = wAtoE.values || [];
-    const earliestByKey = new Map();
-    const earliestByName = new Map();
+    const wRowsAE = wAtoE.values || []; // [A=no, B=?, C=?, D=name, E=phone]
+    const earliestByKey = new Map();    // `${nameN}|${phone4}` -> {id, phoneFull}
+    const earliestByName = new Map();   // nameN -> {id, phoneFull, phone4}
+
     for(const r of wRowsAE){
       const id  = (r[0] ?? '').toString().trim();
       const nameRaw = (r[3] ?? '').toString().trim();
@@ -596,14 +618,13 @@ async function runMain(sfx){
       }
     }
 
-    // 4) 입장중 이름 집합
     const isAttendingNameN = (nN)=> {
       const set = activeDigitsByName.get(nN);
       return (set && set.size>0) || nameOnlyJoin.has(nN);
     };
     const attendingSetN = new Set([...rosterSetN].filter(nN => isAttendingNameN(nN)));
 
-    // 5) 표1
+    // 4) 표1: 명단 기준 상태(읽기 시트)
     const report=[];
     for(let i=0;i<rosterNames.length;i++){
       const nm = rosterNames[i];
@@ -623,7 +644,7 @@ async function runMain(sfx){
       report.push([rosterNo, nm, phoneFull, status, any4 ? `${nm}/${any4}` : (status==='입장'?nm:''), notes]);
     }
 
-    // 6) 표2
+    // 5) 명단 외 입장자
     const extra=[];
     [...activeDigitsByName.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
       if(!rosterSetN.has(nN)){
@@ -633,7 +654,7 @@ async function runMain(sfx){
       }
     });
 
-    // 7) 표3
+    // 6) 퇴장자(최종)
     const leavers=[];
     [...leftFinalDigitsByName.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
       const activeSet = activeDigitsByName.get(nN);
@@ -645,40 +666,43 @@ async function runMain(sfx){
       });
     });
 
-    // 8) 공유 시트 갱신: 기준=T열 '수강생' / 기록=S열
-    const writeRange = `${writeSheet}!D${WRITE_START_ROW}:T`; // D..T
-    const wdata = await getRange(sheetId, writeRange);
+    // 7) 공유 시트 갱신 — 기준: T열 값이 '수강생'인 행만 S열에 '입장'
+    const readWriteRange = `${writeSheet}!D${WRITE_START_ROW}:T`; // D~T 포함
+    const wdata = await getRange(sheetId, readWriteRange);
     const rows = wdata.values || [];
-    const studentRowsIdx = [];
-    const nameCountN = new Map();
+    const paidRowsIdx = [];
+    const paidNameCountN = new Map();
     for(let i=0;i<rows.length;i++){
       const r = rows[i] || [];
-      const nameN = normalizeName(String(r[0] ?? '')); // D
-      const tVal  = r[16]; // T
+      const tVal = (r[16] ?? '').toString().trim(); // T열(20) - D열(4) = index 16
+      const isStudent = tVal === '수강생';
+      if(!isStudent) continue;
+      const nameN = normalizeName(String(r[0] ?? '')); // D열=이름
       if(!nameN) continue;
-      if(isStudent(tVal)) studentRowsIdx.push(i);
-      nameCountN.set(nameN, (nameCountN.get(nameN)||0)+1);
+      paidRowsIdx.push(i);
+      paidNameCountN.set(nameN, (paidNameCountN.get(nameN)||0)+1);
     }
-
     const updates = [];
     const unresolved = [];
-    for(const i of studentRowsIdx){
+
+    for(const i of paidRowsIdx){
       const r = rows[i] || [];
-      const nameRaw = String(r[0] ?? '').trim();
+      const nameRaw = String(r[0] ?? '').trim(); // D
       const nameN   = normalizeName(nameRaw);
-      const phone4  = last4Digits(r[1] ?? '');
+      const phone4  = last4Digits(r[1] ?? '');    // E
       if(!nameN) continue;
+
       if(!attendingSetN.has(nameN)) continue;
 
       const set = activeDigitsByName.get(nameN) || new Set();
-      const dup = (nameCountN.get(nameN)||0) > 1;
+      const isDupInPaid = (paidNameCountN.get(nameN)||0) > 1;
 
       let canWrite = false;
-      if(dup){
+      if(isDupInPaid){
         if(phone4 && set.has(phone4)) canWrite = true;
         else {
-          if(set.has(NAME_ONLY_SENTINEL)) unresolved.push([nameRaw,'동명이인 + 입장로그 번호없음']);
-          else unresolved.push([nameRaw,'동명이인 + 번호불일치']);
+          if(set.has(NAME_ONLY_SENTINEL)) unresolved.push([nameRaw,'공유시트 동명이인 + 입장로그 번호없음']);
+          else unresolved.push([nameRaw,'공유시트 동명이인 + 번호불일치']);
         }
       }else{
         if(set.size >= 1 || set.has(NAME_ONLY_SENTINEL)) canWrite = true;
@@ -699,36 +723,41 @@ async function runMain(sfx){
       const mk=(t,c)=>{ const s=document.createElement('span'); s.className='pill '+c; s.textContent=t; return s; };
       pills.appendChild(mk(`입장로그 join ${joinedCount}`,'ok'));
       pills.appendChild(mk(`퇴장로그 leave ${leftCount}`,'bad'));
-      pills.appendChild(mk(`입장 대상(읽기시트) ${[...attendingSetN].length}`,'warn'));
+      pills.appendChild(mk(`입장 대상(읽기시트) ${attendingSetN.size}`,'warn'));
       if(previewOnly) pills.appendChild(mk('체크만','warn'));
     }
 
-    // 렌더
-    function resTbl(title, headers, rows){
+    // 출력
+    function resTbl(title, headers, rowsArr){
+      if(!resultsEl) return;
       const wrap=document.createElement('div'); wrap.className='card';
       const h=document.createElement('h3'); h.textContent=title; h.style.margin='0 0 8px'; wrap.appendChild(h);
       const t=document.createElement('table'); const thead=document.createElement('thead'); const trh=document.createElement('tr');
       headers.forEach(x=>{ const th=document.createElement('th'); th.textContent=x; trh.appendChild(th); }); thead.appendChild(trh); t.appendChild(thead);
       const tb=document.createElement('tbody');
-      (rows||[]).forEach(r=>{ const tr=document.createElement('tr'); (r||[]).forEach(c=>{ const td=document.createElement('td'); td.textContent=(c==null?'':String(c)); tr.appendChild(td); }); tb.appendChild(tr); });
-      t.appendChild(tb); wrap.appendChild(t); byPanel('results',sfx).appendChild(wrap);
+      (rowsArr||[]).forEach(r=>{ const tr=document.createElement('tr'); (r||[]).forEach(c=>{ const td=document.createElement('td'); td.textContent=(c==null?'':String(c)); tr.appendChild(td); }); tb.appendChild(tr); });
+      t.appendChild(tb); wrap.appendChild(t); resultsEl.appendChild(wrap);
     }
     resTbl('내 명단 기준 상태(읽기 시트)', ['no','name','phone','status','matched_id','notes'], report);
     resTbl('명단 외 입장자', ['name/last4 or (번호없음)'], extra);
     resTbl('퇴장자 명단(최종)', ['name/last4 or (번호없음)'], leavers);
     resTbl(previewOnly ? '예상 갱신 결과(체크만 모드)' : '공유 시트 갱신 결과',
            ['updated_cells'], updates.map(u=>[u.range+' ← 입장']));
-    resTbl('미확인 목록(동명이인/번호 문제)', ['name','reason'], unresolved);
+    resTbl('미확인 목록(공유 시트 동명이인/번호 문제)', ['name','reason'], unresolved);
 
-  }catch(e){ txt('err','오류: '+(e?.message||e),sfx); console.error(e); }
+  }catch(e){
+    $$('#err'+sfx+sfx).textContent = '오류: ' + (e?.message||e);
+    console.error(e);
+  }
 }
 
-/* ===== 데모(동일 4표) ===== */
+/* ===== 데모(패널별) : 실제 섹션과 동일한 4표 출력 ===== */
 function runDemo(sfx){
-  txt('err','',sfx);
+  $$('#err'+sfx+sfx).textContent='';
   const resultsEl = byPanel('results',sfx);
   if(resultsEl) resultsEl.innerHTML='';
 
+  // 1) 데모용 명단
   const roster = [
     { id: 1, name: '황현하', phone: '010-1234-5678' },
     { id: 3, name: '김혜영', phone: '010-3456-7890' },
@@ -738,6 +767,7 @@ function runDemo(sfx){
   ];
   const rosterSetN = new Set(roster.map(r => normalizeName(r.name)));
 
+  // 2) 데모용 로그
   const chatText = [
     '김예은/0000님이 입장하셨습니다',
     '황현하/5678님이 입장하셨습니다',
@@ -759,35 +789,40 @@ function runDemo(sfx){
     const nN = s.name;
     if(ev.type==='join'){
       ensure(active,nN).add(s.digits || NAME_ONLY_SENTINEL);
-      const L = leftFinal.get(nN); if(L){ L.delete(s.digits||NAME_ONLY_SENTINEL); if(L.size===0) leftFinal.delete(nN); }
+      const L = leftFinal.get(nN); if(L){ L.delete(s.digits || NAME_ONLY_SENTINEL); if(L.size===0) leftFinal.delete(nN); }
     }else{
       const A = ensure(active,nN);
       if(s.digits) A.delete(s.digits);
       else if(A.size===1 && A.has(NAME_ONLY_SENTINEL)) A.delete(NAME_ONLY_SENTINEL);
-      ensure(leftFinal,nN).add(s.digits||NAME_ONLY_SENTINEL);
+      ensure(leftFinal,nN).add(s.digits || NAME_ONLY_SENTINEL);
     }
   }
 
+  // 3) 데모용 공유시트 “수강생” 행 시뮬
   const paidRows = [
     { name: '김예은', phone4: '0000' },
     { name: '방예진', phone4: '9999' },
     { name: '황현하', phone4: '5678' },
-    { name: '황현하', phone4: '9999' },
-    { name: '김혜영', phone4: '7890' },
-    { name: '김혜영', phone4: ''    },
+    { name: '황현하', phone4: '9999' }, // 불일치 유도
+    { name: '김혜영', phone4: ''     }, // 번호없음 유도
   ];
   const paidNameCountN = new Map();
-  for(const r of paidRows){ const nN = normalizeName(r.name); paidNameCountN.set(nN,(paidNameCountN.get(nN)||0)+1); }
+  for(const r of paidRows){
+    const nN = normalizeName(r.name);
+    paidNameCountN.set(nN,(paidNameCountN.get(nN)||0)+1);
+  }
 
+  // 표1
   const report = [];
   for(const r of roster){
     const nN = normalizeName(r.name);
     const set = active.get(nN) || new Set();
     const isActive = set.size>0;
     const any4 = [...set].find(x=>x!==NAME_ONLY_SENTINEL) || '';
-    report.push([ String(r.id), r.name, r.phone, isActive?'입장':'미입장', isActive ? (any4? `${r.name}/${any4}`: r.name) : '', isActive&&!any4? '(번호없음)':'' ]);
+    report.push([String(r.id), r.name, r.phone, isActive?'입장':'미입장', isActive?(any4?`${r.name}/${any4}`:r.name):'', isActive && !any4 ? '(번호없음)':'']);
   }
 
+  // 표2
   const extra = [];
   [...active.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
     if(!rosterSetN.has(nN)){
@@ -797,25 +832,28 @@ function runDemo(sfx){
     }
   });
 
+  // 표3
   const leavers = [];
   [...leftFinal.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
     const act = active.get(nN);
     set.forEach(d=>{ if(!act || !act.has(d)) leavers.push([ d===NAME_ONLY_SENTINEL ? `${nN}(번호없음)` : `${nN}/${d}` ]); });
   });
 
+  // 표4
   const unresolved = [];
   for(const r of paidRows){
     const nN = normalizeName(r.name);
     const set = active.get(nN) || new Set();
     const isDupInPaid = (paidNameCountN.get(nN)||0) > 1;
     if(!isDupInPaid) continue;
+
     const p4 = (r.phone4||'').trim();
     if(p4 && set.has(p4)) continue;
-    if(!p4) unresolved.push([r.name,'동명이인 + 입장로그 번호없음']);
-    else    unresolved.push([r.name,'동명이인 + 번호불일치']);
+
+    unresolved.push([r.name, p4 ? '공유시트 동명이인 + 번호불일치' : '공유시트 동명이인 + 입장로그 번호없음']);
   }
 
-  const pills = byPanel('pills',sfx);
+  const pills=byPanel('pills',sfx);
   if(pills){
     pills.innerHTML='';
     const mk=(t,c)=>{const s=document.createElement('span');s.className='pill '+c;s.textContent=t;return s;};
@@ -826,7 +864,8 @@ function runDemo(sfx){
     pills.appendChild(mk('체크만','warn'));
   }
 
-  function resTbl(title, headers, rows){
+  function resTbl(title, headers, rowsArr){
+    if(!resultsEl) return;
     const wrap=document.createElement('div'); wrap.className='card';
     const h=document.createElement('h3'); h.textContent=title; h.style.margin='0 0 8px'; wrap.appendChild(h);
     const t=document.createElement('table');
@@ -834,8 +873,8 @@ function runDemo(sfx){
     headers.forEach(x=>{ const th=document.createElement('th'); th.textContent=x; trh.appendChild(th); });
     thead.appendChild(trh); t.appendChild(thead);
     const tb=document.createElement('tbody');
-    (rows||[]).forEach(r=>{ const tr=document.createElement('tr'); (r||[]).forEach(c=>{ const td=document.createElement('td'); td.textContent=(c==null?'':String(c)); tr.appendChild(td); }); tb.appendChild(tr); });
-    t.appendChild(tb); byPanel('results',sfx).appendChild(wrap);
+    (rowsArr||[]).forEach(r=>{ const tr=document.createElement('tr'); (r||[]).forEach(c=>{ const td=document.createElement('td'); td.textContent=(c==null?'':String(c)); tr.appendChild(td); }); tb.appendChild(tr); });
+    t.appendChild(tb); wrap.appendChild(t); resultsEl.appendChild(wrap);
   }
 
   resTbl('명단기준 입장자(데모)', ['no','name','phone','status','matched_id','notes'], report);
@@ -865,25 +904,19 @@ document.addEventListener('DOMContentLoaded', ()=>{
   on('refreshMeta','click', ()=>refreshMeta('A'), 'A');
   on('runBtn','click', ()=>runMain('A'), 'A');
   on('demoBtn','click', ()=>runDemo('A'), 'A');
-  on('pickDir','click', ()=>pickDir('A'),'A');
-  on('refreshDir','click', ()=>refreshDirList('A'),'A');
+  on('dirPick','click', ()=>pickDir('A'), 'A');
+  on('dirRefresh','click', ()=>refreshDirList('A'), 'A');
 
   // Panel B
   on('sheetPackSelect','change', ()=>onPackChanged('B'), 'B');
   on('refreshMeta','click', ()=>refreshMeta('B'), 'B');
   on('runBtn','click', ()=>runMain('B'), 'B');
   on('demoBtn','click', ()=>runDemo('B'), 'B');
-  on('pickDir','click', ()=>pickDir('B'),'B');
-  on('refreshDir','click', ()=>refreshDirList('B'),'B');
+  on('dirPick','click', ()=>pickDir('B'), 'B');
+  on('dirRefresh','click', ()=>refreshDirList('B'), 'B');
 
   populatePacks('A');
   populatePacks('B');
-
-  // 폴더 드롭다운 placeholder
-  ['A','B'].forEach(sfx=>{
-    const sel=byPanel('dirFileSelect',sfx);
-    if(sel) sel.innerHTML = '<option value="">(폴더를 먼저 연결)</option>';
-  });
 });
 </script>
 </body>
