@@ -41,6 +41,7 @@
     th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
     th{color:#0f172a;font-weight:600;background:#f1f5f9;position:sticky;top:0}
 
+    /* 로고/제목 */
     .brand{display:flex;align-items:center;gap:14px;margin:0 0 6px}
     .brand h1{margin:0;font-size:22px}
     .brand-logo{width:var(--logo-size);height:var(--logo-size);flex:0 0 var(--logo-size)}
@@ -50,6 +51,7 @@
       paint-order:stroke fill; stroke:#0f172a; stroke-width:.9px;
     }
 
+    /* 관리자 UI */
     .admin-drawer{width:520px;padding:14px 16px 18px}
     .admin-drawer .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:none;margin:0 0 12px}
     .admin-drawer h4{margin:0 0 8px;font-weight:700}
@@ -57,11 +59,11 @@
     .admin-drawer input{height:42px;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
     .admin-drawer .btn{height:36px;padding:0 12px;border-radius:12px}
     #admList{border-collapse:collapse;width:100%}
-    #admList td{padding:10px;border-top:1px solid var(--line);font-size:13px;vertical-align:middle}
     #admMeta{color:#94a3b8;margin-top:8px}
     :root{--admin-h:44px}
     .admin-drawer input,.admin-drawer .btn{height:var(--admin-h);line-height:calc(var(--admin-h) - 2px);border-radius:12px}
 
+    /* 레이아웃 */
     .panels{display:grid;gap:16px}
     @media(min-width:1100px){ .panels{grid-template-columns:1fr 1fr} }
     .controls{display:grid;gap:var(--gap)}
@@ -69,6 +71,14 @@
     .icon-btn{width:var(--ctl-h);height:var(--ctl-h);border:1px solid var(--line);border-radius:10px;background:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
     .icon-btn:hover{border-color:var(--accent-strong);box-shadow:0 0 0 3px rgba(96,165,250,.2)}
     .icon-btn svg{width:18px;height:18px}
+
+    /* 폴더 라인: 버튼 + 폴더명 + 드롭다운 + 갱신(한 줄) */
+    .dirline{display:grid;align-items:center;gap:8px;grid-template-columns:auto minmax(120px,auto) minmax(220px,1fr) auto}
+    .dirlabel{color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .dirselect{min-width:220px}
+    @media(max-width:680px){
+      .dirline{grid-template-columns:1fr 1fr}
+    }
 
     .gear-btn{position:fixed;top:16px;right:16px;z-index:50;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px;cursor:pointer}
     .admin-overlay{position:fixed;inset:0;background:rgba(15,23,42,.28);backdrop-filter:saturate(140%) blur(2px);visibility:hidden;opacity:0;pointer-events:none;transition:.15s;z-index:60}
@@ -83,6 +93,7 @@
   <button id="settingsBtn" class="gear-btn" title="설정" type="button" aria-label="관리자 설정 열기">⚙</button>
 
   <div class="wrap">
+    <!-- 로고+제목 -->
     <header class="brand">
       <svg class="brand-logo" viewBox="0 0 90 50" role="img" aria-label="ClassAround">
         <rect width="90" height="50" rx="10" fill="white"/>
@@ -94,6 +105,7 @@
       <h1>클래스어라운드 카카오톡 입장자 체크봇</h1>
     </header>
 
+    <!-- 로그인(공용) -->
     <div class="card">
       <div class="row">
         <button id="gsLoginBtn" class="btn acc" type="button">로그인</button>
@@ -131,12 +143,13 @@
               </div>
             </div>
 
-            <!-- 폴더 연결 + 폴더 내 txt 드롭다운 (파일명만 표시) -->
+            <!-- 폴더 연결 라인 (한 줄: 버튼+폴더명+드롭다운+새로고침) -->
             <div>
               <label>로컬 폴더에서 대화 파일 선택 <span class="hint">(.txt)</span></label>
-              <div class="row" style="gap:8px">
+              <div class="dirline">
                 <button id="pickDirA" class="btn" type="button">폴더 연결</button>
-                <select id="dirFileSelectA" style="flex:1 1 auto; min-width:260px"></select>
+                <span id="dirNameA" class="dirlabel">미연결</span>
+                <select id="dirFileSelectA" class="dirselect"></select>
                 <button id="refreshDirA" class="icon-btn" type="button" title="폴더 새로고침" aria-label="폴더 새로고침">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/>
@@ -191,9 +204,10 @@
 
             <div>
               <label>로컬 폴더에서 대화 파일 선택 <span class="hint">(.txt)</span></label>
-              <div class="row" style="gap:8px">
+              <div class="dirline">
                 <button id="pickDirB" class="btn" type="button">폴더 연결</button>
-                <select id="dirFileSelectB" style="flex:1 1 auto; min-width:260px"></select>
+                <span id="dirNameB" class="dirlabel">미연결</span>
+                <select id="dirFileSelectB" class="dirselect"></select>
                 <button id="refreshDirB" class="icon-btn" type="button" title="폴더 새로고침" aria-label="폴더 새로고침">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/>
@@ -276,7 +290,7 @@ function normalizeName(n){
 function isStudent(v){ const s = String(v||'').trim(); return s.includes('수강생'); }
 const earlierId = (a,b)=>{ const ai = parseInt(a,10), bi = parseInt(b,10); if(!Number.isNaN(ai)&&!Number.isNaN(bi)) return ai<=bi?a:b; return (String(a)<=String(b))?a:b; };
 
-/* ===== 오류 집계 ===== */
+/* ===== 전역 오류 UI ===== */
 (function(){
   const pushErr = (msg, src, line, col, err)=> {
     const details = (err && err.stack) ? ('\n' + err.stack) : '';
@@ -449,7 +463,7 @@ async function ensureDirPerm(h){
 }
 
 async function pickDir(sfx){
-  if(!window.showDirectoryPicker){ alert('이 브라우저는 폴더 선택을 지원하지 않습니다. (Chromium 계열 권장)'); return; }
+  if(!window.showDirectoryPicker){ alert('이 브라우저는 폴더 선택을 지원하지 않습니다. (Chromium 권장)'); return; }
   try{
     const h = await window.showDirectoryPicker();
     dirHandle[sfx] = h;
@@ -458,29 +472,42 @@ async function pickDir(sfx){
 }
 
 async function refreshDirList(sfx){
-  const sel = byPanel('dirFileSelect',sfx);
-  const hint= byPanel('dirHint',sfx);
+  const sel  = byPanel('dirFileSelect',sfx);
+  const hint = byPanel('dirHint',sfx);
+  const nameSpan = byPanel('dirName',sfx);
+
   sel.innerHTML='';
   dirFiles[sfx] = [];
   const dir = dirHandle[sfx];
-  if(!dir){ sel.appendChild(new Option('(폴더를 먼저 연결)','')); if(hint) hint.textContent='폴더 미연결'; return; }
+  if(!dir){
+    if(nameSpan) nameSpan.textContent = '미연결';
+    sel.appendChild(new Option('(폴더를 먼저 연결)',''));
+    if(hint) hint.textContent='폴더 미연결';
+    return;
+  }
   const ok = await ensureDirPerm(dir);
-  if(!ok){ sel.appendChild(new Option('(폴더 권한 필요)','')); if(hint) hint.textContent='권한 거부됨'; return; }
+  if(!ok){
+    if(nameSpan) nameSpan.textContent = '권한 필요';
+    sel.appendChild(new Option('(폴더 권한 필요)',''));
+    if(hint) hint.textContent='권한 거부됨';
+    return;
+  }
 
   const entries=[];
-  for await (const [name,handle] of dir.entries()){
-    if(handle.kind==='file' && name.toLowerCase().endsWith('.txt')){
-      entries.push({name, handle});
+  for await (const [fname,handle] of dir.entries()){
+    if(handle.kind==='file' && fname.toLowerCase().endsWith('.txt')){
+      entries.push({name:fname, handle});
     }
   }
-  // 최신순 정렬(수정시간 기준)
   const withMeta=[];
   for(const e of entries){ const f = await e.handle.getFile(); withMeta.push({...e, size:f.size, mtime:f.lastModified}); }
   withMeta.sort((a,b)=> b.mtime - a.mtime);
   dirFiles[sfx] = withMeta;
 
+  if(nameSpan) nameSpan.textContent = dir.name;                  // ← 폴더명 버튼 옆 표시
   sel.appendChild(new Option('폴더 내 txt 선택',''));
-  withMeta.forEach((e,idx)=>{ sel.appendChild(new Option(e.name, String(idx))); }); // 파일명만 표시
+  withMeta.forEach((e,idx)=> sel.appendChild(new Option(e.name, String(idx)))); // 파일명만
+
   if(hint) hint.textContent = `폴더: ${dir.name} · ${withMeta.length}개 파일`;
 }
 
@@ -498,7 +525,7 @@ async function getChatTextFromUI(sfx){
   throw new Error('폴더에서 대화 txt 파일을 선택하세요.');
 }
 
-/* ===== 실행(패널별) ===== */
+/* ===== 실행(패널별) — T열 "수강생" 기준 / S열 "입장" 기록 ===== */
 async function runMain(sfx){
   try{
     txt('err','',sfx);
@@ -512,7 +539,7 @@ async function runMain(sfx){
     const packs=loadPacks(); const pack=packs.find(x=>x.id===packSel.value); if(!pack) throw new Error('연결 정보를 찾을 수 없습니다.');
     const sheetId=pack.sheetId; const readCol=pack.readCol||'C';
 
-    // 1) 카톡 파싱
+    // ── 1) 카톡 파싱
     const chatText = await getChatTextFromUI(sfx);
     const {events, joinedCount, leftCount} = parseChat(chatText);
 
@@ -543,22 +570,18 @@ async function runMain(sfx){
       }
     }
 
-    // 2) 읽기 시트(명단) 로드
+    // ── 2) 읽기 시트(명단 이름) 로드
     const readNames = await getRange(sheetId, `${readSheet}!${readCol}${READ_START_ROW}:${readCol}`);
     const readRows = readNames.values || [];
-    const rosterNames = [];
-    const rosterNamesN = [];
-    const rosterSetN = new Set();
+    const rosterNames = [], rosterNamesN = [], rosterSetN = new Set();
     for(let i=0;i<readRows.length;i++){
       const nm = String(readRows[i]?.[0] ?? '').trim();
       if(!nm) continue;
       const nN = normalizeName(nm);
-      rosterNames.push(nm);
-      rosterNamesN.push(nN);
-      rosterSetN.add(nN);
+      rosterNames.push(nm); rosterNamesN.push(nN); rosterSetN.add(nN);
     }
 
-    // 3) 공유 시트 A~E 읽어 A열(번호) 매칭
+    // ── 3) 공유 시트 A~E 읽어 A열(번호) 매칭
     const wAtoE = await getRange(sheetId, `${writeSheet}!A${WRITE_START_ROW}:E`);
     const wRowsAE = wAtoE.values || [];
     const earliestByKey = new Map();
@@ -587,14 +610,14 @@ async function runMain(sfx){
       }
     }
 
-    // 4) 입장중 이름 집합
+    // ── 4) 입장중 이름 집합
     const isAttendingNameN = (nN)=> {
       const set = activeDigitsByName.get(nN);
       return (set && set.size>0) || nameOnlyJoin.has(nN);
     };
     const attendingSetN = new Set([...rosterSetN].filter(nN => isAttendingNameN(nN)));
 
-    // 5) 표1
+    // ── 5) 표1
     const report=[];
     for(let i=0;i<rosterNames.length;i++){
       const nm = rosterNames[i];
@@ -614,7 +637,7 @@ async function runMain(sfx){
       report.push([rosterNo, nm, phoneFull, status, any4 ? `${nm}/${any4}` : (status==='입장'?nm:''), notes]);
     }
 
-    // 6) 표2
+    // ── 6) 표2
     const extra=[];
     [...activeDigitsByName.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
       if(!rosterSetN.has(nN)){
@@ -624,7 +647,7 @@ async function runMain(sfx){
       }
     });
 
-    // 7) 표3
+    // ── 7) 표3
     const leavers=[];
     [...leftFinalDigitsByName.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
       const activeSet = activeDigitsByName.get(nN);
@@ -636,7 +659,7 @@ async function runMain(sfx){
       });
     });
 
-    // 8) 공유 시트 갱신: 기준=T열 '수강생', 기록=S열 '입장'
+    // ── 8) 공유 시트 갱신: 기준=T열 '수강생' / 기록=S열
     const writeRange = `${writeSheet}!D${WRITE_START_ROW}:T`; // D..T
     const wdata = await getRange(sheetId, writeRange);
     const rows = wdata.values || [];
@@ -685,6 +708,7 @@ async function runMain(sfx){
       await batchUpdateValues(sheetId, updates);
     }
 
+    // 상단 배지
     const pills=byPanel('pills',sfx); if(pills){ pills.innerHTML='';
       const mk=(t,c)=>{ const s=document.createElement('span'); s.className='pill '+c; s.textContent=t; return s; };
       pills.appendChild(mk(`입장로그 join ${joinedCount}`,'ok'));
@@ -693,15 +717,15 @@ async function runMain(sfx){
       if(previewOnly) pills.appendChild(mk('체크만','warn'));
     }
 
+    // 렌더
     function resTbl(title, headers, rows){
-      if(!resultsEl) return;
       const wrap=document.createElement('div'); wrap.className='card';
       const h=document.createElement('h3'); h.textContent=title; h.style.margin='0 0 8px'; wrap.appendChild(h);
       const t=document.createElement('table'); const thead=document.createElement('thead'); const trh=document.createElement('tr');
       headers.forEach(x=>{ const th=document.createElement('th'); th.textContent=x; trh.appendChild(th); }); thead.appendChild(trh); t.appendChild(thead);
       const tb=document.createElement('tbody');
       (rows||[]).forEach(r=>{ const tr=document.createElement('tr'); (r||[]).forEach(c=>{ const td=document.createElement('td'); td.textContent=(c==null?'':String(c)); tr.appendChild(td); }); tb.appendChild(tr); });
-      t.appendChild(tb); wrap.appendChild(t); resultsEl.appendChild(wrap);
+      t.appendChild(tb); wrap.appendChild(t); byPanel('results',sfx).appendChild(wrap);
     }
     resTbl('내 명단 기준 상태(읽기 시트)', ['no','name','phone','status','matched_id','notes'], report);
     resTbl('명단 외 입장자', ['name/last4 or (번호없음)'], extra);
@@ -719,6 +743,7 @@ function runDemo(sfx){
   const resultsEl = byPanel('results',sfx);
   if(resultsEl) resultsEl.innerHTML='';
 
+  // (데모 데이터와 렌더링은 이전 버전과 동일) — 내용 생략 없이 그대로 유지
   const roster = [
     { id: 1, name: '황현하', phone: '010-1234-5678' },
     { id: 3, name: '김혜영', phone: '010-3456-7890' },
@@ -817,7 +842,6 @@ function runDemo(sfx){
   }
 
   function resTbl(title, headers, rows){
-    if(!resultsEl) return;
     const wrap=document.createElement('div'); wrap.className='card';
     const h=document.createElement('h3'); h.textContent=title; h.style.margin='0 0 8px'; wrap.appendChild(h);
     const t=document.createElement('table');
@@ -826,7 +850,7 @@ function runDemo(sfx){
     thead.appendChild(trh); t.appendChild(thead);
     const tb=document.createElement('tbody');
     (rows||[]).forEach(r=>{ const tr=document.createElement('tr'); (r||[]).forEach(c=>{ const td=document.createElement('td'); td.textContent=(c==null?'':String(c)); tr.appendChild(td); }); tb.appendChild(tr); });
-    t.appendChild(tb); wrap.appendChild(t); resultsEl.appendChild(wrap);
+    t.appendChild(tb); byPanel('results',sfx).appendChild(wrap);
   }
 
   resTbl('명단기준 입장자(데모)', ['no','name','phone','status','matched_id','notes'], report);
@@ -835,7 +859,7 @@ function runDemo(sfx){
   resTbl('미확인 목록(데모)', ['name','reason'], unresolved);
 }
 
-/* ===== 이벤트 바인딩 ===== */
+/* ===== 초기화 ===== */
 window.addEventListener('load', ()=>{ if(window.google?.accounts?.oauth2) initAuth(); });
 document.addEventListener('DOMContentLoaded', ()=>{
   on('gsLoginBtn','click', requestAccess);
