@@ -41,7 +41,6 @@
     th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
     th{color:#0f172a;font-weight:600;background:#f1f5f9;position:sticky;top:0}
 
-    /* 로고/제목 */
     .brand{display:flex;align-items:center;gap:14px;margin:0 0 6px}
     .brand h1{margin:0;font-size:22px}
     .brand-logo{width:var(--logo-size);height:var(--logo-size);flex:0 0 var(--logo-size)}
@@ -58,7 +57,6 @@
     .admin-drawer label{color:#64748b;font-size:13px;margin:6px 0 4px}
     .admin-drawer input{height:42px;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
     .admin-drawer .btn{height:36px;padding:0 12px;border-radius:12px}
-    #admList{border-collapse:collapse;width:100%}
     #admMeta{color:#94a3b8;margin-top:8px}
     :root{--admin-h:44px}
     .admin-drawer input,.admin-drawer .btn{height:var(--admin-h);line-height:calc(var(--admin-h) - 2px);border-radius:12px}
@@ -67,18 +65,17 @@
     .panels{display:grid;gap:16px}
     @media(min-width:1100px){ .panels{grid-template-columns:1fr 1fr} }
     .controls{display:grid;gap:var(--gap)}
-    .controls-line{display:grid;align-items:end;gap:var(--gap);grid-template-columns:1.2fr 1fr 1fr var(--ctl-h)}
+    /* 공유 시트 선택 제거 → 3열(시트팩, 읽기 시트, 새로고침) */
+    .controls-line{display:grid;align-items:end;gap:var(--gap);grid-template-columns:1.2fr 1fr var(--ctl-h)}
     .icon-btn{width:var(--ctl-h);height:var(--ctl-h);border:1px solid var(--line);border-radius:10px;background:#fff;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
     .icon-btn:hover{border-color:var(--accent-strong);box-shadow:0 0 0 3px rgba(96,165,250,.2)}
     .icon-btn svg{width:18px;height:18px}
 
-    /* 폴더 라인: 버튼 + 폴더명 + 드롭다운 + 갱신(한 줄) */
+    /* 폴더 라인 */
     .dirline{display:grid;align-items:center;gap:8px;grid-template-columns:auto minmax(120px,auto) minmax(220px,1fr) auto}
     .dirlabel{color:#64748b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .dirselect{min-width:220px}
-    @media(max-width:680px){
-      .dirline{grid-template-columns:1fr 1fr}
-    }
+    @media(max-width:680px){ .dirline{grid-template-columns:1fr 1fr} }
 
     .gear-btn{position:fixed;top:16px;right:16px;z-index:50;background:#fff;border:1px solid var(--line);border-radius:12px;padding:8px;cursor:pointer}
     .admin-overlay{position:fixed;inset:0;background:rgba(15,23,42,.28);backdrop-filter:saturate(140%) blur(2px);visibility:hidden;opacity:0;pointer-events:none;transition:.15s;z-index:60}
@@ -130,10 +127,6 @@
                 <select id="readSheetSelectA"></select>
               </div>
               <div>
-                <label>공유 시트 선택</label>
-                <select id="writeSheetSelectA"></select>
-              </div>
-              <div>
                 <label style="visibility:hidden">refresh</label>
                 <button id="refreshMetaA" class="icon-btn" type="button" title="시트 목록 새로고침" aria-label="시트 목록 새로고침">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -142,8 +135,9 @@
                 </button>
               </div>
             </div>
+            <div class="hint">공유 시트: <b>공유용 시트</b> (고정)</div>
 
-            <!-- 폴더 연결 라인 (한 줄: 버튼+폴더명+드롭다운+새로고침) -->
+            <!-- 폴더 선택 -->
             <div>
               <label>로컬 폴더에서 대화 파일 선택 <span class="hint">(.txt)</span></label>
               <div class="dirline">
@@ -189,10 +183,6 @@
                 <select id="readSheetSelectB"></select>
               </div>
               <div>
-                <label>공유 시트 선택</label>
-                <select id="writeSheetSelectB"></select>
-              </div>
-              <div>
                 <label style="visibility:hidden">refresh</label>
                 <button id="refreshMetaB" class="icon-btn" type="button" title="시트 목록 새로고침" aria-label="시트 목록 새로고침">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -201,6 +191,7 @@
                 </button>
               </div>
             </div>
+            <div class="hint">공유 시트: <b>공유용 시트</b> (고정)</div>
 
             <div>
               <label>로컬 폴더에서 대화 파일 선택 <span class="hint">(.txt)</span></label>
@@ -304,6 +295,7 @@ const earlierId = (a,b)=>{ const ai = parseInt(a,10), bi = parseInt(b,10); if(!N
 const READ_START_ROW  = 2;
 const WRITE_START_ROW = 2;
 const CLIENT_ID = "18228268359-iifm4ck3j9kqj74eh1p90tco1k2mbpi0.apps.googleusercontent.com";
+const FIXED_WRITE_SHEET = '공유용 시트';  // ★ 공유 시트 고정
 
 /* ===== OAuth ===== */
 let accessToken=null, tokenClient=null;
@@ -389,10 +381,10 @@ function renderAdmList(){
 /* ===== 패널별 셀렉트 ===== */
 function populatePacks(sfx){
   const packs=loadPacks(); const sel=byPanel("sheetPackSelect", sfx); if(!sel) return; sel.innerHTML='';
-  const readSel=byPanel("readSheetSelect", sfx), writeSel=byPanel("writeSheetSelect", sfx);
+  const readSel=byPanel("readSheetSelect", sfx);
   if(!packs.length){
     sel.appendChild(new Option('(스프레드시트 연결)',''));
-    if(readSel) readSel.innerHTML=''; if(writeSel) writeSel.innerHTML='';
+    if(readSel) readSel.innerHTML='';
     return;
   }
   sel.appendChild(new Option('스프레드시트 선택',''));
@@ -413,12 +405,11 @@ function onPackChanged(sfx){
   const sel=byPanel("sheetPackSelect",sfx); if(!sel) return;
   const id=sel.value; sessionStorage.setItem('ca_prev_pack_'+sfx, id||'');
   const packs=loadPacks(); const p=packs.find(x=>x.id===id);
-  const readSel=byPanel("readSheetSelect",sfx), writeSel=byPanel("writeSheetSelect",sfx);
-  if(readSel) readSel.innerHTML=''; if(writeSel) writeSel.innerHTML='';
+  const readSel=byPanel("readSheetSelect",sfx);
+  if(readSel) readSel.innerHTML='';
   if(!p){ return; }
   if(readSel) readSel.appendChild(new Option('읽기 시트 선택',''));
-  if(writeSel) writeSel.appendChild(new Option('공유 시트 선택',''));
-  (p.sheets||[]).forEach(t=>{ if(readSel) readSel.appendChild(new Option(t,t)); if(writeSel) writeSel.appendChild(new Option(t,t)); });
+  (p.sheets||[]).forEach(t=>{ if(readSel) readSel.appendChild(new Option(t,t)); });
 }
 
 /* ===== 카톡 파싱 ===== */
@@ -461,16 +452,14 @@ async function ensureDirPerm(h){
   const r = await h.requestPermission?.({mode:'read'});
   return r === 'granted';
 }
-
 async function pickDir(sfx){
   if(!window.showDirectoryPicker){ alert('이 브라우저는 폴더 선택을 지원하지 않습니다. (Chromium 권장)'); return; }
   try{
     const h = await window.showDirectoryPicker();
     dirHandle[sfx] = h;
     await refreshDirList(sfx);
-  }catch(e){ /* 취소 */ }
+  }catch(e){ /* cancel */ }
 }
-
 async function refreshDirList(sfx){
   const sel  = byPanel('dirFileSelect',sfx);
   const hint = byPanel('dirHint',sfx);
@@ -504,13 +493,10 @@ async function refreshDirList(sfx){
   withMeta.sort((a,b)=> b.mtime - a.mtime);
   dirFiles[sfx] = withMeta;
 
-  if(nameSpan) nameSpan.textContent = dir.name;                  // ← 폴더명 버튼 옆 표시
+  if(nameSpan) nameSpan.textContent = dir.name;
   sel.appendChild(new Option('폴더 내 txt 선택',''));
-  withMeta.forEach((e,idx)=> sel.appendChild(new Option(e.name, String(idx)))); // 파일명만
-
-  if(hint) hint.textContent = `폴더: ${dir.name} · ${withMeta.length}개 파일`;
+  withMeta.forEach((e,idx)=> sel.appendChild(new Option(e.name, String(idx))));
 }
-
 async function getChatTextFromUI(sfx){
   const sel = byPanel('dirFileSelect',sfx);
   const v = sel?.value || '';
@@ -525,7 +511,7 @@ async function getChatTextFromUI(sfx){
   throw new Error('폴더에서 대화 txt 파일을 선택하세요.');
 }
 
-/* ===== 실행(패널별) — T열 "수강생" 기준 / S열 "입장" 기록 ===== */
+/* ===== 실행(패널별) — T열 "수강생" 기준 / S열 "입장" 기록 / 공유 시트 고정 ===== */
 async function runMain(sfx){
   try{
     txt('err','',sfx);
@@ -534,12 +520,12 @@ async function runMain(sfx){
 
     const packSel=byPanel('sheetPackSelect',sfx); if(!packSel || !packSel.value) throw new Error('스프레드시트를 선택하세요.');
     const readSheet=val('readSheetSelect',sfx); if(!readSheet) throw new Error('읽기 시트를 선택하세요.');
-    const writeSheet=val('writeSheetSelect',sfx); if(!writeSheet) throw new Error('공유 시트를 선택하세요.');
+    const writeSheet = FIXED_WRITE_SHEET; // 고정
 
     const packs=loadPacks(); const pack=packs.find(x=>x.id===packSel.value); if(!pack) throw new Error('연결 정보를 찾을 수 없습니다.');
     const sheetId=pack.sheetId; const readCol=pack.readCol||'C';
 
-    // ── 1) 카톡 파싱
+    // 1) 카톡 파싱
     const chatText = await getChatTextFromUI(sfx);
     const {events, joinedCount, leftCount} = parseChat(chatText);
 
@@ -570,7 +556,7 @@ async function runMain(sfx){
       }
     }
 
-    // ── 2) 읽기 시트(명단 이름) 로드
+    // 2) 읽기 시트(명단 이름)
     const readNames = await getRange(sheetId, `${readSheet}!${readCol}${READ_START_ROW}:${readCol}`);
     const readRows = readNames.values || [];
     const rosterNames = [], rosterNamesN = [], rosterSetN = new Set();
@@ -581,7 +567,7 @@ async function runMain(sfx){
       rosterNames.push(nm); rosterNamesN.push(nN); rosterSetN.add(nN);
     }
 
-    // ── 3) 공유 시트 A~E 읽어 A열(번호) 매칭
+    // 3) 공유 시트 A~E 읽어 A열(번호) 매칭
     const wAtoE = await getRange(sheetId, `${writeSheet}!A${WRITE_START_ROW}:E`);
     const wRowsAE = wAtoE.values || [];
     const earliestByKey = new Map();
@@ -610,14 +596,14 @@ async function runMain(sfx){
       }
     }
 
-    // ── 4) 입장중 이름 집합
+    // 4) 입장중 이름 집합
     const isAttendingNameN = (nN)=> {
       const set = activeDigitsByName.get(nN);
       return (set && set.size>0) || nameOnlyJoin.has(nN);
     };
     const attendingSetN = new Set([...rosterSetN].filter(nN => isAttendingNameN(nN)));
 
-    // ── 5) 표1
+    // 5) 표1
     const report=[];
     for(let i=0;i<rosterNames.length;i++){
       const nm = rosterNames[i];
@@ -637,7 +623,7 @@ async function runMain(sfx){
       report.push([rosterNo, nm, phoneFull, status, any4 ? `${nm}/${any4}` : (status==='입장'?nm:''), notes]);
     }
 
-    // ── 6) 표2
+    // 6) 표2
     const extra=[];
     [...activeDigitsByName.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
       if(!rosterSetN.has(nN)){
@@ -647,7 +633,7 @@ async function runMain(sfx){
       }
     });
 
-    // ── 7) 표3
+    // 7) 표3
     const leavers=[];
     [...leftFinalDigitsByName.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
       const activeSet = activeDigitsByName.get(nN);
@@ -659,7 +645,7 @@ async function runMain(sfx){
       });
     });
 
-    // ── 8) 공유 시트 갱신: 기준=T열 '수강생' / 기록=S열
+    // 8) 공유 시트 갱신: 기준=T열 '수강생' / 기록=S열
     const writeRange = `${writeSheet}!D${WRITE_START_ROW}:T`; // D..T
     const wdata = await getRange(sheetId, writeRange);
     const rows = wdata.values || [];
@@ -743,7 +729,6 @@ function runDemo(sfx){
   const resultsEl = byPanel('results',sfx);
   if(resultsEl) resultsEl.innerHTML='';
 
-  // (데모 데이터와 렌더링은 이전 버전과 동일) — 내용 생략 없이 그대로 유지
   const roster = [
     { id: 1, name: '황현하', phone: '010-1234-5678' },
     { id: 3, name: '김혜영', phone: '010-3456-7890' },
