@@ -144,13 +144,29 @@
               </div>
             </div>
 
+            <!-- 기존: 단일 파일 업로드 -->
             <div>
-              <label>카카오톡 대화 <span class="hint">.txt</span></label>
+              <label>카카오톡 대화 <span class="hint">.txt (단일 업로드)</span></label>
               <div class="filectl">
                 <button id="pickFileA" class="btn" type="button">파일 선택</button>
                 <span id="fileNameA" class="fname">선택된 파일 없음</span>
                 <input id="chatFileA" type="file" accept=".txt" hidden />
               </div>
+            </div>
+
+            <!-- 추가: 로컬 폴더 연결 + 폴더 내 txt 드롭다운 -->
+            <div>
+              <label>로컬 폴더에서 대화 파일 선택 <span class="hint">(.txt)</span></label>
+              <div class="row" style="gap:8px">
+                <button id="pickDirA" class="btn" type="button">폴더 연결</button>
+                <select id="dirFileSelectA" style="flex:1 1 auto; min-width:260px"></select>
+                <button id="refreshDirA" class="icon-btn" type="button" title="폴더 새로고침" aria-label="폴더 새로고침">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/>
+                  </svg>
+                </button>
+              </div>
+              <div id="dirHintA" class="hint" style="margin-top:4px">폴더 미연결</div>
             </div>
           </div>
 
@@ -196,13 +212,29 @@
               </div>
             </div>
 
+            <!-- 기존: 단일 파일 업로드 -->
             <div>
-              <label>카카오톡 대화 <span class="hint">.txt</span></label>
+              <label>카카오톡 대화 <span class="hint">.txt (단일 업로드)</span></label>
               <div class="filectl">
                 <button id="pickFileB" class="btn" type="button">파일 선택</button>
                 <span id="fileNameB" class="fname">선택된 파일 없음</span>
                 <input id="chatFileB" type="file" accept=".txt" hidden />
               </div>
+            </div>
+
+            <!-- 추가: 로컬 폴더 연결 + 폴더 내 txt 드롭다운 -->
+            <div>
+              <label>로컬 폴더에서 대화 파일 선택 <span class="hint">(.txt)</span></label>
+              <div class="row" style="gap:8px">
+                <button id="pickDirB" class="btn" type="button">폴더 연결</button>
+                <select id="dirFileSelectB" style="flex:1 1 auto; min-width:260px"></select>
+                <button id="refreshDirB" class="icon-btn" type="button" title="폴더 새로고침" aria-label="폴더 새로고침">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/>
+                  </svg>
+                </button>
+              </div>
+              <div id="dirHintB" class="hint" style="margin-top:4px">폴더 미연결</div>
             </div>
           </div>
 
@@ -275,16 +307,9 @@ function normalizeName(n){
   s = s.replace(/\s+/g,' ');                                     // 공백 정리
   return s;
 }
-function isPaid(v){ // (남겨둠: 현재는 사용 안함)
-  const s = String(v||'').trim().toLowerCase();
-  if(!s) return false;
-  const ns = s.replace(/\s/g,'');
-  if(/미결제|미완료|취소|환불/.test(ns)) return false;
-  if(/\b(no|false|x)\b/.test(s)) return false;
-  if(ns==='결제완료') return true;
-  if(/결제/.test(s) && /(완료|확인|됨|ok)/.test(s)) return true;
-  if(/입금|납부|paid|완료|확인|ok|done|true|yes|\by\b|\bo\b|✓|✔|✅/.test(s)) return true;
-  return false;
+function isStudent(v){ // T열 값 판정
+  const s = String(v||'').trim();
+  return s.includes('수강생'); // 정확히 '수강생'이면 true. 포함으로 여유.
 }
 const earlierId = (a,b)=>{ // 숫자/문자 안전 비교(작은 값이 더 이른 번호)
   const ai = parseInt(a,10), bi = parseInt(b,10);
@@ -296,10 +321,7 @@ const earlierId = (a,b)=>{ // 숫자/문자 안전 비교(작은 값이 더 이�
 (function(){
   const pushErr = (msg, src, line, col, err)=> {
     const details = (err && err.stack) ? ('\n' + err.stack) : '';
-    PANEL_SUFFIXES.forEach(s=>{
-      const el = byPanel('err', s);
-      if (el) el.textContent = '오류: ' + msg + (src?`\n${src}:${line}:${col}`:'') + details;
-    });
+    PANEL_SUFFIXES.forEach(s=>{ const el = byPanel('err', s); if (el) el.textContent = '오류: ' + msg + (src?`\n${src}:${line}:${col}`:'') + details; });
   };
   window.addEventListener('error', e=>{ pushErr(e.message, e.filename, e.lineno, e.colno, e.error); });
   window.addEventListener('unhandledrejection', e=>{ const r = e.reason || {}; pushErr(r.message || String(r), '', 0, 0, r); });
@@ -456,6 +478,80 @@ function parseChat(text){
   return {events, joinedCount, leftCount};
 }
 
+/* ===== 로컬 폴더(FSA) ===== */
+const dirHandle = {A:null, B:null};
+let dirFiles = {A:[], B:[]}; // [{name, handle, size, mtime}...]
+
+function formatSize(n){ if(n>=1048576) return (n/1048576).toFixed(1)+'MB'; if(n>=1024) return (n/1024).toFixed(1)+'KB'; return n+'B'; }
+
+async function ensureDirPerm(h){
+  if(!h) return false;
+  const q = await h.queryPermission?.({mode:'read'});
+  if(q === 'granted') return true;
+  const r = await h.requestPermission?.({mode:'read'});
+  return r === 'granted';
+}
+
+async function pickDir(sfx){
+  if(!window.showDirectoryPicker){ alert('이 브라우저는 폴더 선택을 지원하지 않습니다. (Chromium 계열 권장)'); return; }
+  try{
+    const h = await window.showDirectoryPicker();
+    dirHandle[sfx] = h;
+    await refreshDirList(sfx);
+  }catch(e){ /* 취소 등 무시 */ }
+}
+
+async function refreshDirList(sfx){
+  const sel = byPanel('dirFileSelect',sfx);
+  const hint= byPanel('dirHint',sfx);
+  sel.innerHTML='';
+  dirFiles[sfx] = [];
+  const dir = dirHandle[sfx];
+  if(!dir){ sel.appendChild(new Option('(폴더를 먼저 연결)','')); if(hint) hint.textContent='폴더 미연결'; return; }
+  const ok = await ensureDirPerm(dir);
+  if(!ok){ sel.appendChild(new Option('(폴더 권한 필요)','')); if(hint) hint.textContent='권한 거부됨'; return; }
+
+  const entries=[];
+  for await (const [name,handle] of dir.entries()){
+    if(handle.kind==='file' && name.toLowerCase().endsWith('.txt')){
+      entries.push({name, handle});
+    }
+  }
+  const withMeta=[];
+  for(const e of entries){
+    const f = await e.handle.getFile();
+    withMeta.push({...e, size:f.size, mtime:f.lastModified});
+  }
+  withMeta.sort((a,b)=> b.mtime - a.mtime); // 최신순
+  dirFiles[sfx] = withMeta;
+
+  sel.appendChild(new Option('폴더 내 txt 선택',''));
+  withMeta.forEach((e,idx)=>{
+    const d = new Date(e.mtime);
+    const label = `${e.name} — ${d.toLocaleString()} • ${formatSize(e.size)}`;
+    sel.appendChild(new Option(label, String(idx)));
+  });
+  if(hint) hint.textContent = `${dir.name} · ${withMeta.length}개 파일`;
+}
+
+async function getChatTextFromUI(sfx){
+  // 1) 단일 업로드 우선
+  const fi = byPanel('chatFile',sfx);
+  if(fi?.files?.[0]) return await fi.files[0].text();
+  // 2) 폴더 드롭다운 선택
+  const sel = byPanel('dirFileSelect',sfx);
+  const v = sel?.value || '';
+  if(v !== ''){
+    const idx = parseInt(v,10);
+    const item = dirFiles[sfx][idx];
+    if(item){
+      const f = await item.handle.getFile();
+      return await f.text();
+    }
+  }
+  throw new Error('대화 txt 파일을 선택하거나, 폴더에서 파일을 선택하세요.');
+}
+
 /* ===== 실행(패널별) ===== */
 async function runMain(sfx){
   try{
@@ -463,7 +559,6 @@ async function runMain(sfx){
     const resultsEl = byPanel('results', sfx); if(resultsEl) resultsEl.innerHTML='';
     const previewOnly = byPanel("previewOnly",sfx)?.checked;
 
-    const chatFile=byPanel('chatFile',sfx)?.files?.[0]; if(!chatFile) throw new Error('대화 txt 파일을 선택하세요.');
     const packSel=byPanel('sheetPackSelect',sfx); if(!packSel || !packSel.value) throw new Error('스프레드시트를 선택하세요.');
     const readSheet=val('readSheetSelect',sfx); if(!readSheet) throw new Error('읽기 시트를 선택하세요.');
     const writeSheet=val('writeSheetSelect',sfx); if(!writeSheet) throw new Error('공유 시트를 선택하세요.');
@@ -472,14 +567,13 @@ async function runMain(sfx){
     const sheetId=pack.sheetId; const readCol=pack.readCol||'C';
 
     // ── 1) 카톡 파싱 → 최종 활성/퇴장 상태
-    const chatText = await readText(chatFile);
+    const chatText = await getChatTextFromUI(sfx);
     const {events, joinedCount, leftCount} = parseChat(chatText);
 
     const NAME_ONLY_SENTINEL = '__NAMEONLY__';
     const activeDigitsByName = new Map();      // nameN -> Set(끝4 or sentinel)
-    const leftFinalDigitsByName = new Map();   // nameN -> Set(끝4 or sentinel) [최종 상태가 '밖'인 것]
+    const leftFinalDigitsByName = new Map();   // nameN -> Set(끝4 or sentinel) [최종 '밖']
     const nameOnlyJoin = new Set();
-
     const ensure = (map, key)=>{ if(!map.has(key)) map.set(key,new Set()); return map.get(key); };
 
     for(const ev of events){
@@ -495,7 +589,7 @@ async function runMain(sfx){
           if(L.size===0) leftFinalDigitsByName.delete(nN);
         }
         if(!s.digits){ nameOnlyJoin.add(nN); }
-      }else{ // leave/kick
+      }else{
         const A = ensure(activeDigitsByName, nN);
         if(s.digits){ A.delete(s.digits); }
         else { if(A.size===1 && A.has(NAME_ONLY_SENTINEL)) A.delete(NAME_ONLY_SENTINEL); }
@@ -518,7 +612,7 @@ async function runMain(sfx){
       rosterSetN.add(nN);
     }
 
-    // ── 3) 공유 시트 A~E를 한 번에 읽어서 번호/이름/전화 매핑(가장 빠른 A열 번호 기준)
+    // ── 3) 공유 시트 A~E 읽어 A열(번호) 매칭 (가장 이른 번호 기준)
     const wAtoE = await getRange(sheetId, `${writeSheet}!A${WRITE_START_ROW}:E`);
     const wRowsAE = wAtoE.values || []; // [A=no, B=?, C=?, D=name, E=phone]
     const earliestByKey = new Map();    // `${nameN}|${phone4}` -> {id, phoneFull}
@@ -533,7 +627,6 @@ async function runMain(sfx){
       const nN = normalizeName(nameRaw);
       const p4 = last4Digits(phoneRaw);
 
-      // name+phone4 키
       if(p4){
         const key = nN + '|' + p4;
         if(!earliestByKey.has(key)) earliestByKey.set(key, {id, phoneFull: phoneRaw, phone4:p4});
@@ -542,7 +635,6 @@ async function runMain(sfx){
           earliestByKey.set(key, earlierId(cur.id,id)===cur.id ? cur : {id, phoneFull:phoneRaw, phone4:p4});
         }
       }
-      // name 단독 키(전화없어도 유지)
       if(!earliestByName.has(nN)) earliestByName.set(nN, {id, phoneFull: phoneRaw, phone4:p4});
       else{
         const cur = earliestByName.get(nN);
@@ -599,79 +691,64 @@ async function runMain(sfx){
       });
     });
 
-    /* ── 8) 공유 시트 갱신(S열) — 기준: T열이 '수강생'인 행만 대상 ───────── */
-    // D~T까지 읽어서 T열 판단 (기존 D~S에서 변경)
-    const writeRange = `${writeSheet}!D${WRITE_START_ROW}:T`;
+    // ── 8) 공유 시트 갱신: 기준을 T열('수강생')로 변경, 기록은 S열
+    const writeRange = `${writeSheet}!D${WRITE_START_ROW}:T`; // D..T 읽기
     const wdata = await getRange(sheetId, writeRange);
     const rows = wdata.values || [];
+    const studentRowsIdx = [];
+    const paidNameCountN = new Map(); // 동명이인 판정용 (D열 이름 빈도)
 
-    // D(0)=이름, E(1)=전화, ... S(15), T(16)=수강생 여부
-    const COL_NAME = 0;   // D
-    const COL_PHONE = 1;  // E
-    const COL_T = 16;     // T
-    const isStudentCell = (v)=> String(v ?? '').replace(/\s/g,'') === '수강생';
-
-    // T열이 '수강생'인 행만 추출, 동명이인 카운트
-    const targetRowsIdx = [];
-    const targetNameCountN = new Map();
-    for (let i=0;i<rows.length;i++){
+    for(let i=0;i<rows.length;i++){
       const r = rows[i] || [];
-      if(!isStudentCell(r[COL_T])) continue;               // T열 '수강생' 아니면 스킵
-      const nameN = normalizeName(String(r[COL_NAME] ?? ''));
+      const nameN = normalizeName(String(r[0] ?? '')); // D
+      const tVal  = r[16]; // T
       if(!nameN) continue;
-      targetRowsIdx.push(i);
-      targetNameCountN.set(nameN, (targetNameCountN.get(nameN)||0)+1);
+      if(isStudent(tVal)) studentRowsIdx.push(i);
+      paidNameCountN.set(nameN, (paidNameCountN.get(nameN)||0)+1);
     }
 
     const updates = [];
     const unresolved = [];
 
-    for (const i of targetRowsIdx){
+    for(const i of studentRowsIdx){
       const r = rows[i] || [];
-      const nameRaw = String(r[COL_NAME] ?? '').trim();     // D
+      const nameRaw = String(r[0] ?? '').trim(); // D
       const nameN   = normalizeName(nameRaw);
-      const phone4  = last4Digits(r[COL_PHONE] ?? '');      // E
+      const phone4  = last4Digits(r[1] ?? '');    // E
       if(!nameN) continue;
 
-      // 최종 '입장중' 이름만 S열에 기록
-      if(!attendingSetN.has(nameN)) continue;
+      if(!attendingSetN.has(nameN)) continue; // 최종 입장중이 아니면 기록 안 함
 
-      const set   = activeDigitsByName.get(nameN) || new Set();
-      const isDup = (targetNameCountN.get(nameN)||0) > 1; // '수강생' 동명이인
+      const set = activeDigitsByName.get(nameN) || new Set();
+      const isDupInPaid = (paidNameCountN.get(nameN)||0) > 1;
 
       let canWrite = false;
-      if (isDup){
-        if (phone4 && set.has(phone4)) {
-          canWrite = true;
-        } else {
-          unresolved.push([
-            nameRaw,
-            set.has(NAME_ONLY_SENTINEL)
-              ? '공유시트 동명이인 + 입장로그 번호없음'
-              : '공유시트 동명이인 + 번호불일치'
-          ]);
+      if(isDupInPaid){
+        if(phone4 && set.has(phone4)) canWrite = true;
+        else {
+          if(set.has(NAME_ONLY_SENTINEL)) unresolved.push([nameRaw,'동명이인 + 입장로그 번호없음']);
+          else unresolved.push([nameRaw,'동명이인 + 번호불일치']);
         }
-      } else {
-        if (set.size >= 1 || set.has(NAME_ONLY_SENTINEL)) canWrite = true;
+      }else{
+        if(set.size >= 1 || set.has(NAME_ONLY_SENTINEL)) canWrite = true;
       }
 
-      if (canWrite){
-        const rowNumber = WRITE_START_ROW + i; // 실제 시트 행 번호
-        updates.push({ range: `${writeSheet}!S${rowNumber}`, values: [['입장']] });
+      if(canWrite){
+        const rowNumber = WRITE_START_ROW + i;
+        updates.push({ range: `${writeSheet}!S${rowNumber}`, values: [['입장']] }); // S열에 기록
       }
     }
 
     if(updates.length && !previewOnly){
       await batchUpdateValues(sheetId, updates);
     }
-    /* ───────────────────────────────────────────────────────────────────── */
 
     // 상단 배지
     const pills=byPanel('pills',sfx); if(pills){ pills.innerHTML='';
       const mk=(t,c)=>{ const s=document.createElement('span'); s.className='pill '+c; s.textContent=t; return s; };
       pills.appendChild(mk(`입장로그 join ${joinedCount}`,'ok'));
       pills.appendChild(mk(`퇴장로그 leave ${leftCount}`,'bad'));
-      pills.appendChild(mk(`입장 대상(읽기시트) ${attendingSetN.size}`,'warn'));
+      pills.appendChild(mk(`입장 대상(읽기시트) ${[...attendingSetN].length}`,'warn'));
       if(previewOnly) pills.appendChild(mk('체크만','warn'));
     }
 
@@ -691,18 +768,18 @@ async function runMain(sfx){
     resTbl('퇴장자 명단(최종)', ['name/last4 or (번호없음)'], leavers);
     resTbl(previewOnly ? '예상 갱신 결과(체크만 모드)' : '공유 시트 갱신 결과',
            ['updated_cells'], updates.map(u=>[u.range+' ← 입장']));
-    resTbl('미확인 목록(공유 시트 동명이인/번호 문제)', ['name','reason'], unresolved);
+    resTbl('미확인 목록(동명이인/번호 문제)', ['name','reason'], unresolved);
 
   }catch(e){ txt('err','오류: '+(e?.message||e),sfx); console.error(e); }
 }
 
-/* ===== 데모(패널별) : 실제 섹션과 동일한 4표 출력 ===== */
+/* ===== 데모(패널별) : 동일 형식 4표 ===== */
 function runDemo(sfx){
   txt('err','',sfx);
   const resultsEl = byPanel('results',sfx);
   if(resultsEl) resultsEl.innerHTML='';
 
-  // ❶ 데모용 명단(읽기 시트) — 번호/이름/전화
+  // 데모 명단
   const roster = [
     { id: 1, name: '황현하', phone: '010-1234-5678' },
     { id: 3, name: '김혜영', phone: '010-3456-7890' },
@@ -712,7 +789,7 @@ function runDemo(sfx){
   ];
   const rosterSetN = new Set(roster.map(r => normalizeName(r.name)));
 
-  // ❷ 데모용 카톡 로그
+  // 데모 로그
   const chatText = [
     '김예은/0000님이 입장하셨습니다',
     '황현하/5678님이 입장하셨습니다',
@@ -721,66 +798,51 @@ function runDemo(sfx){
     '김혜영/7890님이 입장하셨습니다',
     '진종범/2514님이 입장하셨습니다',   // 명단 외
     '매드드라이버김지현님이 입장하셨습니다',   // 명단 외
-    '신조차모독하는천재이원철님이 입장하셨습니다',   // 명단 외
-    '세계제일의규리당장찬양님이 나갔습니다.',          // 최종 퇴장 처리
-    '송지현예쁘다님을 내보냈습니다.'          // 최종 퇴장 처리
+    '세계제일의규리당장찬양님이 나갔습니다.',  // 최종 퇴장 처리
+    '송지현예쁘다님을 내보냈습니다.'           // 최종 퇴장 처리
   ].join('\n');
   const {events, joinedCount, leftCount} = parseChat(chatText);
 
-  // ❸ 활성/퇴장 상태 계산
   const NAME_ONLY_SENTINEL='__NAMEONLY__';
-  const active = new Map();           // nameN -> Set(last4 or sentinel)
-  const leftFinal = new Map();
+  const active = new Map(); const leftFinal = new Map();
   const ensure=(map,key)=>{ if(!map.has(key)) map.set(key,new Set()); return map.get(key); };
-
   for(const ev of events){
     const s = splitNickname(ev.nick); if(!s) continue;
     const nN = s.name;
     if(ev.type==='join'){
       ensure(active,nN).add(s.digits || NAME_ONLY_SENTINEL);
-      const L = leftFinal.get(nN);
-      if(L){ L.delete(s.digits || NAME_ONLY_SENTINEL); if(L.size===0) leftFinal.delete(nN); }
+      const L = leftFinal.get(nN); if(L){ L.delete(s.digits||NAME_ONLY_SENTINEL); if(L.size===0) leftFinal.delete(nN); }
     }else{
       const A = ensure(active,nN);
       if(s.digits) A.delete(s.digits);
       else if(A.size===1 && A.has(NAME_ONLY_SENTINEL)) A.delete(NAME_ONLY_SENTINEL);
-      ensure(leftFinal,nN).add(s.digits || NAME_ONLY_SENTINEL);
+      ensure(leftFinal,nN).add(s.digits||NAME_ONLY_SENTINEL);
     }
   }
 
-  // ❹ 데모용 "수강생" 행(동명이인/번호 문제 유도 용도)
+  // 데모 '수강생' 행(동명이인 유도)
   const paidRows = [
-    { name: '김예은', phone4: '0000' },   // OK
-    { name: '방예진', phone4: '9999' },   // OK
-    { name: '황현하', phone4: '5678' },   // 동명이인 처리용(중복 추가)
-    { name: '황현하', phone4: '9999' },   // ↳ 번호 불일치 → 미확인
-    { name: '김혜영', phone4: '7890' },   // 명단 외이나 동명이인 유도
-    { name: '김혜영', phone4: ''    },   // ↳ 번호없음 → 미확인
+    { name: '김예은', phone4: '0000' },
+    { name: '방예진', phone4: '9999' },
+    { name: '황현하', phone4: '5678' },
+    { name: '황현하', phone4: '9999' },   // 번호 불일치 → 미확인
+    { name: '김혜영', phone4: '7890' },   // 동명이인 가정
+    { name: '김혜영', phone4: ''    },   // 번호없음 → 미확인
   ];
   const paidNameCountN = new Map();
-  for(const r of paidRows){
-    const nN = normalizeName(r.name);
-    paidNameCountN.set(nN,(paidNameCountN.get(nN)||0)+1);
-  }
+  for(const r of paidRows){ const nN = normalizeName(r.name); paidNameCountN.set(nN,(paidNameCountN.get(nN)||0)+1); }
 
-  // ❺ 표1: 명단기준 입장자(데모)
+  // 표1
   const report = [];
   for(const r of roster){
     const nN = normalizeName(r.name);
     const set = active.get(nN) || new Set();
     const isActive = set.size>0;
     const any4 = [...set].find(x=>x!==NAME_ONLY_SENTINEL) || '';
-    report.push([
-      String(r.id),           // no
-      r.name,
-      r.phone,
-      isActive ? '입장' : '미입장',
-      isActive ? (any4 ? `${r.name}/${any4}` : r.name) : '',
-      isActive && !any4 ? '(번호없음)' : ''
-    ]);
+    report.push([ String(r.id), r.name, r.phone, isActive?'입장':'미입장', isActive ? (any4? `${r.name}/${any4}`: r.name) : '', isActive&&!any4? '(번호없음)':'' ]);
   }
 
-  // ❻ 표2: 명단 외 입장자(데모)
+  // 표2
   const extra = [];
   [...active.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
     if(!rosterSetN.has(nN)){
@@ -790,18 +852,14 @@ function runDemo(sfx){
     }
   });
 
-  // ❼ 표3: 퇴장자 명단(데모)
+  // 표3
   const leavers = [];
   [...leftFinal.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
     const act = active.get(nN);
-    set.forEach(d=>{
-      if(!act || !act.has(d)){
-        leavers.push([ d===NAME_ONLY_SENTINEL ? `${nN}(번호없음)` : `${nN}/${d}` ]);
-      }
-    });
+    set.forEach(d=>{ if(!act || !act.has(d)) leavers.push([ d===NAME_ONLY_SENTINEL ? `${nN}(번호없음)` : `${nN}/${d}` ]); });
   });
 
-  // ❽ 표4: 미확인 목록(데모) — 동명이인 + 번호 문제
+  // 표4
   const unresolved = [];
   for(const r of paidRows){
     const nN = normalizeName(r.name);
@@ -810,16 +868,11 @@ function runDemo(sfx){
     if(!isDupInPaid) continue;
 
     const p4 = (r.phone4||'').trim();
-    if(p4 && set.has(p4)) continue; // 정확히 매칭되면 미확인 아님
-
-    if(!p4){
-      unresolved.push([r.name,'공유시트 동명이인 + 입장로그 번호없음']);
-    }else{
-      unresolved.push([r.name,'공유시트 동명이인 + 번호불일치']);
-    }
+    if(p4 && set.has(p4)) continue;
+    if(!p4) unresolved.push([r.name,'동명이인 + 입장로그 번호없음']);
+    else    unresolved.push([r.name,'동명이인 + 번호불일치']);
   }
 
-  // 상단 배지
   const pills = byPanel('pills',sfx);
   if(pills){
     pills.innerHTML='';
@@ -831,7 +884,6 @@ function runDemo(sfx){
     pills.appendChild(mk('체크만','warn'));
   }
 
-  // 렌더
   function resTbl(title, headers, rows){
     if(!resultsEl) return;
     const wrap=document.createElement('div'); wrap.className='card';
@@ -841,11 +893,7 @@ function runDemo(sfx){
     headers.forEach(x=>{ const th=document.createElement('th'); th.textContent=x; trh.appendChild(th); });
     thead.appendChild(trh); t.appendChild(thead);
     const tb=document.createElement('tbody');
-    (rows||[]).forEach(r=>{
-      const tr=document.createElement('tr');
-      (r||[]).forEach(c=>{ const td=document.createElement('td'); td.textContent=(c==null?'':String(c)); tr.appendChild(td); });
-      tb.appendChild(tr);
-    });
+    (rows||[]).forEach(r=>{ const tr=document.createElement('tr'); (r||[]).forEach(c=>{ const td=document.createElement('td'); td.textContent=(c==null?'':String(c)); tr.appendChild(td); }); tb.appendChild(tr); });
     t.appendChild(tb); wrap.appendChild(t); resultsEl.appendChild(wrap);
   }
 
@@ -855,7 +903,7 @@ function runDemo(sfx){
   resTbl('미확인 목록(데모)', ['name','reason'], unresolved);
 }
 
-/* ===== 파일 선택 바인딩 ===== */
+/* ===== 파일/폴더 선택 바인딩 ===== */
 function bindFilePicker(sfx){
   const pickBtn=byPanel('pickFile',sfx), fileInput=byPanel('chatFile',sfx), nameSpan=byPanel('fileName',sfx);
   if(pickBtn && fileInput && nameSpan){
@@ -890,6 +938,8 @@ document.addEventListener('DOMContentLoaded', ()=>{
   on('runBtn','click', ()=>runMain('A'), 'A');
   on('demoBtn','click', ()=>runDemo('A'), 'A');
   bindFilePicker('A');
+  on('pickDir','click', ()=>pickDir('A'),'A');
+  on('refreshDir','click', ()=>refreshDirList('A'),'A');
 
   // Panel B
   on('sheetPackSelect','change', ()=>onPackChanged('B'), 'B');
@@ -897,9 +947,17 @@ document.addEventListener('DOMContentLoaded', ()=>{
   on('runBtn','click', ()=>runMain('B'), 'B');
   on('demoBtn','click', ()=>runDemo('B'), 'B');
   bindFilePicker('B');
+  on('pickDir','click', ()=>pickDir('B'),'B');
+  on('refreshDir','click', ()=>refreshDirList('B'),'B');
 
   populatePacks('A');
   populatePacks('B');
+
+  // 폴더 드롭다운 placeholder
+  ['A','B'].forEach(sfx=>{
+    const sel=byPanel('dirFileSelect',sfx);
+    if(sel) sel.innerHTML = '<option value="">(폴더를 먼저 연결)</option>';
+  });
 });
 </script>
 </body>
