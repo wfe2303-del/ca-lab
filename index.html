@@ -447,6 +447,18 @@ function extractDriveFolderId(input){
   return s;
 }
 
+// 폴더 ID로 드라이브 폴더 이름 가져오기
+async function getDriveFolderName(folderId){
+  requireAuth();
+  const url = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(folderId)}?fields=name`;
+  const res = await fetch(url, {
+    headers: { Authorization: 'Bearer ' + accessToken }
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const data = await res.json();
+  return data.name || folderId;
+}
+
 // 패널에서 "폴더 연결" 버튼 눌렀을 때
 async function pickDriveFolder(sfx){
   try{
@@ -515,8 +527,15 @@ async function refreshDriveList(sfx){
       mtime: f.modifiedTime ? Date.parse(f.modifiedTime) : 0
     }));
 
+    // 폴더 라벨: 실제 드라이브 폴더 이름 표시
     if (nameSpan){
-      nameSpan.textContent = folderId; // 필요하면 폴더 이름 조회해서 바꿀 수 있음
+      let displayName = folderId;
+      try{
+        displayName = await getDriveFolderName(folderId);
+      }catch(e){
+        console.warn('폴더 이름 조회 실패, ID로 표시합니다.', e);
+      }
+      nameSpan.textContent = displayName;
       nameSpan.classList.add('connected');
     }
 
