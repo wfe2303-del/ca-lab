@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>클래스어라운드 · 카카오톡 입장자 체크봇 (Dual)</title>
+  <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root{
@@ -146,7 +147,7 @@
 
             <div class="hint" style="margin-top:-4px"></div>
 
-            <!-- 로컬 폴더에서 대화 파일 선택 -->
+            <!-- 구글 드라이브 폴더에서 대화 파일 선택 -->
             <label style="margin-top:8px"></label>
             <div class="dirline">
               <button id="dirPickA" class="btn" type="button">폴더 연결</button>
@@ -305,6 +306,8 @@ const earlierId = (a,b)=>{ const ai = parseInt(a,10), bi = parseInt(b,10); if(!N
 const READ_START_ROW  = 2;
 const WRITE_START_ROW = 2;
 const FIXED_WRITE_SHEET = '공유용 시트';
+
+/* ✅ 여기 CLIENT_ID를 본인 OAuth 클라이언트 ID로 교체 */
 const CLIENT_ID = "18228268359-iifm4ck3j9kqj74eh1p90tco1k2mbpi0.apps.googleusercontent.com";
 
 /* ===== OAuth ===== */
@@ -314,10 +317,17 @@ function initAuth(){
     if(!window.google?.accounts?.oauth2){ txt('authErr','GIS 로드 실패'); return; }
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: CLIENT_ID,
-      scope: 'https://www.googleapis.com/auth/spreadsheets',
+      // ✅ Sheets + Drive 읽기 권한
+      scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly',
       prompt: '',
-      callback: (res)=>{ accessToken = res.access_token; txt("authState",'로그인 완료'); txt("authErr",''); },
-      error_callback: (err)=>{ txt("authErr",'OAuth 오류: '+(err?.error||err?.type||JSON.stringify(err))); }
+      callback: (res)=>{ 
+        accessToken = res.access_token; 
+        txt("authState",'로그인 완료'); 
+        txt("authErr",''); 
+      },
+      error_callback: (err)=>{ 
+        txt("authErr",'OAuth 오류: '+(err?.error||err?.type||JSON.stringify(err))); 
+      }
     });
   }catch(e){ txt('authErr','OAuth 초기화 오류'); console.error(e); }
 }
@@ -422,72 +432,130 @@ function onPackChanged(sfx){
   (p.sheets||[]).forEach(t=>{ if(readSel) readSel.appendChild(new Option(t,t)); });
 }
 
-/* ===== 로컬 폴더 API ===== */
-let dirHandle = {A:null,B:null};
-let dirFiles  = {A:[],B:[]};
+/* ===== 구글 드라이브 폴더 API ===== */
 
-async function ensureDirPerm(handle){
-  if(!handle) return false;
-  const opt = {mode:'read'};
-  if (await handle.queryPermission(opt) === 'granted') return true;
-  if (await handle.requestPermission(opt) === 'granted') return true;
-  return false;
+// 패널별 드라이브 폴더 ID, 파일 목록
+let driveFolderId = { A: null, B: null };
+let driveFiles    = { A: [],   B: [] };
+
+// 입력값에서 폴더 ID만 뽑아내기 (URL 또는 ID 둘 다 허용)
+function extractDriveFolderId(input){
+  const s = String(input || '').trim();
+  if (!s) return '';
+  const m = s.match(/folders\/([a-zA-Z0-9_-]+)/);
+  if (m) return m[1];
+  return s;
 }
-async function pickDir(sfx){
+
+// 패널에서 "폴더 연결" 버튼 눌렀을 때
+async function pickDriveFolder(sfx){
   try{
-    const dir = await window.showDirectoryPicker();
-    dirHandle[sfx] = dir;
-    await refreshDirList(sfx);
+    const prev = localStorage.getItem('ca_drive_folder_' + sfx) || '';
+    const input = prompt('구글 드라이브 폴더 URL 또는 ID를 입력하세요.', prev);
+    if (!input) return;
+
+    const id = extractDriveFolderId(input);
+    if (!id) throw new Error('폴더 ID를 인식할 수 없습니다.');
+
+    driveFolderId[sfx] = id;
+    localStorage.setItem('ca_drive_folder_' + sfx, id);
+
+    await refreshDriveList(sfx);
   }catch(e){
-    if(e?.name!=='AbortError') alert('폴더 선택 실패: '+e.message);
+    alert('드라이브 폴더 설정 실패: ' + e.message);
+    console.error(e);
   }
 }
-async function refreshDirList(sfx){
-  const sel  = byPanel('dirFileSelect',sfx);
-  const nameSpan = byPanel('dirName',sfx);
-  if(sel) sel.innerHTML='';
-  dirFiles[sfx] = [];
 
-  const dir = dirHandle[sfx];
-  if(!dir){
-    if(nameSpan){ nameSpan.textContent = ''; nameSpan.classList.remove('connected'); }
-    if(sel) sel.appendChild(new Option('(폴더를 먼저 연결)',''));
-    return;
-  }
-  const ok = await ensureDirPerm(dir);
-  if(!ok){
-    if(nameSpan){ nameSpan.textContent = ''; nameSpan.classList.remove('connected'); }
-    if(sel) sel.appendChild(new Option('(폴더 권한 필요)',''));
-    return;
-  }
+// 폴더 안의 txt 파일 목록 가져오기 (Drive API v3)
+async function listDriveTxtFiles(folderId){
+  requireAuth();
+  const q = `'${folderId}' in parents and mimeType='text/plain' and trashed=false`;
+  const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name,modifiedTime,size)&orderBy=modifiedTime desc&pageSize=1000`;
 
-  const entries=[];
-  for await (const [fname,handle] of dir.entries()){
-    if(handle.kind==='file' && fname.toLowerCase().endsWith('.txt')){
-      entries.push({name:fname, handle});
+  const res = await fetch(url, {
+    headers: { Authorization: 'Bearer ' + accessToken }
+  });
+  if (!res.ok) throw new Error(await res.text());
+
+  const data = await res.json();
+  return data.files || [];
+}
+
+// 패널별 드라이브 파일 목록 갱신 → 셀렉트 박스 채우기
+async function refreshDriveList(sfx){
+  const sel      = byPanel('dirFileSelect', sfx);
+  const nameSpan = byPanel('dirName', sfx);
+
+  driveFiles[sfx] = [];
+  if (sel) sel.innerHTML = '';
+
+  const storedId = localStorage.getItem('ca_drive_folder_' + sfx);
+  if (storedId && !driveFolderId[sfx]) driveFolderId[sfx] = storedId;
+
+  const folderId = driveFolderId[sfx];
+  if (!folderId){
+    if (nameSpan){
+      nameSpan.textContent = '';
+      nameSpan.classList.remove('connected');
     }
+    if (sel){
+      sel.appendChild(new Option('(드라이브 폴더 연결)', ''));
+    }
+    return;
   }
-  const withMeta=[];
-  for(const e of entries){
-    const f = await e.handle.getFile();
-    withMeta.push({...e, size:f.size, mtime:f.lastModified});
-  }
-  withMeta.sort((a,b)=> b.mtime - a.mtime);
-  dirFiles[sfx] = withMeta;
 
-  if(nameSpan){ nameSpan.textContent = dir.name; nameSpan.classList.add('connected'); }
-  if(sel){
-    sel.appendChild(new Option('폴더 내 txt 선택',''));
-    withMeta.forEach((e,idx)=> sel.appendChild(new Option(e.name, String(idx))));
+  try{
+    const files = await listDriveTxtFiles(folderId);
+
+    driveFiles[sfx] = files.map(f => ({
+      id:   f.id,
+      name: f.name,
+      size: f.size || 0,
+      mtime: f.modifiedTime ? Date.parse(f.modifiedTime) : 0
+    }));
+
+    if (nameSpan){
+      nameSpan.textContent = folderId; // 필요하면 폴더 이름 조회해서 바꿀 수 있음
+      nameSpan.classList.add('connected');
+    }
+
+    if (sel){
+      sel.appendChild(new Option('폴더 내 txt 선택', ''));
+      driveFiles[sfx].forEach((f, idx) => {
+        sel.appendChild(new Option(f.name, String(idx)));
+      });
+    }
+  }catch(e){
+    if (nameSpan){
+      nameSpan.textContent = '';
+      nameSpan.classList.remove('connected');
+    }
+    if (sel){
+      sel.appendChild(new Option('(드라이브 접근 오류)', ''));
+    }
+    console.error(e);
+    alert('드라이브 파일 목록을 불러오지 못했습니다: ' + e.message);
   }
 }
+
+// 선택된 txt 파일 하나 읽어오기
 async function readSelectedTxt(sfx){
-  const idxStr = val('dirFileSelect',sfx);
-  if(!idxStr) throw new Error('폴더 내 txt 파일을 선택하세요.');
-  const info = dirFiles[sfx][Number(idxStr)];
-  if(!info) throw new Error('선택한 파일을 찾을 수 없습니다.');
-  const file = await info.handle.getFile();
-  return await file.text();
+  const idxStr = val('dirFileSelect', sfx);
+  if (!idxStr) throw new Error('폴더 내 txt 파일을 선택하세요.');
+
+  const info = driveFiles[sfx][Number(idxStr)];
+  if (!info) throw new Error('선택한 파일을 찾을 수 없습니다.');
+
+  requireAuth();
+
+  const url = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(info.id)}?alt=media`;
+  const res = await fetch(url, {
+    headers: { Authorization: 'Bearer ' + accessToken }
+  });
+  if (!res.ok) throw new Error(await res.text());
+
+  return await res.text();
 }
 
 /* ===== 카톡 파싱 ===== */
@@ -880,22 +948,24 @@ document.addEventListener('DOMContentLoaded', ()=>{
   on('refreshMeta','click', ()=>refreshMeta('A'), 'A');
   on('runBtn','click', ()=>runMain('A'), 'A');
   on('demoBtn','click', ()=>runDemo('A'), 'A');
-  on('dirPick','click', ()=>pickDir('A'), 'A');
-  on('dirRefresh','click', ()=>refreshDirList('A'), 'A');
+  on('dirPick','click', ()=>pickDriveFolder('A'), 'A');
+  on('dirRefresh','click', ()=>refreshDriveList('A'), 'A');
 
   // Panel B
   on('sheetPackSelect','change', ()=>onPackChanged('B'), 'B');
   on('refreshMeta','click', ()=>refreshMeta('B'), 'B');
   on('runBtn','click', ()=>runMain('B'), 'B');
   on('demoBtn','click', ()=>runDemo('B'), 'B');
-  on('dirPick','click', ()=>pickDir('B'), 'B');
-  on('dirRefresh','click', ()=>refreshDirList('B'), 'B');
+  on('dirPick','click', ()=>pickDriveFolder('B'), 'B');
+  on('dirRefresh','click', ()=>refreshDriveList('B'), 'B');
 
   populatePacks('A');
   populatePacks('B');
+
+  // 저장된 드라이브 폴더 있으면 자동 로드
+  refreshDriveList('A');
+  refreshDriveList('B');
 });
 </script>
 </body>
 </html>
-
-
