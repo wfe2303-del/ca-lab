@@ -4,7 +4,6 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>클래스어라운드 · 카카오톡 입장자 체크봇 (Dual)</title>
-  <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root{
@@ -42,7 +41,6 @@
     th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
     th{color:#0f172a;font-weight:600;background:#f1f5f9;position:sticky;top:0}
 
-    /* 로고/제목 */
     .brand{display:flex;align-items:center;gap:14px;margin:0 0 6px}
     .brand h1{margin:0;font-size:22px}
     .brand-logo{width:var(--logo-size);height:var(--logo-size);flex:0 0 var(--logo-size)}
@@ -52,7 +50,6 @@
       paint-order:stroke fill; stroke:#0f172a; stroke-width:.9px;
     }
 
-    /* 관리자 UI */
     .admin-drawer{width:520px;padding:14px 16px 18px}
     .admin-drawer .card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px 16px;box-shadow:none;margin:0 0 12px}
     .admin-drawer h4{margin:0 0 8px;font-weight:700}
@@ -64,7 +61,6 @@
     :root{--admin-h:44px}
     .admin-drawer input,.admin-drawer .btn{height:var(--admin-h);line-height:calc(var(--admin-h) - 2px);border-radius:12px}
 
-    /* 레이아웃 */
     .panels{display:grid;gap:16px}
     @media(min-width:1100px){ .panels{grid-template-columns:1fr 1fr} }
 
@@ -74,7 +70,6 @@
     .icon-btn:hover{border-color:var(--accent-strong);box-shadow:0 0 0 3px rgba(96,165,250,.2)}
     .icon-btn svg{width:18px;height:18px}
 
-    /* 폴더 선택 라인 */
     .dirline{
       display:grid;align-items:center;gap:8px;
       grid-template-columns:auto minmax(120px,auto) minmax(240px,1fr) auto;
@@ -99,7 +94,6 @@
   <button id="settingsBtn" class="gear-btn" title="설정" type="button" aria-label="관리자 설정 열기">⚙</button>
 
   <div class="wrap">
-    <!-- 로고+제목 -->
     <header class="brand">
       <svg class="brand-logo" viewBox="0 0 90 50" role="img" aria-label="ClassAround">
         <rect width="90" height="50" rx="10" fill="white"/>
@@ -111,7 +105,6 @@
       <h1>클래스어라운드 카카오톡 입장자 체크봇</h1>
     </header>
 
-    <!-- 로그인 -->
     <div class="card">
       <div class="row">
         <button id="gsLoginBtn" class="btn acc" type="button">로그인</button>
@@ -122,7 +115,6 @@
     </div>
 
     <div class="panels">
-      <!-- ===== Panel A ===== -->
       <section>
         <div class="card">
           <div class="controls">
@@ -137,7 +129,7 @@
               </div>
               <div>
                 <label style="visibility:hidden">refresh</label>
-                <button id="refreshMetaA" class="icon-btn" type="button" title="시트 목록 새로고침" aria-label="시트 목록 새로고침">
+                <button id="refreshMetaA" class="icon-btn" type="button">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/>
                   </svg>
@@ -147,13 +139,12 @@
 
             <div class="hint" style="margin-top:-4px"></div>
 
-            <!-- 구글 드라이브 폴더에서 대화 파일 선택 -->
             <label style="margin-top:8px"></label>
             <div class="dirline">
               <button id="dirPickA" class="btn" type="button">폴더</button>
               <div class="dirlabel" id="dirNameA"></div>
               <select id="dirFileSelectA"></select>
-              <button id="dirRefreshA" class="icon-btn" type="button" title="폴더 다시 읽기" aria-label="폴더 다시 읽기">
+              <button id="dirRefreshA" class="icon-btn" type="button">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/>
                 </svg>
@@ -172,11 +163,9 @@
           </div>
           <div id="errA" class="err" style="margin-top:8px"></div>
         </div>
-
         <div id="resultsA" style="display:grid;gap:16px"></div>
       </section>
 
-      <!-- ===== Panel B ===== -->
       <section>
         <div class="card">
           <div class="controls">
@@ -191,7 +180,7 @@
               </div>
               <div>
                 <label style="visibility:hidden">refresh</label>
-                <button id="refreshMetaB" class="icon-btn" type="button" title="시트 목록 새로고침" aria-label="시트 목록 새로고침">
+                <button id="refreshMetaB" class="icon-btn" type="button">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/>
                   </svg>
@@ -206,7 +195,7 @@
               <button id="dirPickB" class="btn" type="button">폴더</button>
               <div class="dirlabel" id="dirNameB"></div>
               <select id="dirFileSelectB"></select>
-              <button id="dirRefreshB" class="icon-btn" type="button" title="폴더 다시 읽기" aria-label="폴더 다시 읽기">
+              <button id="dirRefreshB" class="icon-btn" type="button">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <path d="M3 12a9 9 0 1 0 3-6.7"/><polyline points="3 4 3 10 9 10"/>
                 </svg>
@@ -225,13 +214,11 @@
           </div>
           <div id="errB" class="err" style="margin-top:8px"></div>
         </div>
-
         <div id="resultsB" style="display:grid;gap:16px"></div>
       </section>
     </div>
   </div>
 
-  <!-- 관리자 드로어 -->
   <div id="adminOverlay" class="admin-overlay" aria-hidden="true"></div>
   <aside id="adminDrawer" class="admin-drawer" aria-hidden="true">
     <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px">
@@ -257,7 +244,7 @@
     <div class="card" style="margin-top:12px">
       <h4 style="margin:0 0 8px">등록된 스프레드시트</h4>
       <table style="width:100%;border-collapse:collapse">
-        <thead><tr><th style="background:#f1f5f9">라벨</th><th style="background:#f1f5f9">시트수</th><th style="background:#f1f5f9">읽을 열</th><th style="background:#f1f5f9">작업</th></tr></thead>
+        <thead><tr><th>라벨</th><th>시트수</th><th>읽을 열</th><th>작업</th></tr></thead>
         <tbody id="admList"><tr><td colspan="4" style="color:#64748b">없음</td></tr></tbody>
       </table>
       <div class="hint" id="admMeta" style="margin-top:6px"></div>
@@ -265,41 +252,42 @@
   </aside>
 
 <script>
-/* ===== 유틸 ===== */
 const PANEL_SUFFIXES = ['A','B'];
-const $$ = (id)=>document.getElementById(id);
-const byPanel = (base, s)=> $$(base + s);
-const txt = (id, v, sfx)=>{ const el = sfx ? byPanel(id,sfx) : $$(id); if(el) el.textContent=v||""; };
-const val = (id, sfx)=>{ const el=sfx ? byPanel(id,sfx) : $$(id); return el?el.value:""; };
-function on(id, event, handler, sfx){
-  const el = sfx ? byPanel(id,sfx) : $$(id);
-  if(!el){ console.warn("[bind skipped] #"+(sfx? id+sfx:id)); return; }
-  el.addEventListener(event, e=>{ try{ handler(e); }catch(err){ console.error(err); }});
+const $$ = id => document.getElementById(id);
+const byPanel = (base,s) => $$(base+s);
+const txt = (id,v,sfx)=>{const el=sfx?byPanel(id,sfx):$$(id); if(el) el.textContent=v||'';};
+const val = (id,sfx)=>{const el=sfx?byPanel(id,sfx):$$(id); return el?el.value:'';};
+function on(id,ev,fn,sfx){
+  const el=sfx?byPanel(id,sfx):$$(id);
+  if(!el){console.warn('bind skip',id,sfx);return;}
+  el.addEventListener(ev,e=>{try{fn(e);}catch(err){console.error(err);}});
 }
-function show(el){ el.classList.add('open'); el.setAttribute('aria-hidden','false'); }
-function hide(el){ el.classList.remove('open'); el.setAttribute('aria-hidden','true'); }
-function digitsOnly(s){ return String(s||'').replace(/[^\d]/g,''); }
-function last4Digits(s){ const d=digitsOnly(s); return d.slice(-4); }
+function show(el){el.classList.add('open');el.setAttribute('aria-hidden','false');}
+function hide(el){el.classList.remove('open');el.setAttribute('aria-hidden','true');}
+function digitsOnly(s){return String(s||'').replace(/[^\d]/g,'');}
+function last4Digits(s){const d=digitsOnly(s);return d.slice(-4);}
 function normalizeName(n){
-  let s = String(n||'').trim();
-  s = s.replace(/[\s]*[\(\[\{（【][^)\]\}）】]*[\)\]\}）】]\s*$/,'');
-  s = s.replace(/[/_\-\s]+$/,'');
-  s = s.replace(/\s+/g,' ');
+  let s=String(n||'').trim();
+  s=s.replace(/[\s]*[\(\[\{（【][^)\]\}）】]*[\)\]\}）】]\s*$/,'');
+  s=s.replace(/[/_\-\s]+$/,'');
+  s=s.replace(/\s+/g,' ');
   return s;
 }
-const earlierId = (a,b)=>{ const ai = parseInt(a,10), bi = parseInt(b,10); if(!Number.isNaN(ai)&&!Number.isNaN(bi)) return ai<=bi?a:b; return (String(a)<=String(b))?a:b; };
+const earlierId=(a,b)=>{const ai=parseInt(a,10),bi=parseInt(b,10);if(!Number.isNaN(ai)&&!Number.isNaN(bi))return ai<=bi?a:b;return(String(a)<=String(b))?a:b;};
 
-/* ===== 전역 오류 UI ===== */
 (function(){
-  const pushErr = (msg, src, line, col, err)=> {
-    const details = (err && err.stack) ? ('\n' + err.stack) : '';
+  const pushErr=(msg,src,l,c,e)=>{
+    const details=(e&&e.stack)?'\n'+e.stack:'';
     PANEL_SUFFIXES.forEach(s=>{
-      const el = $$('#err'+s);
-      if (el) el.textContent = '오류: ' + msg + (src?`\n${src}:${line}:${col}`:'') + details;
+      const el=$$('#err'+s);
+      if(el)el.textContent='오류: '+msg+(src?`\n${src}:${l}:${c}`:'')+details;
     });
   };
-  window.addEventListener('error', e=>{ pushErr(e.message, e.filename, e.lineno, e.colno, e.error); });
-  window.addEventListener('unhandledrejection', e=>{ const r = e.reason || {}; pushErr(r.message || String(r), '', 0, 0, r); });
+  window.addEventListener('error',e=>pushErr(e.message,e.filename,e.lineno,e.colno,e.error));
+  window.addEventListener('unhandledrejection',e=>{
+    const r=e.reason||{};
+    pushErr(r.message||String(r),'',0,0,r);
+  });
 })();
 
 /* ===== 설정 ===== */
@@ -307,273 +295,207 @@ const READ_START_ROW  = 2;
 const WRITE_START_ROW = 2;
 const FIXED_WRITE_SHEET = '공유용 시트';
 
-/* ✅ 여기 CLIENT_ID를 본인 OAuth 클라이언트 ID로 교체 */
+/* ✅ 본인 OAuth 클라이언트 ID로 변경 */
 const CLIENT_ID = "18228268359-iifm4ck3j9kqj74eh1p90tco1k2mbpi0.apps.googleusercontent.com";
 
 /* ===== OAuth ===== */
 let accessToken=null, tokenClient=null;
 function initAuth(){
   try{
-    if(!window.google?.accounts?.oauth2){ txt('authErr','GIS 로드 실패'); return; }
+    if(!window.google?.accounts?.oauth2){txt('authErr','GIS 로드 실패');return;}
     tokenClient = google.accounts.oauth2.initTokenClient({
       client_id: CLIENT_ID,
-      // ✅ Sheets + Drive 읽기 권한
       scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly',
       prompt: '',
-      callback: (res)=>{ 
-        accessToken = res.access_token; 
-        txt("authState",'로그인 완료'); 
-        txt("authErr",''); 
-      },
-      error_callback: (err)=>{ 
-        txt("authErr",'OAuth 오류: '+(err?.error||err?.type||JSON.stringify(err))); 
-      }
+      callback: res=>{accessToken=res.access_token;txt('authState','로그인 완료');txt('authErr','');},
+      error_callback: err=>{txt('authErr','OAuth 오류: '+(err?.error||err?.type||JSON.stringify(err)));}
     });
-  }catch(e){ txt('authErr','OAuth 초기화 오류'); console.error(e); }
+  }catch(e){txt('authErr','OAuth 초기화 오류');console.error(e);}
 }
-function requestAccess(){ if(!tokenClient){ txt('authErr','OAuth 초기화 실패'); return; } tokenClient.requestAccessToken({prompt:'consent'}); }
-function revokeAccess(){ if(accessToken){ google.accounts.oauth2.revoke(accessToken, ()=>{ accessToken=null; txt("authState",'미로그인'); }); } }
-function requireAuth(){ if(!accessToken) throw new Error('먼저 Google 로그인하세요.'); }
+function requestAccess(){if(!tokenClient){txt('authErr','OAuth 초기화 실패');return;}tokenClient.requestAccessToken({prompt:'consent'});}
+function revokeAccess(){if(accessToken){google.accounts.oauth2.revoke(accessToken,()=>{accessToken=null;txt('authState','미로그인');});}}
+function requireAuth(){if(!accessToken)throw new Error('먼저 Google 로그인하세요.');}
 
-/* ===== Sheets REST ===== */
-async function gFetch(url, init){
+/* ===== Sheets ===== */
+async function gFetch(url,init){
   requireAuth();
-  const res = await fetch(url, { ...(init||{}), headers: { ...(init&&init.headers||{}), Authorization:'Bearer '+accessToken, 'Content-Type':'application/json' }});
-  if(!res.ok) throw new Error(await res.text());
+  const res=await fetch(url,{...(init||{}),headers:{...(init&&init.headers||{}),Authorization:'Bearer '+accessToken,'Content-Type':'application/json'}});
+  if(!res.ok)throw new Error(await res.text());
   return res.json();
 }
 async function listSheets(spreadsheetId){
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?fields=sheets(properties(title))`;
-  const data = await gFetch(url);
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}?fields=sheets(properties(title))`;
+  const data=await gFetch(url);
   return (data.sheets||[]).map(s=>s.properties.title);
 }
-async function getRange(spreadsheetId, rangeA1){
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values/${encodeURIComponent(rangeA1)}`;
+async function getRange(spreadsheetId,rangeA1){
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values/${encodeURIComponent(rangeA1)}`;
   return await gFetch(url);
 }
-async function batchUpdateValues(spreadsheetId, dataRanges){
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values:batchUpdate`;
-  return await gFetch(url, { method:'POST', body: JSON.stringify({ valueInputOption:'USER_ENTERED', data: dataRanges })});
+async function batchUpdateValues(spreadsheetId,dataRanges){
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(spreadsheetId)}/values:batchUpdate`;
+  return await gFetch(url,{method:'POST',body:JSON.stringify({valueInputOption:'USER_ENTERED',data:dataRanges})});
 }
 
-/* ===== 관리자 저장 ===== */
+/* ===== 관리자 저장 (localStorage) ===== */
 const PACKS_KEY='ca_gsapi_sources_v12';
-const loadPacks=()=>{ try{return JSON.parse(localStorage.getItem(PACKS_KEY)||'[]');}catch(e){return [];} };
-const savePacks=(ps)=> localStorage.setItem(PACKS_KEY, JSON.stringify(ps));
-const addPack=(p)=>{ const a=loadPacks(); a.push(p); savePacks(a); };
-const removePack=(id)=> savePacks(loadPacks().filter(p=>p.id!==id));
-const clearPacks=()=> localStorage.removeItem(PACKS_KEY);
+const loadPacks=()=>{try{return JSON.parse(localStorage.getItem(PACKS_KEY)||'[]');}catch(e){return[];}};
+const savePacks=ps=>localStorage.setItem(PACKS_KEY,JSON.stringify(ps));
+const addPack=p=>{const a=loadPacks();a.push(p);savePacks(a);};
+const removePack=id=>savePacks(loadPacks().filter(p=>p.id!==id));
+const clearPacks=()=>localStorage.removeItem(PACKS_KEY);
 
-let admBusy = false;
+let admBusy=false;
 async function admAdd(){
-  if(admBusy) return;
-  admBusy = true;
+  if(admBusy)return;
+  admBusy=true;
   try{
     txt('admErr','');
-    const label = (val("admLabel").trim() || "스프레드시트");
-    const urlOrId = val("admUrl").trim();
-    const m = urlOrId.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-    const sheetId = m? m[1] : urlOrId;
-    const readCol = (val("admReadCol").trim() || 'C').toUpperCase();
-    if(!sheetId) throw new Error('스프레드시트 링크/ID를 입력하세요.');
-    const titles = await listSheets(sheetId);
-    const pack = { id:`${Date.now()}_${Math.random().toString(36).slice(2,7)}`, label, sheetId, readCol, sheets: titles };
+    const label=(val('admLabel').trim()||'스프레드시트');
+    const urlOrId=val('admUrl').trim();
+    const m=urlOrId.match(/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+    const sheetId=m?m[1]:urlOrId;
+    const readCol=(val('admReadCol').trim()||'C').toUpperCase();
+    if(!sheetId)throw new Error('스프레드시트 링크/ID를 입력하세요.');
+    const titles=await listSheets(sheetId);
+    const pack={id:`${Date.now()}_${Math.random().toString(36).slice(2,7)}`,label,sheetId,readCol,sheets:titles};
     addPack(pack);
-    ['admLabel','admUrl'].forEach(id=>{ const el=$$(id); if(el) el.value=''; });
-    const rc=$$('admReadCol'); if(rc) rc.value='C';
-    renderAdmList(); populatePacks('A'); populatePacks('B');
+    ['admLabel','admUrl'].forEach(id=>{const el=$$(id);if(el)el.value='';});
+    const rc=$$('admReadCol');if(rc)rc.value='C';
+    renderAdmList();populatePacks('A');populatePacks('B');
     alert('연결 완료! 각 패널에서 선택하세요.');
-  }catch(e){ txt('admErr', e.message); }
-  finally{ admBusy = false; }
+  }catch(e){txt('admErr',e.message);}
+  finally{admBusy=false;}
 }
 function renderAdmList(){
-  const list=loadPacks(); const tb=$$("admList"); if(!tb) return; tb.innerHTML='';
-  if(!list.length){ tb.innerHTML='<tr><td colspan="4" style="color:#64748b">없음</td></tr>'; txt("admMeta",''); return; }
+  const list=loadPacks();const tb=$$('admList');if(!tb)return;tb.innerHTML='';
+  if(!list.length){tb.innerHTML='<tr><td colspan="4" style="color:#64748b">없음</td></tr>';txt('admMeta','');return;}
   list.forEach(p=>{
     const tr=document.createElement('tr');
     tr.innerHTML=`<td>${p.label}</td><td>${p.sheets?.length||0}</td><td>${p.readCol}</td><td><button class="btn" data-del="${p.id}" type="button">삭제</button></td>`;
     tb.appendChild(tr);
   });
-  tb.querySelectorAll('button[data-del]').forEach(b=> b.addEventListener('click', e=>{ removePack(e.target.getAttribute('data-del')); renderAdmList(); populatePacks('A'); populatePacks('B'); }));
-  txt("admMeta", `총 ${list.length}개 연결 · ${new Date().toLocaleString()}`);
+  tb.querySelectorAll('button[data-del]').forEach(b=>b.addEventListener('click',e=>{
+    removePack(e.target.getAttribute('data-del'));renderAdmList();populatePacks('A');populatePacks('B');
+  }));
+  txt('admMeta',`총 ${list.length}개 연결 · ${new Date().toLocaleString()}`);
 }
 
-/* ===== 패널별 셀렉트 ===== */
+/* ===== 시트 셀렉트 ===== */
 function populatePacks(sfx){
-  const packs=loadPacks(); const sel=byPanel("sheetPackSelect", sfx); if(!sel) return; sel.innerHTML='';
-  const readSel=byPanel("readSheetSelect", sfx);
+  const packs=loadPacks();const sel=byPanel('sheetPackSelect',sfx);if(!sel)return;sel.innerHTML='';
+  const readSel=byPanel('readSheetSelect',sfx);
   if(!packs.length){
     sel.appendChild(new Option('(스프레드시트 연결)',''));
-    if(readSel) readSel.innerHTML='';
+    if(readSel)readSel.innerHTML='';
     return;
   }
   sel.appendChild(new Option('스프레드시트 선택',''));
-  packs.forEach(p=> sel.appendChild(new Option(p.label, p.id)));
-  const prev=sessionStorage.getItem('ca_prev_pack_'+sfx); if(prev){ const o=[...sel.options].find(x=>x.value===prev); if(o) o.selected=true; }
+  packs.forEach(p=>sel.appendChild(new Option(p.label,p.id)));
+  const prev=sessionStorage.getItem('ca_prev_pack_'+sfx);
+  if(prev){const o=[...sel.options].find(x=>x.value===prev);if(o)o.selected=true;}
   onPackChanged(sfx);
 }
 async function refreshMeta(sfx){
   try{
-    const sel=byPanel("sheetPackSelect",sfx); if(!sel) return;
-    const id=sel.value; if(!id) return;
-    const packs=loadPacks(); const idx=packs.findIndex(p=>p.id===id); if(idx<0) return;
-    const titles = await listSheets(packs[idx].sheetId);
-    packs[idx].sheets = titles; savePacks(packs); onPackChanged(sfx);
-  }catch(e){ txt('err'+sfx,'시트 목록 갱신 실패: '+e.message); }
+    const sel=byPanel('sheetPackSelect',sfx);if(!sel)return;
+    const id=sel.value;if(!id)return;
+    const packs=loadPacks();const idx=packs.findIndex(p=>p.id===id);if(idx<0)return;
+    const titles=await listSheets(packs[idx].sheetId);
+    packs[idx].sheets=titles;savePacks(packs);onPackChanged(sfx);
+  }catch(e){txt('err'+sfx,'시트 목록 갱신 실패: '+e.message);}
 }
 function onPackChanged(sfx){
-  const sel=byPanel("sheetPackSelect",sfx); if(!sel) return;
-  const id=sel.value; sessionStorage.setItem('ca_prev_pack_'+sfx, id||'');
-  const packs=loadPacks(); const p=packs.find(x=>x.id===id);
-  const readSel=byPanel("readSheetSelect",sfx);
-  if(readSel) readSel.innerHTML='';
-  if(!p){ return; }
-  if(readSel) readSel.appendChild(new Option('읽기 시트 선택',''));
-  (p.sheets||[]).forEach(t=>{ if(readSel) readSel.appendChild(new Option(t,t)); });
+  const sel=byPanel('sheetPackSelect',sfx);if(!sel)return;
+  const id=sel.value;sessionStorage.setItem('ca_prev_pack_'+sfx,id||'');
+  const packs=loadPacks();const p=packs.find(x=>x.id===id);
+  const readSel=byPanel('readSheetSelect',sfx);
+  if(readSel)readSel.innerHTML='';
+  if(!p)return;
+  if(readSel)readSel.appendChild(new Option('읽기 시트 선택',''));
+  (p.sheets||[]).forEach(t=>{if(readSel)readSel.appendChild(new Option(t,t));});
 }
 
-/* ===== 구글 드라이브 폴더 API ===== */
+/* ===== 드라이브 폴더 / 파일 ===== */
+let driveFolderId={A:null,B:null};
+let driveFiles={A:[],B:[]};
 
-// 패널별 드라이브 폴더 ID, 파일 목록
-let driveFolderId = { A: null, B: null };
-let driveFiles    = { A: [],   B: [] };
-
-// 입력값에서 폴더 ID만 뽑아내기 (URL 또는 ID 둘 다 허용)
 function extractDriveFolderId(input){
-  const s = String(input || '').trim();
-  if (!s) return '';
-  const m = s.match(/folders\/([a-zA-Z0-9_-]+)/);
-  if (m) return m[1];
+  const s=String(input||'').trim();if(!s)return'';
+  const m=s.match(/folders\/([a-zA-Z0-9_-]+)/);
+  if(m)return m[1];
   return s;
 }
-
-// 폴더 ID로 드라이브 폴더 이름 가져오기
 async function getDriveFolderName(folderId){
   requireAuth();
-  const url = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(folderId)}?fields=name`;
-  const res = await fetch(url, {
-    headers: { Authorization: 'Bearer ' + accessToken }
-  });
-  if (!res.ok) throw new Error(await res.text());
-  const data = await res.json();
-  return data.name || folderId;
+  const url=`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(folderId)}?fields=name`;
+  const res=await fetch(url,{headers:{Authorization:'Bearer '+accessToken}});
+  if(!res.ok)throw new Error(await res.text());
+  const data=await res.json();
+  return data.name||folderId;
 }
-
-// 패널에서 "폴더 연결" 버튼 눌렀을 때
 async function pickDriveFolder(sfx){
   try{
-    const prev = localStorage.getItem('ca_drive_folder_' + sfx) || '';
-    const input = prompt('구글 드라이브 폴더 URL 또는 ID를 입력하세요.', prev);
-    if (!input) return;
-
-    const id = extractDriveFolderId(input);
-    if (!id) throw new Error('폴더 ID를 인식할 수 없습니다.');
-
-    driveFolderId[sfx] = id;
-    localStorage.setItem('ca_drive_folder_' + sfx, id);
-
+    const input=prompt('구글 드라이브 폴더 URL 또는 ID를 입력하세요.','');
+    if(!input)return;
+    const id=extractDriveFolderId(input);
+    if(!id)throw new Error('폴더 ID를 인식할 수 없습니다.');
+    driveFolderId[sfx]=id;
     await refreshDriveList(sfx);
   }catch(e){
-    alert('드라이브 폴더 설정 실패: ' + e.message);
+    alert('드라이브 폴더 설정 실패: '+e.message);
     console.error(e);
   }
 }
-
-// 폴더 안의 txt 파일 목록 가져오기 (Drive API v3)
 async function listDriveTxtFiles(folderId){
   requireAuth();
-  const q = `'${folderId}' in parents and mimeType='text/plain' and trashed=false`;
-  const url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name,modifiedTime,size)&orderBy=modifiedTime desc&pageSize=1000`;
-
-  const res = await fetch(url, {
-    headers: { Authorization: 'Bearer ' + accessToken }
-  });
-  if (!res.ok) throw new Error(await res.text());
-
-  const data = await res.json();
-  return data.files || [];
+  const q=`'${folderId}' in parents and (mimeType='text/plain' or mimeType='text/csv') and trashed=false`;
+  const url=`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name,modifiedTime,size)&orderBy=modifiedTime desc&pageSize=1000`;
+  const res=await fetch(url,{headers:{Authorization:'Bearer '+accessToken}});
+  if(!res.ok)throw new Error(await res.text());
+  const data=await res.json();
+  return data.files||[];
 }
-
-// 패널별 드라이브 파일 목록 갱신 → 셀렉트 박스 채우기
 async function refreshDriveList(sfx){
-  const sel      = byPanel('dirFileSelect', sfx);
-  const nameSpan = byPanel('dirName', sfx);
-
-  driveFiles[sfx] = [];
-  if (sel) sel.innerHTML = '';
-
-  const storedId = localStorage.getItem('ca_drive_folder_' + sfx);
-  if (storedId && !driveFolderId[sfx]) driveFolderId[sfx] = storedId;
-
-  const folderId = driveFolderId[sfx];
-  if (!folderId){
-    if (nameSpan){
-      nameSpan.textContent = '';
-      nameSpan.classList.remove('connected');
-    }
-    if (sel){
-      sel.appendChild(new Option('(드라이브 폴더 연결)', ''));
-    }
+  const sel=byPanel('dirFileSelect',sfx);
+  const nameSpan=byPanel('dirName',sfx);
+  driveFiles[sfx]=[];
+  if(sel)sel.innerHTML='';
+  const folderId=driveFolderId[sfx];
+  if(!folderId){
+    if(nameSpan){nameSpan.textContent='';nameSpan.classList.remove('connected');}
+    if(sel)sel.appendChild(new Option('(드라이브 폴더 연결)',''));
     return;
   }
-
   try{
-    const files = await listDriveTxtFiles(folderId);
-
-    driveFiles[sfx] = files.map(f => ({
-      id:   f.id,
-      name: f.name,
-      size: f.size || 0,
-      mtime: f.modifiedTime ? Date.parse(f.modifiedTime) : 0
-    }));
-
-    // 폴더 라벨: 실제 드라이브 폴더 이름 표시
-    if (nameSpan){
-      let displayName = folderId;
-      try{
-        displayName = await getDriveFolderName(folderId);
-      }catch(e){
-        console.warn('폴더 이름 조회 실패, ID로 표시합니다.', e);
-      }
-      nameSpan.textContent = displayName;
+    const files=await listDriveTxtFiles(folderId);
+    driveFiles[sfx]=files.map(f=>({id:f.id,name:f.name,size:f.size||0,mtime:f.modifiedTime?Date.parse(f.modifiedTime):0}));
+    if(nameSpan){
+      let displayName=folderId;
+      try{displayName=await getDriveFolderName(folderId);}catch(e){console.warn('폴더 이름 조회 실패',e);}
+      nameSpan.textContent=displayName;
       nameSpan.classList.add('connected');
     }
-
-    if (sel){
-      sel.appendChild(new Option('폴더 내 txt 선택', ''));
-      driveFiles[sfx].forEach((f, idx) => {
-        sel.appendChild(new Option(f.name, String(idx)));
-      });
+    if(sel){
+      sel.appendChild(new Option('폴더 내 파일 선택',''));
+      driveFiles[sfx].forEach((f,idx)=>sel.appendChild(new Option(f.name,String(idx))));
     }
   }catch(e){
-    if (nameSpan){
-      nameSpan.textContent = '';
-      nameSpan.classList.remove('connected');
-    }
-    if (sel){
-      sel.appendChild(new Option('(드라이브 접근 오류)', ''));
-    }
+    if(nameSpan){nameSpan.textContent='';nameSpan.classList.remove('connected');}
+    if(sel)sel.appendChild(new Option('(드라이브 접근 오류)',''));
     console.error(e);
-    alert('드라이브 파일 목록을 불러오지 못했습니다: ' + e.message);
+    alert('드라이브 파일 목록을 불러오지 못했습니다: '+e.message);
   }
 }
-
-// 선택된 txt 파일 하나 읽어오기
 async function readSelectedTxt(sfx){
-  const idxStr = val('dirFileSelect', sfx);
-  if (!idxStr) throw new Error('폴더 내 txt 파일을 선택하세요.');
-
-  const info = driveFiles[sfx][Number(idxStr)];
-  if (!info) throw new Error('선택한 파일을 찾을 수 없습니다.');
-
+  const idxStr=val('dirFileSelect',sfx);
+  if(!idxStr)throw new Error('폴더 내 파일을 선택하세요.');
+  const info=driveFiles[sfx][Number(idxStr)];
+  if(!info)throw new Error('선택한 파일을 찾을 수 없습니다.');
   requireAuth();
-
-  const url = `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(info.id)}?alt=media`;
-  const res = await fetch(url, {
-    headers: { Authorization: 'Bearer ' + accessToken }
-  });
-  if (!res.ok) throw new Error(await res.text());
-
+  const url=`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(info.id)}?alt=media`;
+  const res=await fetch(url,{headers:{Authorization:'Bearer '+accessToken}});
+  if(!res.ok)throw new Error(await res.text());
   return await res.text();
 }
 
@@ -583,260 +505,245 @@ const LEAVE_PAT = /(.*?)님이\s*(퇴장하셨습니다|나갔습니다|퇴장�
 const KICK_PAT  = /(.*?)님을\s*(내보냈습니다|강퇴했습니다|추방했습니다)[\s\.\!]*$/;
 
 function splitNickname(nick){
-  const raw = String(nick||'').trim();
-  if(!raw) return null;
-  const firstDigitIdx = raw.search(/\d/);
-  let namePart = firstDigitIdx >= 0 ? raw.slice(0, firstDigitIdx) : raw;
-  let name = namePart.replace(/[/_\-\s]+$/,'');
-  name = normalizeName(name);
-  if(!name) return {name: raw, digits: null};
-  const digitsAll = raw.replace(/[^\d]/g,'');
-  const digits = digitsAll.length >= 4 ? digitsAll.slice(-4) : null;
-  return { name, digits };
+  const raw=String(nick||'').trim();
+  if(!raw)return null;
+  const idx=raw.search(/\d/);
+  let namePart=idx>=0?raw.slice(0,idx):raw;
+  let name=namePart.replace(/[/_\-\s]+$/,'');
+  name=normalizeName(name);
+  if(!name)return {name:raw,digits:null};
+  const digitsAll=raw.replace(/[^\d]/g,'');
+  const digits=digitsAll.length>=4?digitsAll.slice(-4):null;
+  return {name,digits};
 }
 function parseChat(text){
   const lines=text.split(/\r?\n/);
-  const events=[]; let joinedCount=0,leftCount=0;
+  const events=[];let joinedCount=0,leftCount=0;
   for(const raw of lines){
-    const line=raw.trim(); if(!line) continue;
-    let m=line.match(JOIN_PAT); if(m){ events.push({type:'join', nick:m[1].trim(), raw:line}); joinedCount++; continue; }
-    m=line.match(LEAVE_PAT); if(m){ events.push({type:'leave', nick:m[1].trim(), raw:line}); leftCount++; continue; }
-    m=line.match(KICK_PAT);  if(m){ events.push({type:'leave', nick:m[1].trim(), raw:line}); leftCount++; continue; }
+    const line=raw.trim();if(!line)continue;
+    let m=line.match(JOIN_PAT);if(m){events.push({type:'join',nick:m[1].trim(),raw:line});joinedCount++;continue;}
+    m=line.match(LEAVE_PAT);if(m){events.push({type:'leave',nick:m[1].trim(),raw:line});leftCount++;continue;}
+    m=line.match(KICK_PAT);if(m){events.push({type:'leave',nick:m[1].trim(),raw:line});leftCount++;continue;}
   }
-  return {events, joinedCount, leftCount};
+  return {events,joinedCount,leftCount};
 }
 
-/* ===== 실행(패널별) ===== */
+/* ===== 실행 ===== */
 async function runMain(sfx){
   try{
     txt('err','',sfx);
-    const resultsEl = byPanel('results', sfx); if(resultsEl) resultsEl.innerHTML='';
-    const previewOnly = byPanel("previewOnly",sfx)?.checked;
+    const resultsEl=byPanel('results',sfx);if(resultsEl)resultsEl.innerHTML='';
+    const previewOnly=byPanel('previewOnly',sfx)?.checked;
 
-    const chatText = await readSelectedTxt(sfx);
-    const packSel=byPanel('sheetPackSelect',sfx); if(!packSel || !packSel.value) throw new Error('스프레드시트를 선택하세요.');
-    const readSheet=val('readSheetSelect',sfx); if(!readSheet) throw new Error('읽기 시트를 선택하세요.');
-    const writeSheet = FIXED_WRITE_SHEET;
+    const chatText=await readSelectedTxt(sfx);
+    const packSel=byPanel('sheetPackSelect',sfx);if(!packSel||!packSel.value)throw new Error('스프레드시트를 선택하세요.');
+    const readSheet=val('readSheetSelect',sfx);if(!readSheet)throw new Error('읽기 시트를 선택하세요.');
+    const writeSheet=FIXED_WRITE_SHEET;
 
-    const packs=loadPacks(); const pack=packs.find(x=>x.id===packSel.value); if(!pack) throw new Error('연결 정보를 찾을 수 없습니다.');
-    const sheetId=pack.sheetId; const readCol=pack.readCol||'C';
+    const packs=loadPacks();const pack=packs.find(x=>x.id===packSel.value);if(!pack)throw new Error('연결 정보를 찾을 수 없습니다.');
+    const sheetId=pack.sheetId;const readCol=pack.readCol||'C';
 
-    const {events, joinedCount, leftCount} = parseChat(chatText);
+    const {events,joinedCount,leftCount}=parseChat(chatText);
 
-    const NAME_ONLY_SENTINEL = '__NAMEONLY__';
-    const activeDigitsByName = new Map();
-    const leftFinalDigitsByName = new Map();
-    const nameOnlyJoin = new Set();
-    const ensure = (map, key)=>{ if(!map.has(key)) map.set(key,new Set()); return map.get(key); };
+    const NAME_ONLY_SENTINEL='__NAMEONLY__';
+    const activeDigitsByName=new Map();
+    const leftFinalDigitsByName=new Map();
+    const nameOnlyJoin=new Set();
+    const ensure=(map,key)=>{if(!map.has(key))map.set(key,new Set());return map.get(key);};
 
     for(const ev of events){
       const s=splitNickname(ev.nick);
-      if(!s) continue;
-      const nN = s.name;
-
+      if(!s)continue;
+      const nN=s.name;
       if(ev.type==='join'){
-        ensure(activeDigitsByName, nN).add(s.digits || NAME_ONLY_SENTINEL);
+        ensure(activeDigitsByName,nN).add(s.digits||NAME_ONLY_SENTINEL);
         if(leftFinalDigitsByName.has(nN)){
-          const L = leftFinalDigitsByName.get(nN);
-          L.delete(s.digits || NAME_ONLY_SENTINEL);
-          if(L.size===0) leftFinalDigitsByName.delete(nN);
+          const L=leftFinalDigitsByName.get(nN);
+          L.delete(s.digits||NAME_ONLY_SENTINEL);
+          if(L.size===0)leftFinalDigitsByName.delete(nN);
         }
-        if(!s.digits){ nameOnlyJoin.add(nN); }
+        if(!s.digits)nameOnlyJoin.add(nN);
       }else{
-        const A = ensure(activeDigitsByName, nN);
-        if(s.digits){ A.delete(s.digits); }
-        else { if(A.size===1 && A.has(NAME_ONLY_SENTINEL)) A.delete(NAME_ONLY_SENTINEL); }
-        ensure(leftFinalDigitsByName, nN).add(s.digits || NAME_ONLY_SENTINEL);
+        const A=ensure(activeDigitsByName,nN);
+        if(s.digits)A.delete(s.digits);
+        else if(A.size===1&&A.has(NAME_ONLY_SENTINEL))A.delete(NAME_ONLY_SENTINEL);
+        ensure(leftFinalDigitsByName,nN).add(s.digits||NAME_ONLY_SENTINEL);
       }
     }
 
-    const readNames = await getRange(sheetId, `${readSheet}!${readCol}${READ_START_ROW}:${readCol}`);
-    const readRows = readNames.values || [];
-    const rosterNames = [];
-    const rosterNamesN = [];
-    const rosterSetN = new Set();
+    const readNames=await getRange(sheetId,`${readSheet}!${readCol}${READ_START_ROW}:${readCol}`);
+    const readRows=readNames.values||[];
+    const rosterNames=[];const rosterNamesN=[];const rosterSetN=new Set();
     for(let i=0;i<readRows.length;i++){
-      const nm = String(readRows[i]?.[0] ?? '').trim();
-      if(!nm) continue;
-      const nN = normalizeName(nm);
+      const nm=String(readRows[i]?.[0]??'').trim();
+      if(!nm)continue;
+      const nN=normalizeName(nm);
       rosterNames.push(nm);
       rosterNamesN.push(nN);
       rosterSetN.add(nN);
     }
 
-    const wAtoE = await getRange(sheetId, `${writeSheet}!A${WRITE_START_ROW}:E`);
-    const wRowsAE = wAtoE.values || [];
-    const earliestByKey = new Map();
-    const earliestByName = new Map();
-
+    const wAtoE=await getRange(sheetId,`${writeSheet}!A${WRITE_START_ROW}:E`);
+    const wRowsAE=wAtoE.values||[];
+    const earliestByKey=new Map();
+    const earliestByName=new Map();
     for(const r of wRowsAE){
-      const id  = (r[0] ?? '').toString().trim();
-      const nameRaw = (r[3] ?? '').toString().trim();
-      const phoneRaw= (r[4] ?? '').toString().trim();
-      if(!id || !nameRaw) continue;
-
-      const nN = normalizeName(nameRaw);
-      const p4 = last4Digits(phoneRaw);
-
+      const id=(r[0]??'').toString().trim();
+      const nameRaw=(r[3]??'').toString().trim();
+      const phoneRaw=(r[4]??'').toString().trim();
+      if(!id||!nameRaw)continue;
+      const nN=normalizeName(nameRaw);
+      const p4=last4Digits(phoneRaw);
       if(p4){
-        const key = nN + '|' + p4;
-        if(!earliestByKey.has(key)) earliestByKey.set(key, {id, phoneFull: phoneRaw, phone4:p4});
+        const key=nN+'|'+p4;
+        if(!earliestByKey.has(key))earliestByKey.set(key,{id,phoneFull:phoneRaw,phone4:p4});
         else{
-          const cur = earliestByKey.get(key);
-          earliestByKey.set(key, earlierId(cur.id,id)===cur.id ? cur : {id, phoneFull:phoneRaw, phone4:p4});
+          const cur=earliestByKey.get(key);
+          earliestByKey.set(key,earlierId(cur.id,id)===cur.id?cur:{id,phoneFull:phoneRaw,phone4:p4});
         }
       }
-      if(!earliestByName.has(nN)) earliestByName.set(nN, {id, phoneFull: phoneRaw, phone4:p4});
+      if(!earliestByName.has(nN))earliestByName.set(nN,{id,phoneFull:phoneRaw,phone4:p4});
       else{
-        const cur = earliestByName.get(nN);
-        earliestByName.set(nN, earlierId(cur.id,id)===cur.id ? cur : {id, phoneFull:phoneRaw, phone4:p4});
+        const cur=earliestByName.get(nN);
+        earliestByName.set(nN,earlierId(cur.id,id)===cur.id?cur:{id,phoneFull:phoneRaw,phone4:p4});
       }
     }
 
-    const isAttendingNameN = (nN)=> {
-      const set = activeDigitsByName.get(nN);
-      return (set && set.size>0) || nameOnlyJoin.has(nN);
+    const isAttendingNameN=nN=>{
+      const set=activeDigitsByName.get(nN);
+      return(set&&set.size>0)||nameOnlyJoin.has(nN);
     };
-    const attendingSetN = new Set([...rosterSetN].filter(nN => isAttendingNameN(nN)));
+    const attendingSetN=new Set([...rosterSetN].filter(nN=>isAttendingNameN(nN)));
 
     const report=[];
     for(let i=0;i<rosterNames.length;i++){
-      const nm = rosterNames[i];
-      const nN = rosterNamesN[i];
-
-      const phoneFull = earliestByName.get(nN)?.phoneFull || '';
-      const set = activeDigitsByName.get(nN) || new Set();
-      const any4 = [...set].find(x=>x!==NAME_ONLY_SENTINEL) || '';
-      const matchedId =
-        any4 && earliestByKey.get(nN+'|'+any4) ? earliestByKey.get(nN+'|'+any4).id :
-        earliestByName.get(nN)?.id || '';
-
-      const notes = (isAttendingNameN(nN) && !any4) ? '(번호없음)' : '';
-      const status = attendingSetN.has(nN) ? '입장' : '미입장';
-      const rosterNo = matchedId;
-
-      report.push([rosterNo, nm, phoneFull, status, any4 ? `${nm}/${any4}` : (status==='입장'?nm:''), notes]);
+      const nm=rosterNames[i];
+      const nN=rosterNamesN[i];
+      const phoneFull=earliestByName.get(nN)?.phoneFull||'';
+      const set=activeDigitsByName.get(nN)||new Set();
+      const any4=[...set].find(x=>x!==NAME_ONLY_SENTINEL)||'';
+      const matchedId=
+        any4&&earliestByKey.get(nN+'|'+any4)?earliestByKey.get(nN+'|'+any4).id:
+        earliestByName.get(nN)?.id||'';
+      const notes=(isAttendingNameN(nN)&&!any4)?'(번호없음)':'';
+      const status=attendingSetN.has(nN)?'입장':'미입장';
+      const rosterNo=matchedId;
+      report.push([rosterNo,nm,phoneFull,status,any4?`${nm}/${any4}`:(status==='입장'?nm:''),notes]);
     }
 
     const extra=[];
     [...activeDigitsByName.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
       if(!rosterSetN.has(nN)){
         const digits=[...set].filter(x=>x!==NAME_ONLY_SENTINEL);
-        if(digits.length) digits.forEach(d=> extra.push([`${nN}/${d}`]));
-        if(set.has(NAME_ONLY_SENTINEL)) extra.push([`${nN}(번호없음)`]);
+        if(digits.length)digits.forEach(d=>extra.push([`${nN}/${d}`]));
+        if(set.has(NAME_ONLY_SENTINEL))extra.push([`${nN}(번호없음)`]);
       }
     });
 
     const leavers=[];
     [...leftFinalDigitsByName.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
-      const activeSet = activeDigitsByName.get(nN);
+      const activeSet=activeDigitsByName.get(nN);
       set.forEach(d=>{
-        if(!activeSet || !activeSet.has(d)){
-          if(d===NAME_ONLY_SENTINEL) leavers.push([`${nN}(번호없음)`]);
+        if(!activeSet||!activeSet.has(d)){
+          if(d===NAME_ONLY_SENTINEL)leavers.push([`${nN}(번호없음)`]);
           else leavers.push([`${nN}/${d}`]);
         }
       });
     });
 
-    // T열이 '수강생'인 행만 S열에 '입장'
-    const readWriteRange = `${writeSheet}!D${WRITE_START_ROW}:T`;
-    const wdata = await getRange(sheetId, readWriteRange);
-    const rows = wdata.values || [];
-    const targetRowsIdx = [];
-    const nameCountN = new Map();
+    const readWriteRange=`${writeSheet}!D${WRITE_START_ROW}:T`;
+    const wdata=await getRange(sheetId,readWriteRange);
+    const rows=wdata.values||[];
+    const targetRowsIdx=[];
+    const nameCountN=new Map();
     for(let i=0;i<rows.length;i++){
-      const r = rows[i] || [];
-      const tVal = (r[16] ?? '').toString().trim(); // T열
-      if(tVal !== '수강생') continue;
-      const nameN = normalizeName(String(r[0] ?? '')); // D
-      if(!nameN) continue;
+      const r=rows[i]||[];
+      const tVal=(r[16]??'').toString().trim(); // T열
+      if(tVal!=='수강생')continue;
+      const nameN=normalizeName(String(r[0]??'')); // D
+      if(!nameN)continue;
       targetRowsIdx.push(i);
-      nameCountN.set(nameN, (nameCountN.get(nameN)||0)+1);
+      nameCountN.set(nameN,(nameCountN.get(nameN)||0)+1);
     }
-    const updates = [];
-    const unresolved = [];
-
+    const updates=[];
+    const unresolved=[];
     for(const i of targetRowsIdx){
-      const r = rows[i] || [];
-      const nameRaw = String(r[0] ?? '').trim(); // D
-      const nameN   = normalizeName(nameRaw);
-      const phone4  = last4Digits(r[1] ?? '');    // E
-      if(!nameN) continue;
-
-      if(!attendingSetN.has(nameN)) continue;
-
-      const set = activeDigitsByName.get(nameN) || new Set();
-      const isDupInPaid = (nameCountN.get(nameN)||0) > 1;
-
-      let canWrite = false;
+      const r=rows[i]||[];
+      const nameRaw=String(r[0]??'').trim();
+      const nameN=normalizeName(nameRaw);
+      const phone4=last4Digits(r[1]??'');
+      if(!nameN)continue;
+      if(!attendingSetN.has(nameN))continue;
+      const set=activeDigitsByName.get(nameN)||new Set();
+      const isDupInPaid=(nameCountN.get(nameN)||0)>1;
+      let canWrite=false;
       if(isDupInPaid){
-        if(phone4 && set.has(phone4)) canWrite = true;
-        else {
-          if(set.has(NAME_ONLY_SENTINEL)) unresolved.push([nameRaw,'공유시트 동명이인 + 입장로그 번호없음']);
+        if(phone4&&set.has(phone4))canWrite=true;
+        else{
+          if(set.has(NAME_ONLY_SENTINEL))unresolved.push([nameRaw,'공유시트 동명이인 + 입장로그 번호없음']);
           else unresolved.push([nameRaw,'공유시트 동명이인 + 번호불일치']);
         }
       }else{
-        if(set.size >= 1 || set.has(NAME_ONLY_SENTINEL)) canWrite = true;
+        if(set.size>=1||set.has(NAME_ONLY_SENTINEL))canWrite=true;
       }
-
       if(canWrite){
-        const rowNumber = WRITE_START_ROW + i;
-        updates.push({ range: `${writeSheet}!S${rowNumber}`, values: [['입장']] });
+        const rowNumber=WRITE_START_ROW+i;
+        updates.push({range:`${writeSheet}!S${rowNumber}`,values:[['입장']]});
       }
     }
 
-    if(updates.length && !previewOnly){
-      await batchUpdateValues(sheetId, updates);
+    if(updates.length&&!previewOnly){
+      await batchUpdateValues(sheetId,updates);
     }
 
-    const pills = $$('#pills'+sfx+sfx);
-    if(pills){ pills.innerHTML='';
-      const mk=(t,c)=>{ const s=document.createElement('span'); s.className='pill '+c; s.textContent=t; return s; };
+    const pills=$$('#pills'+sfx+sfx);
+    if(pills){
+      pills.innerHTML='';
+      const mk=(t,c)=>{const s=document.createElement('span');s.className='pill '+c;s.textContent=t;return s;};
       pills.appendChild(mk(`입장로그 join ${joinedCount}`,'ok'));
       pills.appendChild(mk(`퇴장로그 leave ${leftCount}`,'bad'));
       pills.appendChild(mk(`입장 대상(읽기시트) ${attendingSetN.size}`,'warn'));
-      if(previewOnly) pills.appendChild(mk('체크만','warn'));
+      if(previewOnly)pills.appendChild(mk('체크만','warn'));
     }
 
-    function resTbl(title, headers, rowsArr){
-      if(!resultsEl) return;
-      const wrap=document.createElement('div'); wrap.className='card';
-      const h=document.createElement('h3'); h.textContent=title; h.style.margin='0 0 8px'; wrap.appendChild(h);
-      const t=document.createElement('table'); const thead=document.createElement('thead'); const trh=document.createElement('tr');
-      headers.forEach(x=>{ const th=document.createElement('th'); th.textContent=x; trh.appendChild(th); }); thead.appendChild(trh); t.appendChild(thead);
+    function resTbl(title,headers,rowsArr){
+      if(!resultsEl)return;
+      const wrap=document.createElement('div');wrap.className='card';
+      const h=document.createElement('h3');h.textContent=title;h.style.margin='0 0 8px';wrap.appendChild(h);
+      const t=document.createElement('table');const thead=document.createElement('thead');const trh=document.createElement('tr');
+      headers.forEach(x=>{const th=document.createElement('th');th.textContent=x;trh.appendChild(th);});
+      thead.appendChild(trh);t.appendChild(thead);
       const tb=document.createElement('tbody');
-      (rowsArr||[]).forEach(r=>{ const tr=document.createElement('tr'); (r||[]).forEach(c=>{ const td=document.createElement('td'); td.textContent=(c==null?'':String(c)); tr.appendChild(td); }); tb.appendChild(tr); });
-      t.appendChild(tb); wrap.appendChild(t); resultsEl.appendChild(wrap);
+      (rowsArr||[]).forEach(r=>{const tr=document.createElement('tr');(r||[]).forEach(c=>{const td=document.createElement('td');td.textContent=(c==null?'':String(c));tr.appendChild(td);});tb.appendChild(tr);});
+      t.appendChild(tb);wrap.appendChild(t);resultsEl.appendChild(wrap);
     }
-    resTbl('내 명단 기준 상태(읽기 시트)', ['no','name','phone','status','matched_id','notes'], report);
-    resTbl('명단 외 입장자', ['name/last4 or (번호없음)'], extra);
-    resTbl('퇴장자 명단(최종)', ['name/last4 or (번호없음)'], leavers);
-    resTbl(previewOnly ? '예상 갱신 결과(체크만 모드)' : '공유 시트 갱신 결과',
-           ['updated_cells'], updates.map(u=>[u.range+' ← 입장']));
-    resTbl('미확인 목록(공유 시트 동명이인/번호 문제)', ['name','reason'], unresolved);
+    resTbl('내 명단 기준 상태(읽기 시트)',['no','name','phone','status','matched_id','notes'],report);
+    resTbl('명단 외 입장자',['name/last4 or (번호없음)'],extra);
+    resTbl('퇴장자 명단(최종)',['name/last4 or (번호없음)'],leavers);
+    resTbl(previewOnly?'예상 갱신 결과(체크만 모드)':'공유 시트 갱신 결과',['updated_cells'],updates.map(u=>[u.range+' ← 입장']));
+    resTbl('미확인 목록(공유 시트 동명이인/번호 문제)',['name','reason'],unresolved);
 
   }catch(e){
-    txt('err','오류: '+(e?.message||e), sfx);
+    txt('err','오류: '+(e?.message||e),sfx);
     console.error(e);
   }
 }
 
-/* ===== 데모(패널별) ===== */
+/* ===== 데모 ===== */
 function runDemo(sfx){
   txt('err','',sfx);
-  const resultsEl = byPanel('results',sfx);
-  if(resultsEl) resultsEl.innerHTML='';
+  const resultsEl=byPanel('results',sfx);
+  if(resultsEl)resultsEl.innerHTML='';
 
-  const roster = [
-    { id: 1, name: '황현하', phone: '010-1234-5678' },
-    { id: 3, name: '김혜영', phone: '010-3456-7890' },
-    { id: 4, name: '임규리', phone: '010-1717-1771' },
-    { id: 5, name: '김예은', phone: '010-1111-0000' },
-    { id: 6, name: '방예진', phone: '010-0000-9999' },
+  const roster=[
+    {id:1,name:'황현하',phone:'010-1234-5678'},
+    {id:3,name:'김혜영',phone:'010-3456-7890'},
+    {id:4,name:'임규리',phone:'010-1717-1771'},
+    {id:5,name:'김예은',phone:'010-1111-0000'},
+    {id:6,name:'방예진',phone:'010-0000-9999'},
   ];
-  const rosterSetN = new Set(roster.map(r => normalizeName(r.name)));
-
-  const chatText = [
+  const rosterSetN=new Set(roster.map(r=>normalizeName(r.name)));
+  const chatText=[
     '김예은/0000님이 입장하셨습니다',
     '황현하/5678님이 입장하셨습니다',
     '방예진/9999님이 입장했습니다',
@@ -847,146 +754,128 @@ function runDemo(sfx){
     '세계제일의규리당장찬양님이 나갔습니다.',
     '송지현예쁘다님을 내보냈습니다.'
   ].join('\n');
-  const {events, joinedCount, leftCount} = parseChat(chatText);
-
+  const {events,joinedCount,leftCount}=parseChat(chatText);
   const NAME_ONLY_SENTINEL='__NAMEONLY__';
-  const active = new Map(); const leftFinal = new Map();
-  const ensure=(map,key)=>{ if(!map.has(key)) map.set(key,new Set()); return map.get(key); };
+  const active=new Map();const leftFinal=new Map();
+  const ensure=(map,key)=>{if(!map.has(key))map.set(key,new Set());return map.get(key);};
   for(const ev of events){
-    const s = splitNickname(ev.nick); if(!s) continue;
-    const nN = s.name;
+    const s=splitNickname(ev.nick);if(!s)continue;
+    const nN=s.name;
     if(ev.type==='join'){
-      ensure(active,nN).add(s.digits || NAME_ONLY_SENTINEL);
-      const L = leftFinal.get(nN); if(L){ L.delete(s.digits || NAME_ONLY_SENTINEL); if(L.size===0) leftFinal.delete(nN); }
+      ensure(active,nN).add(s.digits||NAME_ONLY_SENTINEL);
+      const L=leftFinal.get(nN);if(L){L.delete(s.digits||NAME_ONLY_SENTINEL);if(L.size===0)leftFinal.delete(nN);}
     }else{
-      const A = ensure(active,nN);
-      if(s.digits) A.delete(s.digits);
-      else if(A.size===1 && A.has(NAME_ONLY_SENTINEL)) A.delete(NAME_ONLY_SENTINEL);
-      ensure(leftFinal,nN).add(s.digits || NAME_ONLY_SENTINEL);
+      const A=ensure(active,nN);
+      if(s.digits)A.delete(s.digits);
+      else if(A.size===1&&A.has(NAME_ONLY_SENTINEL))A.delete(NAME_ONLY_SENTINEL);
+      ensure(leftFinal,nN).add(s.digits||NAME_ONLY_SENTINEL);
     }
   }
-
-  const paidRows = [
-    { name: '김예은', phone4: '0000' },
-    { name: '방예진', phone4: '9999' },
-    { name: '황현하', phone4: '5678' },
-    { name: '황현하', phone4: '9999' },
-    { name: '김혜영', phone4: ''     },
+  const paidRows=[
+    {name:'김예은',phone4:'0000'},
+    {name:'방예진',phone4:'9999'},
+    {name:'황현하',phone4:'5678'},
+    {name:'황현하',phone4:'9999'},
+    {name:'김혜영',phone4:''},
   ];
-  const paidNameCountN = new Map();
+  const paidNameCountN=new Map();
   for(const r of paidRows){
-    const nN = normalizeName(r.name);
+    const nN=normalizeName(r.name);
     paidNameCountN.set(nN,(paidNameCountN.get(nN)||0)+1);
   }
-
-  const report = [];
+  const report=[];
   for(const r of roster){
-    const nN = normalizeName(r.name);
-    const set = active.get(nN) || new Set();
-    const isActive = set.size>0;
-    const any4 = [...set].find(x=>x!==NAME_ONLY_SENTINEL) || '';
-    report.push([String(r.id), r.name, r.phone, isActive?'입장':'미입장', isActive?(any4?`${r.name}/${any4}`:r.name):'', isActive && !any4 ? '(번호없음)':'']);
+    const nN=normalizeName(r.name);
+    const set=active.get(nN)||new Set();
+    const isActive=set.size>0;
+    const any4=[...set].find(x=>x!==NAME_ONLY_SENTINEL)||'';
+    report.push([String(r.id),r.name,r.phone,isActive?'입장':'미입장',isActive?(any4?`${r.name}/${any4}`:r.name):'',isActive&&!any4?'(번호없음)':'']);
   }
-
-  const extra = [];
+  const extra=[];
   [...active.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
     if(!rosterSetN.has(nN)){
       const digits=[...set].filter(x=>x!==NAME_ONLY_SENTINEL);
-      if(digits.length) digits.forEach(d=> extra.push([`${nN}/${d}`]));
-      if(set.has(NAME_ONLY_SENTINEL)) extra.push([`${nN}(번호없음)`]);
+      if(digits.length)digits.forEach(d=>extra.push([`${nN}/${d}`]));
+      if(set.has(NAME_ONLY_SENTINEL))extra.push([`${nN}(번호없음)`]);
     }
   });
-
-  const leavers = [];
+  const leavers=[];
   [...leftFinal.entries()].sort(([a],[b])=>a.localeCompare(b,'ko')).forEach(([nN,set])=>{
-    const act = active.get(nN);
-    set.forEach(d=>{ if(!act || !act.has(d)) leavers.push([ d===NAME_ONLY_SENTINEL ? `${nN}(번호없음)` : `${nN}/${d}` ]); });
+    const act=active.get(nN);
+    set.forEach(d=>{if(!act||!act.has(d))leavers.push([d===NAME_ONLY_SENTINEL?`${nN}(번호없음)`:`${nN}/${d}`]);});
   });
-
-  const unresolved = [];
+  const unresolved=[];
   for(const r of paidRows){
-    const nN = normalizeName(r.name);
-    const set = active.get(nN) || new Set();
-    const isDupInPaid = (paidNameCountN.get(nN)||0) > 1;
-    if(!isDupInPaid) continue;
-    const p4 = (r.phone4||'').trim();
-    if(p4 && set.has(p4)) continue;
-    unresolved.push([r.name, p4 ? '공유시트 동명이인 + 번호불일치' : '공유시트 동명이인 + 입장로그 번호없음']);
+    const nN=normalizeName(r.name);
+    const set=active.get(nN)||new Set();
+    const isDupInPaid=(paidNameCountN.get(nN)||0)>1;
+    if(!isDupInPaid)continue;
+    const p4=(r.phone4||'').trim();
+    if(p4&&set.has(p4))continue;
+    unresolved.push([r.name,p4?'공유시트 동명이인 + 번호불일치':'공유시트 동명이인 + 입장로그 번호없음']);
   }
-
-  const pills = $$('#pills'+sfx+sfx);
+  const pills=$$('#pills'+sfx+sfx);
   if(pills){
     pills.innerHTML='';
     const mk=(t,c)=>{const s=document.createElement('span');s.className='pill '+c;s.textContent=t;return s;};
-    const attendingCount = roster.filter(r => (active.get(normalizeName(r.name))||new Set()).size>0).length;
+    const attendingCount=roster.filter(r=>(active.get(normalizeName(r.name))||new Set()).size>0).length;
     pills.appendChild(mk(`입장로그 join ${joinedCount}`,'ok'));
     pills.appendChild(mk(`퇴장로그 leave ${leftCount}`,'bad'));
     pills.appendChild(mk(`입장 대상(읽기시트) ${attendingCount}`,'warn'));
     pills.appendChild(mk('체크만','warn'));
   }
-
-  function resTbl(title, headers, rowsArr){
-    if(!resultsEl) return;
-    const wrap=document.createElement('div'); wrap.className='card';
-    const h=document.createElement('h3'); h.textContent=title; h.style.margin='0 0 8px'; wrap.appendChild(h);
-    const t=document.createElement('table'); const thead=document.createElement('thead'); const trh=document.createElement('tr');
-    headers.forEach(x=>{ const th=document.createElement('th'); th.textContent=x; trh.appendChild(th); });
-    thead.appendChild(trh); t.appendChild(thead);
+  function resTbl(title,headers,rowsArr){
+    if(!resultsEl)return;
+    const wrap=document.createElement('div');wrap.className='card';
+    const h=document.createElement('h3');h.textContent=title;h.style.margin='0 0 8px';wrap.appendChild(h);
+    const t=document.createElement('table');const thead=document.createElement('thead');const trh=document.createElement('tr');
+    headers.forEach(x=>{const th=document.createElement('th');th.textContent=x;trh.appendChild(th);});
+    thead.appendChild(trh);t.appendChild(thead);
     const tb=document.createElement('tbody');
-    (rowsArr||[]).forEach(r=>{ const tr=document.createElement('tr');
-      (r||[]).forEach(c=>{ const td=document.createElement('td'); td.textContent=(c==null?'':String(c)); tr.appendChild(td); });
-      tb.appendChild(tr);
-    });
-    t.appendChild(tb); wrap.appendChild(t); resultsEl.appendChild(wrap);
+    (rowsArr||[]).forEach(r=>{const tr=document.createElement('tr');(r||[]).forEach(c=>{const td=document.createElement('td');td.textContent=(c==null?'':String(c));tr.appendChild(td);});tb.appendChild(tr);});
+    t.appendChild(tb);wrap.appendChild(t);resultsEl.appendChild(wrap);
   }
-
-  resTbl('명단기준 입장자(데모)', ['no','name','phone','status','matched_id','notes'], report);
-  resTbl('명단 외 입장자(데모)', ['name/last4 or (번호없음)'], extra);
-  resTbl('퇴장자 명단(데모)', ['name/last4 or (번호없음)'], leavers);
-  resTbl('미확인 목록(데모)', ['name','reason'], unresolved);
+  resTbl('명단기준 입장자(데모)',['no','name','phone','status','matched_id','notes'],report);
+  resTbl('명단 외 입장자(데모)',['name/last4 or (번호없음)'],extra);
+  resTbl('퇴장자 명단(데모)',['name/last4 or (번호없음)'],leavers);
+  resTbl('미확인 목록(데모)',['name','reason'],unresolved);
 }
 
 /* ===== 초기화 ===== */
-window.addEventListener('load', ()=>{ if(window.google?.accounts?.oauth2) initAuth(); });
-document.addEventListener('DOMContentLoaded', ()=>{
-  on('gsLoginBtn','click', requestAccess);
-  on('gsLogoutBtn','click', revokeAccess);
+window.addEventListener('load',()=>{if(window.google?.accounts?.oauth2)initAuth();});
+document.addEventListener('DOMContentLoaded',()=>{
+  on('gsLoginBtn','click',requestAccess);
+  on('gsLogoutBtn','click',revokeAccess);
 
-  const overlay=$$('adminOverlay'), drawer=$$('adminDrawer');
-  const openAdmin=()=>{ if(overlay&&drawer){ show(overlay); show(drawer); renderAdmList(); } };
-  const closeAdmin=()=>{ if(overlay&&drawer){ hide(overlay); hide(drawer); } };
-  on('settingsBtn','click', openAdmin);
-  on('closeAdmin','click', closeAdmin);
-  if(overlay) overlay.addEventListener('click', closeAdmin);
+  const overlay=$$('adminOverlay'),drawer=$$('adminDrawer');
+  const openAdmin=()=>{if(overlay&&drawer){show(overlay);show(drawer);renderAdmList();}};
+  const closeAdmin=()=>{if(overlay&&drawer){hide(overlay);hide(drawer);}};
+  on('settingsBtn','click',openAdmin);
+  on('closeAdmin','click',closeAdmin);
+  if(overlay)overlay.addEventListener('click',closeAdmin);
 
-  on('admAdd','click', admAdd);
-  on('admClearAll','click', ()=>{ if(confirm('모든 연결을 삭제할까요?')){ clearPacks(); renderAdmList(); populatePacks('A'); populatePacks('B'); } });
+  on('admAdd','click',admAdd);
+  on('admClearAll','click',()=>{if(confirm('모든 연결을 삭제할까요?')){clearPacks();renderAdmList();populatePacks('A');populatePacks('B');}});
 
-  // Panel A
-  on('sheetPackSelect','change', ()=>onPackChanged('A'), 'A');
-  on('refreshMeta','click', ()=>refreshMeta('A'), 'A');
-  on('runBtn','click', ()=>runMain('A'), 'A');
-  on('demoBtn','click', ()=>runDemo('A'), 'A');
-  on('dirPick','click', ()=>pickDriveFolder('A'), 'A');
-  on('dirRefresh','click', ()=>refreshDriveList('A'), 'A');
+  on('sheetPackSelect','change',()=>onPackChanged('A'),'A');
+  on('refreshMeta','click',()=>refreshMeta('A'),'A');
+  on('runBtn','click',()=>runMain('A'),'A');
+  on('demoBtn','click',()=>runDemo('A'),'A');
+  on('dirPick','click',()=>pickDriveFolder('A'),'A');
+  on('dirRefresh','click',()=>refreshDriveList('A'),'A');
 
-  // Panel B
-  on('sheetPackSelect','change', ()=>onPackChanged('B'), 'B');
-  on('refreshMeta','click', ()=>refreshMeta('B'), 'B');
-  on('runBtn','click', ()=>runMain('B'), 'B');
-  on('demoBtn','click', ()=>runDemo('B'), 'B');
-  on('dirPick','click', ()=>pickDriveFolder('B'), 'B');
-  on('dirRefresh','click', ()=>refreshDriveList('B'), 'B');
+  on('sheetPackSelect','change',()=>onPackChanged('B'),'B');
+  on('refreshMeta','click',()=>refreshMeta('B'),'B');
+  on('runBtn','click',()=>runMain('B'),'B');
+  on('demoBtn','click',()=>runDemo('B'),'B');
+  on('dirPick','click',()=>pickDriveFolder('B'),'B');
+  on('dirRefresh','click',()=>refreshDriveList('B'),'B');
 
   populatePacks('A');
   populatePacks('B');
-
-  // 저장된 드라이브 폴더 있으면 자동 로드
   refreshDriveList('A');
   refreshDriveList('B');
 });
 </script>
 </body>
 </html>
-
-
