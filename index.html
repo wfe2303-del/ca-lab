@@ -115,6 +115,7 @@
     </div>
 
     <div class="panels">
+      <!-- Panel A -->
       <section>
         <div class="card">
           <div class="controls">
@@ -166,6 +167,7 @@
         <div id="resultsA" style="display:grid;gap:16px"></div>
       </section>
 
+      <!-- Panel B -->
       <section>
         <div class="card">
           <div class="controls">
@@ -252,11 +254,11 @@
   </aside>
 
 <script>
-const PANEL_SUFFIXES = ['A','B'];
-const $$ = id => document.getElementById(id);
-const byPanel = (base,s) => $$(base+s);
-const txt = (id,v,sfx)=>{const el=sfx?byPanel(id,sfx):$$(id); if(el) el.textContent=v||'';};
-const val = (id,sfx)=>{const el=sfx?byPanel(id,sfx):$$(id); return el?el.value:'';};
+const PANEL_SUFFIXES=['A','B'];
+const $$=id=>document.getElementById(id);
+const byPanel=(base,s)=>$$(base+s);
+const txt=(id,v,sfx)=>{const el=sfx?byPanel(id,sfx):$$(id);if(el)el.textContent=v||'';};
+const val=(id,sfx)=>{const el=sfx?byPanel(id,sfx):$$(id);return el?el.value:'';};
 function on(id,ev,fn,sfx){
   const el=sfx?byPanel(id,sfx):$$(id);
   if(!el){console.warn('bind skip',id,sfx);return;}
@@ -290,25 +292,25 @@ const earlierId=(a,b)=>{const ai=parseInt(a,10),bi=parseInt(b,10);if(!Number.isN
   });
 })();
 
-/* ===== 설정 ===== */
-const READ_START_ROW  = 2;
-const WRITE_START_ROW = 2;
-const FIXED_WRITE_SHEET = '공유용 시트';
+/* ===== 기본 설정 ===== */
+const READ_START_ROW=2;
+const WRITE_START_ROW=2;
+const FIXED_WRITE_SHEET='공유용 시트';
 
-/* ✅ 본인 OAuth 클라이언트 ID로 변경 */
-const CLIENT_ID = "18228268359-iifm4ck3j9kqj74eh1p90tco1k2mbpi0.apps.googleusercontent.com";
+/* ✅ 여기에 본인 OAuth 클라이언트 ID 넣기 */
+const CLIENT_ID="18228268359-iifm4ck3j9kqj74eh1p90tco1k2mbpi0.apps.googleusercontent.com";
 
 /* ===== OAuth ===== */
-let accessToken=null, tokenClient=null;
+let accessToken=null,tokenClient=null;
 function initAuth(){
   try{
     if(!window.google?.accounts?.oauth2){txt('authErr','GIS 로드 실패');return;}
-    tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: CLIENT_ID,
-      scope: 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly',
-      prompt: '',
-      callback: res=>{accessToken=res.access_token;txt('authState','로그인 완료');txt('authErr','');},
-      error_callback: err=>{txt('authErr','OAuth 오류: '+(err?.error||err?.type||JSON.stringify(err)));}
+    tokenClient=google.accounts.oauth2.initTokenClient({
+      client_id:CLIENT_ID,
+      scope:'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly',
+      prompt:'',
+      callback:res=>{accessToken=res.access_token;txt('authState','로그인 완료');txt('authErr','');},
+      error_callback:err=>{txt('authErr','OAuth 오류: '+(err?.error||err?.type||JSON.stringify(err)));}
     });
   }catch(e){txt('authErr','OAuth 초기화 오류');console.error(e);}
 }
@@ -337,7 +339,7 @@ async function batchUpdateValues(spreadsheetId,dataRanges){
   return await gFetch(url,{method:'POST',body:JSON.stringify({valueInputOption:'USER_ENTERED',data:dataRanges})});
 }
 
-/* ===== 관리자 저장 (localStorage) ===== */
+/* ===== 관리자 저장 ===== */
 const PACKS_KEY='ca_gsapi_sources_v12';
 const loadPacks=()=>{try{return JSON.parse(localStorage.getItem(PACKS_KEY)||'[]');}catch(e){return[];}};
 const savePacks=ps=>localStorage.setItem(PACKS_KEY,JSON.stringify(ps));
@@ -487,22 +489,47 @@ async function refreshDriveList(sfx){
     alert('드라이브 파일 목록을 불러오지 못했습니다: '+e.message);
   }
 }
+
+/* ✅ txt / csv 읽기 : csv는 C열만 */
 async function readSelectedTxt(sfx){
   const idxStr=val('dirFileSelect',sfx);
   if(!idxStr)throw new Error('폴더 내 파일을 선택하세요.');
   const info=driveFiles[sfx][Number(idxStr)];
   if(!info)throw new Error('선택한 파일을 찾을 수 없습니다.');
+
   requireAuth();
   const url=`https://www.googleapis.com/drive/v3/files/${encodeURIComponent(info.id)}?alt=media`;
   const res=await fetch(url,{headers:{Authorization:'Bearer '+accessToken}});
   if(!res.ok)throw new Error(await res.text());
-  return await res.text();
+
+  const raw=await res.text();
+
+  // csv면 C열(3번째 열)만 줄 단위로 추출
+  if(info.name.toLowerCase().endsWith('.csv')){
+    const lines=raw.split(/\r?\n/);
+    const colC=[];
+    for(let i=0;i<lines.length;i++){
+      const line=lines[i];
+      if(!line.trim())continue;
+      const cells=line.split(',');
+      if(cells.length<3)continue;
+      let cell=cells[2].trim();
+      if(cell.startsWith('"')&&cell.endsWith('"')){
+        cell=cell.slice(1,-1);
+      }
+      if(cell)colC.push(cell);
+    }
+    return colC.join('\n');
+  }
+
+  // txt는 그대로
+  return raw;
 }
 
 /* ===== 카톡 파싱 ===== */
-const JOIN_PAT  = /(.*?)님이\s*(입장하셨습니다|들어왔습니다|입장했습니다|들어오셨습니다)[\s\.\!]*$/;
-const LEAVE_PAT = /(.*?)님이\s*(퇴장하셨습니다|나갔습니다|퇴장했습니다|나가셨습니다)[\s\.\!]*$/;
-const KICK_PAT  = /(.*?)님을\s*(내보냈습니다|강퇴했습니다|추방했습니다)[\s\.\!]*$/;
+const JOIN_PAT=/(.*?)님이\s*(입장하셨습니다|들어왔습니다|입장했습니다|들어오셨습니다)[\s\.\!]*$/;
+const LEAVE_PAT=/(.*?)님이\s*(퇴장하셨습니다|나갔습니다|퇴장했습니다|나가셨습니다)[\s\.\!]*$/;
+const KICK_PAT=/(.*?)님을\s*(내보냈습니다|강퇴했습니다|추방했습니다)[\s\.\!]*$/;
 
 function splitNickname(nick){
   const raw=String(nick||'').trim();
@@ -511,10 +538,10 @@ function splitNickname(nick){
   let namePart=idx>=0?raw.slice(0,idx):raw;
   let name=namePart.replace(/[/_\-\s]+$/,'');
   name=normalizeName(name);
-  if(!name)return {name:raw,digits:null};
+  if(!name)return{name:raw,digits:null};
   const digitsAll=raw.replace(/[^\d]/g,'');
   const digits=digitsAll.length>=4?digitsAll.slice(-4):null;
-  return {name,digits};
+  return{name,digits};
 }
 function parseChat(text){
   const lines=text.split(/\r?\n/);
@@ -525,7 +552,7 @@ function parseChat(text){
     m=line.match(LEAVE_PAT);if(m){events.push({type:'leave',nick:m[1].trim(),raw:line});leftCount++;continue;}
     m=line.match(KICK_PAT);if(m){events.push({type:'leave',nick:m[1].trim(),raw:line});leftCount++;continue;}
   }
-  return {events,joinedCount,leftCount};
+  return{events,joinedCount,leftCount};
 }
 
 /* ===== 실행 ===== */
@@ -857,6 +884,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   on('admAdd','click',admAdd);
   on('admClearAll','click',()=>{if(confirm('모든 연결을 삭제할까요?')){clearPacks();renderAdmList();populatePacks('A');populatePacks('B');}});
 
+  // Panel A
   on('sheetPackSelect','change',()=>onPackChanged('A'),'A');
   on('refreshMeta','click',()=>refreshMeta('A'),'A');
   on('runBtn','click',()=>runMain('A'),'A');
@@ -864,6 +892,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   on('dirPick','click',()=>pickDriveFolder('A'),'A');
   on('dirRefresh','click',()=>refreshDriveList('A'),'A');
 
+  // Panel B
   on('sheetPackSelect','change',()=>onPackChanged('B'),'B');
   on('refreshMeta','click',()=>refreshMeta('B'),'B');
   on('runBtn','click',()=>runMain('B'),'B');
