@@ -151,6 +151,14 @@
                 </svg>
               </button>
             </div>
+
+            <!-- 파일 업로드 영역 A -->
+            <div class="row" style="margin-top:8px;align-items:center;gap:8px">
+              <span class="hint" style="margin:0"></span>
+              <input id="fileUploadA" type="file" accept=".txt,.csv" />
+              <button id="fileClearA" class="btn" type="button" style="height:32px;padding:0 10px;font-size:12px">업로드 취소</button>
+              <span id="fileNameA" class="hint"></span>
+            </div>
           </div>
 
           <div class="row" style="margin-top:10px">
@@ -203,6 +211,14 @@
                 </svg>
               </button>
             </div>
+
+            <!-- 파일 업로드 영역 B -->
+            <div class="row" style="margin-top:8px;align-items:center;gap:8px">
+              <span class="hint" style="margin:0"></span>
+              <input id="fileUploadB" type="file" accept=".txt,.csv" />
+              <button id="fileClearB" class="btn" type="button" style="height:32px;padding:0 10px;font-size:12px">업로드 취소</button>
+              <span id="fileNameB" class="hint"></span>
+            </div>
           </div>
 
           <div class="row" style="margin-top:10px">
@@ -232,15 +248,34 @@
       <h4 style="margin:0 0 8px">스프레드시트 연결 추가</h4>
       <label>표시 이름(선택)</label>
       <input id="admLabel" type="text" placeholder="예: 디노 쿠팡 3기" />
-      <label style="margin-top:10px">스프레드시트 링크(URL)</label>
-      <input id="admUrl" type="text" placeholder="https://docs.google.com/spreadsheets/d/..." />
+      <label style="margin-top:10px">스프레드시트 링크(URL) 또는 ID</label>
+      <input id="admUrl" type="text" placeholder="https://docs.google.com/spreadsheets/d/... 또는 ID" />
       <label style="margin-top:10px">읽을 열(A~) <span class="hint">읽기 시트 이름열(예: C)</span></label>
-      <input id="admReadCol" type="text" value="G" />
+      <input id="admReadCol" type="text" value="C" />
       <div class="row" style="margin-top:10px">
         <button id="admAdd" class="btn" type="button">연결 추가</button>
         <button id="admClearAll" class="btn" type="button">전체 삭제</button>
       </div>
       <div id="admErr" class="err" style="margin-top:8px"></div>
+    </div>
+
+    <!-- 고정 폴더 시트 검색 영역 -->
+    <div class="card" style="margin-top:12px">
+      <h4 style="margin:0 0 8px">드라이브 폴더 내 시트 검색</h4>
+      <div class="hint" style="margin-bottom:6px">
+      </div>
+      <label></label>
+      <input id="admSearch" type="text" placeholder="예: 디노, 쿠팡, 3기 등" />
+      <div class="row" style="margin-top:10px">
+        <button id="admSearchBtn" class="btn" type="button">검색</button>
+        <button id="admSearchClear" class="btn" type="button">초기화</button>
+      </div>
+      <label style="margin-top:10px">검색 결과</label>
+      <select id="admSearchResults"></select>
+      <div class="row" style="margin-top:10px">
+        <button id="admAddFromSearch" class="btn acc" type="button">선택한 시트 연결</button>
+      </div>
+      <div id="admSearchErr" class="err" style="margin-top:8px"></div>
     </div>
 
     <div class="card" style="margin-top:12px">
@@ -296,6 +331,9 @@ const earlierId=(a,b)=>{const ai=parseInt(a,10),bi=parseInt(b,10);if(!Number.isN
 const READ_START_ROW=2;
 const WRITE_START_ROW=2;
 const FIXED_WRITE_SHEET='공유용 시트';
+
+/* ✅ 고정 드라이브 폴더 (시트 검색용) */
+const SHEET_SEARCH_FOLDER_ID = "1t33dy_UQCfsvoEQ9yOctIxvoT623i-j4";
 
 /* ✅ 여기에 본인 OAuth 클라이언트 ID 넣기 */
 const CLIENT_ID="18228268359-iifm4ck3j9kqj74eh1p90tco1k2mbpi0.apps.googleusercontent.com";
@@ -383,6 +421,65 @@ function renderAdmList(){
   txt('admMeta',`총 ${list.length}개 연결 · ${new Date().toLocaleString()}`);
 }
 
+/* ===== 고정 폴더 내 시트 검색 ===== */
+async function searchSheetsInFolder(keyword){
+  requireAuth();
+  let q=`'${SHEET_SEARCH_FOLDER_ID}' in parents and mimeType='application/vnd.google-apps.spreadsheet' and trashed=false`;
+  if(keyword){
+    const esc=keyword.replace(/'/g,"\\'");
+    q+=` and name contains '${esc}'`;
+  }
+  const url=`https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(q)}&fields=files(id,name)&orderBy=name&pageSize=200`;
+  const res=await fetch(url,{headers:{Authorization:'Bearer '+accessToken}});
+  if(!res.ok)throw new Error(await res.text());
+  const data=await res.json();
+  return data.files||[];
+}
+async function admSearchSheets(){
+  try{
+    txt('admSearchErr','');
+    const kw=val('admSearch').trim();
+    const files=await searchSheetsInFolder(kw);
+    const sel=$$('admSearchResults');
+    if(!sel)return;
+    sel.innerHTML='';
+    if(!files.length){
+      sel.appendChild(new Option('(검색 결과 없음)',''));
+      return;
+    }
+    sel.appendChild(new Option(`검색 결과 ${files.length}개`,''));
+    files.forEach(f=>{
+      const opt=new Option(f.name,f.id);
+      sel.appendChild(opt);
+    });
+  }catch(e){
+    txt('admSearchErr','드라이브 시트 검색 실패: '+(e?.message||e));
+  }
+}
+function admSearchClear(){
+  const sel=$$('admSearchResults');if(sel)sel.innerHTML='';
+  const input=$$('admSearch');if(input)input.value='';
+  txt('admSearchErr','');
+}
+function admAddFromSearch(){
+  const sel=$$('admSearchResults');
+  if(!sel || !sel.value){
+    txt('admSearchErr','검색 결과에서 시트를 선택하세요.');
+    return;
+  }
+  const sheetId=sel.value;
+  if(!sheetId){
+    txt('admSearchErr','유효한 시트를 선택하세요.');
+    return;
+  }
+  const labelText=sel.options[sel.selectedIndex].text;
+  const urlInput=$$('admUrl');
+  const labelInput=$$('admLabel');
+  if(urlInput)urlInput.value=sheetId;
+  if(labelInput && !labelInput.value)labelInput.value=labelText;
+  admAdd();
+}
+
 /* ===== 시트 셀렉트 ===== */
 function populatePacks(sfx){
   const packs=loadPacks();const sel=byPanel('sheetPackSelect',sfx);if(!sel)return;sel.innerHTML='';
@@ -421,6 +518,9 @@ function onPackChanged(sfx){
 /* ===== 드라이브 폴더 / 파일 ===== */
 let driveFolderId={A:null,B:null};
 let driveFiles={A:[],B:[]};
+
+/* 업로드 파일 상태 */
+let uploadedFile={A:null,B:null};
 
 function extractDriveFolderId(input){
   const s=String(input||'').trim();if(!s)return'';
@@ -490,10 +590,63 @@ async function refreshDriveList(sfx){
   }
 }
 
-/* ✅ txt / csv 읽기 : csv는 C열만 */
+/* 업로드 파일 처리 */
+function handleFileUpload(sfx,file){
+  if(!file){
+    uploadedFile[sfx]=null;
+    txt('fileName','',sfx);
+    return;
+  }
+  const name=file.name||'';
+  if(!/\.txt$/i.test(name) && !/\.csv$/i.test(name)){
+    alert('txt 또는 csv 파일만 업로드하세요.');
+    return;
+  }
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const text=e.target.result||'';
+    uploadedFile[sfx]={name,text,isCsv:/\.csv$/i.test(name)};
+    txt('fileName',`${name} (업로드됨)`,sfx);
+  };
+  reader.onerror=()=>{alert('파일을 읽는 중 오류가 발생했습니다.');};
+  reader.readAsText(file,'utf-8');
+}
+function clearUploadedFile(sfx){
+  uploadedFile[sfx]=null;
+  txt('fileName','',sfx);
+  const inp=byPanel('fileUpload',sfx);
+  if(inp)inp.value='';
+}
+
+/* ✅ txt / csv 읽기 : csv는 C열만 (업로드 우선, 없으면 드라이브) */
 async function readSelectedTxt(sfx){
+  // 1) 업로드 파일이 있으면 업로드 파일 사용
+  if(uploadedFile[sfx]){
+    const info=uploadedFile[sfx];
+    const raw=info.text||'';
+    if(info.isCsv){
+      const lines=raw.split(/\r?\n/);
+      const colC=[];
+      for(let i=0;i<lines.length;i++){
+        const line=lines[i];
+        if(!line.trim())continue;
+        const cells=line.split(',');
+        if(cells.length<3)continue;
+        let cell=cells[2].trim();
+        if(cell.startsWith('"')&&cell.endsWith('"')){
+          cell=cell.slice(1,-1);
+        }
+        if(cell)colC.push(cell);
+      }
+      return colC.join('\n');
+    }
+    // txt는 그대로
+    return raw;
+  }
+
+  // 2) 업로드 파일 없으면 드라이브 선택 파일 사용
   const idxStr=val('dirFileSelect',sfx);
-  if(!idxStr)throw new Error('폴더 내 파일을 선택하세요.');
+  if(!idxStr)throw new Error('폴더 내 파일을 선택하거나 txt/csv 파일을 업로드하세요.');
   const info=driveFiles[sfx][Number(idxStr)];
   if(!info)throw new Error('선택한 파일을 찾을 수 없습니다.');
 
@@ -884,6 +1037,11 @@ document.addEventListener('DOMContentLoaded',()=>{
   on('admAdd','click',admAdd);
   on('admClearAll','click',()=>{if(confirm('모든 연결을 삭제할까요?')){clearPacks();renderAdmList();populatePacks('A');populatePacks('B');}});
 
+  // 시트 검색 관련 이벤트
+  on('admSearchBtn','click',admSearchSheets);
+  on('admSearchClear','click',admSearchClear);
+  on('admAddFromSearch','click',admAddFromSearch);
+
   // Panel A
   on('sheetPackSelect','change',()=>onPackChanged('A'),'A');
   on('refreshMeta','click',()=>refreshMeta('A'),'A');
@@ -899,6 +1057,20 @@ document.addEventListener('DOMContentLoaded',()=>{
   on('demoBtn','click',()=>runDemo('B'),'B');
   on('dirPick','click',()=>pickDriveFolder('B'),'B');
   on('dirRefresh','click',()=>refreshDriveList('B'),'B');
+
+  // 파일 업로드 이벤트
+  const uploadIds=['A','B'];
+  uploadIds.forEach(sfx=>{
+    const fu=byPanel('fileUpload',sfx);
+    if(fu){
+      fu.addEventListener('change',e=>{
+        const file=e.target.files && e.target.files[0];
+        if(file)handleFileUpload(sfx,file);
+      });
+    }
+  });
+  on('fileClear','click',()=>clearUploadedFile('A'),'A');
+  on('fileClear','click',()=>clearUploadedFile('B'),'B');
 
   populatePacks('A');
   populatePacks('B');
