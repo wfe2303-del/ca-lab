@@ -88,6 +88,27 @@
     .admin-drawer{position:fixed;top:0;right:0;height:100%;width:520px;max-width:92vw;background:#fff;border-left:1px solid var(--line);box-shadow:-8px 0 24px rgba(0,0,0,.08);padding:16px 16px 24px;display:flex;flex-direction:column;gap:12px;z-index:70;transform:translateX(12px);opacity:0;pointer-events:none;transition:transform .15s, opacity .15s}
     .admin-drawer.open{transform:translateX(0);opacity:1;pointer-events:auto}
     .x-btn{appearance:none;border:1px solid var(--line);background:#fff;border-radius:10px;padding:6px 8px;cursor:pointer}
+
+    /* ===== ✅ Admin drawer scroll (추가) ===== */
+    .admin-drawer{
+      overflow: hidden; /* 내부 스크롤은 admin-scroll로 */
+    }
+    .admin-head{
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      background: #fff;
+      padding-bottom: 10px;
+      margin-bottom: 8px;
+      border-bottom: 1px solid var(--line);
+    }
+    .admin-scroll{
+      flex: 1;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      padding-right: 6px;
+    }
   </style>
 </head>
 <body>
@@ -238,53 +259,58 @@
   </div>
 
   <div id="adminOverlay" class="admin-overlay" aria-hidden="true"></div>
+
   <aside id="adminDrawer" class="admin-drawer" aria-hidden="true">
-    <div class="row" style="justify-content:space-between;align-items:center;margin-bottom:8px">
+    <!-- ✅ sticky header -->
+    <div class="admin-head row" style="justify-content:space-between;align-items:center;margin-bottom:8px">
       <h3 style="margin:0">관리자 설정</h3>
       <button id="closeAdmin" class="x-btn" type="button">닫기</button>
     </div>
 
-    <div class="card" style="margin:0">
-      <h4 style="margin:0 0 8px">스프레드시트 연결 추가</h4>
-      <label>표시 이름(선택)</label>
-      <input id="admLabel" type="text" placeholder="예: 디노 쿠팡 3기" />
-      <label style="margin-top:10px">스프레드시트 링크(URL) 또는 ID</label>
-      <input id="admUrl" type="text" placeholder="https://docs.google.com/spreadsheets/d/... 또는 ID" />
-      <label style="margin-top:10px">읽을 열(A~) <span class="hint">읽기 시트 이름열(예: C)</span></label>
-      <input id="admReadCol" type="text" value="C" />
-      <div class="row" style="margin-top:10px">
-        <button id="admAdd" class="btn" type="button">연결 추가</button>
-        <button id="admClearAll" class="btn" type="button">전체 삭제</button>
+    <!-- ✅ scroll body -->
+    <div class="admin-scroll">
+      <div class="card" style="margin:0">
+        <h4 style="margin:0 0 8px">스프레드시트 연결 추가</h4>
+        <label>표시 이름(선택)</label>
+        <input id="admLabel" type="text" placeholder="예: 디노 쿠팡 3기" />
+        <label style="margin-top:10px">스프레드시트 링크(URL) 또는 ID</label>
+        <input id="admUrl" type="text" placeholder="https://docs.google.com/spreadsheets/d/... 또는 ID" />
+        <label style="margin-top:10px">읽을 열(A~) <span class="hint">읽기 시트 이름열(예: C)</span></label>
+        <input id="admReadCol" type="text" value="C" />
+        <div class="row" style="margin-top:10px">
+          <button id="admAdd" class="btn" type="button">연결 추가</button>
+          <button id="admClearAll" class="btn" type="button">전체 삭제</button>
+        </div>
+        <div id="admErr" class="err" style="margin-top:8px"></div>
       </div>
-      <div id="admErr" class="err" style="margin-top:8px"></div>
-    </div>
 
-    <!-- 고정 폴더 시트 검색 영역 -->
-    <div class="card" style="margin-top:12px">
-      <h4 style="margin:0 0 8px">드라이브 폴더 내 시트 검색</h4>
-      <div class="hint" style="margin-bottom:6px">
+      <!-- 고정 폴더 시트 검색 영역 -->
+      <div class="card" style="margin-top:12px">
+        <h4 style="margin:0 0 8px">드라이브 폴더 내 시트 검색</h4>
+        <div class="hint" style="margin-bottom:6px">
+        </div>
+        <label></label>
+        <input id="admSearch" type="text" placeholder="예: 디노, 쿠팡, 3기 등" />
+        <div class="row" style="margin-top:10px">
+          <button id="admSearchBtn" class="btn" type="button">검색</button>
+          <button id="admSearchClear" class="btn" type="button">초기화</button>
+        </div>
+        <label style="margin-top:10px">검색 결과</label>
+        <select id="admSearchResults"></select>
+        <div class="row" style="margin-top:10px">
+          <button id="admAddFromSearch" class="btn acc" type="button">선택한 시트 연결</button>
+        </div>
+        <div id="admSearchErr" class="err" style="margin-top:8px"></div>
       </div>
-      <label></label>
-      <input id="admSearch" type="text" placeholder="예: 디노, 쿠팡, 3기 등" />
-      <div class="row" style="margin-top:10px">
-        <button id="admSearchBtn" class="btn" type="button">검색</button>
-        <button id="admSearchClear" class="btn" type="button">초기화</button>
-      </div>
-      <label style="margin-top:10px">검색 결과</label>
-      <select id="admSearchResults"></select>
-      <div class="row" style="margin-top:10px">
-        <button id="admAddFromSearch" class="btn acc" type="button">선택한 시트 연결</button>
-      </div>
-      <div id="admSearchErr" class="err" style="margin-top:8px"></div>
-    </div>
 
-    <div class="card" style="margin-top:12px">
-      <h4 style="margin:0 0 8px">등록된 스프레드시트</h4>
-      <table style="width:100%;border-collapse:collapse">
-        <thead><tr><th>라벨</th><th>시트수</th><th>읽을 열</th><th>작업</th></tr></thead>
-        <tbody id="admList"><tr><td colspan="4" style="color:#64748b">없음</td></tr></tbody>
-      </table>
-      <div class="hint" id="admMeta" style="margin-top:6px"></div>
+      <div class="card" style="margin-top:12px">
+        <h4 style="margin:0 0 8px">등록된 스프레드시트</h4>
+        <table style="width:100%;border-collapse:collapse">
+          <thead><tr><th>라벨</th><th>시트수</th><th>읽을 열</th><th>작업</th></tr></thead>
+          <tbody id="admList"><tr><td colspan="4" style="color:#64748b">없음</td></tr></tbody>
+        </table>
+        <div class="hint" id="admMeta" style="margin-top:6px"></div>
+      </div>
     </div>
   </aside>
 
@@ -1028,8 +1054,23 @@ document.addEventListener('DOMContentLoaded',()=>{
   on('gsLogoutBtn','click',revokeAccess);
 
   const overlay=$$('adminOverlay'),drawer=$$('adminDrawer');
-  const openAdmin=()=>{if(overlay&&drawer){show(overlay);show(drawer);renderAdmList();}};
-  const closeAdmin=()=>{if(overlay&&drawer){hide(overlay);hide(drawer);}};
+
+  /* ✅ 배경 스크롤 잠금 포함 */
+  let __prevBodyOverflow='';
+  const openAdmin=()=>{
+    if(overlay&&drawer){
+      __prevBodyOverflow = document.body.style.overflow || '';
+      document.body.style.overflow = 'hidden';
+      show(overlay);show(drawer);renderAdmList();
+    }
+  };
+  const closeAdmin=()=>{
+    if(overlay&&drawer){
+      document.body.style.overflow = __prevBodyOverflow;
+      hide(overlay);hide(drawer);
+    }
+  };
+
   on('settingsBtn','click',openAdmin);
   on('closeAdmin','click',closeAdmin);
   if(overlay)overlay.addEventListener('click',closeAdmin);
