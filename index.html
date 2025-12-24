@@ -644,13 +644,21 @@
     return v;
   }
 
-  // 🔥 핵심: 기본키는 무조건 D/E/L
+  // 기본키: D/E/L
   function makeDELKey(name, phone, method){
     const n = normName(name);
     const p = normPhone(phone);
     const m = normMethod(method);
     if(!n && !p) return '';
     return `${n}|${p}|${m}`;
+  }
+
+  // 보조키: D/E (결제수단 안 섞기 위해 method별로 다시 필터)
+  function makeDEKey(name, phone){
+    const n = normName(name);
+    const p = normPhone(phone);
+    if(!n && !p) return '';
+    return `${n}|${p}`;
   }
 
   // BN 인덱스(B..N): D=2, E=3, I=7, K=9, L=10, M=11, N=12
@@ -678,18 +686,12 @@
     const ep = getEventTimeBN(prev.bn);
     const ec = getEventTimeBN(cur.bn);
 
-    // 1) 이벤트 시간 비교(파싱 성공 우선)
-    if(ep !== ec){
-      // Infinity/-Infinity 포함 비교
-      return (ec > ep) ? cur : prev;
-    }
+    if(ep !== ec) return (ec > ep) ? cur : prev;
 
-    // 2) 시간이 같거나 둘 다 파싱 실패면 상태 우선
     const rp = statusRankBN(prev.bn);
     const rc = statusRankBN(cur.bn);
     if(rp !== rc) return (rc > rp) ? cur : prev;
 
-    // 3) 마지막: 파일에서 더 아래(나중) 행 우선
     return (cur.seq > prev.seq) ? cur : prev;
   }
 
@@ -723,9 +725,12 @@
     return 1 + vals.length;
   }
 
-  // ✅ 기존 시트: DEL키 중복이면 "최신" 대표행으로 교체
-  function buildExistingMapByDEL(existingBN){
-    const map = new Map(); // delKey -> { rowNumber, bn, seq(rowNumber) }
+  // ✅ 기존 인덱스:
+  // - mapDEL: DEL 대표(중복이면 "최신" 대표행)
+  // - mapDEMethod: DE -> (method -> 대표행)  ← DEL 미스매치 보험
+  function buildExistingIndexes(existingBN){
+    const mapDEL = new Map(); // delKey -> { rowNumber, bn, seq }
+    const mapDEMethod = new Map(); // deKey -> Map(methodNorm -> { rowNumber, bn, seq })
 
     for(let i=0;i<existingBN.length;i++){
       const bn = existingBN[i] || [];
@@ -734,22 +739,42 @@
       const name = bn?.[2] ?? '';   // D
       const phone = bn?.[3] ?? '';  // E
       const method = bn?.[10] ?? ''; // L
-      const delKey = makeDELKey(name, phone, method);
-      if(!delKey) continue;
 
-      const cur = { rowNumber, bn, seq: rowNumber }; // seq로 rowNumber 사용(아래 행이 최신 취급)
-      const prev = map.get(delKey);
-      if(!prev){
-        map.set(delKey, cur);
-      }else{
-        const better = chooseBetterEntry({bn: prev.bn, seq: prev.seq}, {bn: cur.bn, seq: cur.seq});
-        // better가 cur이면 교체
-        if(better.seq === cur.seq){
-          map.set(delKey, cur);
+      const delKey = makeDELKey(name, phone, method);
+      const deKey  = makeDEKey(name, phone);
+      const mNorm  = normMethod(method);
+
+      // 1) DEL 대표
+      if(delKey){
+        const cur = { rowNumber, bn, seq: rowNumber };
+        const prev = mapDEL.get(delKey);
+        if(!prev){
+          mapDEL.set(delKey, cur);
+        }else{
+          const better = chooseBetterEntry({bn: prev.bn, seq: prev.seq}, {bn: cur.bn, seq: cur.seq});
+          if(better.seq === cur.seq) mapDEL.set(delKey, cur);
+        }
+      }
+
+      // 2) DE + method 대표 (보험)
+      if(deKey && mNorm){
+        let byMethod = mapDEMethod.get(deKey);
+        if(!byMethod){
+          byMethod = new Map();
+          mapDEMethod.set(deKey, byMethod);
+        }
+        const cur = { rowNumber, bn, seq: rowNumber };
+        const prev = byMethod.get(mNorm);
+        if(!prev){
+          byMethod.set(mNorm, cur);
+        }else{
+          const better = chooseBetterEntry({bn: prev.bn, seq: prev.seq}, {bn: cur.bn, seq: cur.seq});
+          if(better.seq === cur.seq) byMethod.set(mNorm, cur);
         }
       }
     }
-    return map;
+
+    return { mapDEL, mapDEMethod };
   }
 
   async function batchUpdateRows(spreadsheetId, valueInputOption, updates){
@@ -930,7 +955,7 @@
       });
     }
 
-    // ✅ 전송: DEL 키 기준 "같은 키면 무조건 같은 행 업데이트"
+    // ✅ 전송: DEL 같으면 무조건 update (신용카드가 새로 쭉 append 되는 문제 방지)
     $('#btnSend').addEventListener('click', async (e)=>{
       e.preventDefault();
       try{
@@ -958,7 +983,7 @@
         const valueInputOption = $('#valueInputOption').value;
 
         // 1) incoming: DEL 키로만 병합 (중복이면 최신 이벤트/상태/파일순)
-        const incoming = new Map(); // delKey -> {bn, seq}
+        const incoming = new Map(); // delKey -> {bn, seq, deKey, methodNorm}
         let seq = 0;
         for(const r of rowsAll){
           seq++;
@@ -968,13 +993,17 @@
           const name   = row?.[3] ?? '';
           const phone  = row?.[4] ?? '';
           const method = row?.[11] ?? '';
+
           const delKey = makeDELKey(name, phone, method);
           if(!delKey) continue;
 
           const bn = row.slice(1, 14); // B~N(13)
           while(bn.length < 13) bn.push('');
 
-          const cur = { bn, seq };
+          const deKey = makeDEKey(name, phone);
+          const mNorm = normMethod(method);
+
+          const cur = { bn, seq, deKey, methodNorm: mNorm };
           const prev = incoming.get(delKey);
           incoming.set(delKey, chooseBetterEntry(prev, cur));
         }
@@ -987,9 +1016,9 @@
 
         toast('기존 시트와 비교 중...');
 
-        // 2) existing: DEL키로 대표행 선택
+        // 2) existing 인덱스(DEL + 보험(DE+method))
         const existingBN = await fetchExistingBN(spreadsheetId, sheetName);
-        const existingMap = buildExistingMapByDEL(existingBN);
+        const { mapDEL, mapDEMethod } = buildExistingIndexes(existingBN);
 
         // 3) update vs new
         const updates = [];
@@ -999,7 +1028,17 @@
           const entry = incoming.get(delKey);
           const bn = entry.bn;
 
-          const hit = existingMap.get(delKey);
+          let hit = mapDEL.get(delKey);
+
+          // ✅ 보험: DEL이 미세하게 안 맞아도, DE 같고 methodNorm 같으면 그 행 업데이트로 처리
+          if(!hit && entry.deKey && entry.methodNorm){
+            const byMethod = mapDEMethod.get(entry.deKey);
+            if(byMethod){
+              const cand = byMethod.get(entry.methodNorm);
+              if(cand) hit = cand;
+            }
+          }
+
           if(hit){
             if(!sameRowBN(hit.bn, bn)){
               updates.push({
@@ -1008,6 +1047,7 @@
               });
             }
           }else{
+            // 진짜로 동일 DE+method가 없을 때만 신규 append
             toAppend.push(bn);
           }
         }
