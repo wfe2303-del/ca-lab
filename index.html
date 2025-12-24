@@ -734,10 +734,48 @@
     return 1 + vals.length; // 헤더(1) + A2:A의 길이
   }
 
+  // BN 인덱스: K=9, M=11, N=12
+  function getEventTimeBN(bn){
+    const tPay = getTimeFromAny(bn?.[9]);   // K
+    const tRef = getTimeFromAny(bn?.[12]);  // N
+    const a = isNaN(tPay) ? -Infinity : tPay;
+    const b = isNaN(tRef) ? -Infinity : tRef;
+    return Math.max(a, b);
+  }
+
+  // 파일 내 동일 키 여러 건일 때 1개만 선택: "최신 이벤트(K/N)" 우선
+  function chooseBetterBN(prevBN, curBN){
+    const ep = getEventTimeBN(prevBN);
+    const ec = getEventTimeBN(curBN);
+
+    if(ec !== ep) return ec > ep ? curBN : prevBN;
+
+    const prevHasRefund = !!(String(prevBN?.[11] ?? '').trim() || String(prevBN?.[12] ?? '').trim());
+    const curHasRefund  = !!(String(curBN?.[11] ?? '').trim() || String(curBN?.[12] ?? '').trim());
+    if(prevHasRefund !== curHasRefund){
+      return curHasRefund ? curBN : prevBN;
+    }
+
+    return curBN;
+  }
+
   // 기존 데이터에서 key -> { rowNumber, rowBN } 만들기
-  // (B~N 기준) D=2, E=3, K=9, L=10
+  // 기존 시트에 같은 키가 여러 행이면 "최신 이벤트" 행을 대표로 선택
   function buildExistingMap(existingBN){
     const map = new Map();
+
+    function upsertKey(key, rowNumber, rowBN){
+      if(!key) return;
+      const cur = map.get(key);
+      if(!cur){
+        map.set(key, { rowNumber, rowBN });
+        return;
+      }
+      const better = chooseBetterBN(cur.rowBN, rowBN);
+      if(better === rowBN){
+        map.set(key, { rowNumber, rowBN });
+      }
+    }
 
     for(let i=0;i<existingBN.length;i++){
       const row = existingBN[i] || [];
@@ -747,13 +785,13 @@
       const payTime = row[9] ?? '';   // K
       const method  = row[10] ?? '';  // L
 
-      const primary = makePrimaryKey(name, phone, method);
+      const primary  = makePrimaryKey(name, phone, method);
       const fallback = makeFallbackKey(name, phone, method, payTime);
 
-      const payload = { rowNumber: 2 + i, rowBN: row };
+      const rowNumber = 2 + i;
 
-      if(primary && !map.has(primary)) map.set(primary, payload);
-      if(fallback && !map.has(fallback)) map.set(fallback, payload);
+      upsertKey(primary,  rowNumber, row);
+      upsertKey(fallback, rowNumber, row);
     }
 
     return map;
@@ -782,23 +820,6 @@
       }
     });
     return res.result?.totalUpdatedRows ?? updates.length;
-  }
-
-  // 파일 내 동일 키 여러 건일 때 1개만 선택: (1) 결제시간 최신 (2) 환불정보 있는 쪽
-  // BN 인덱스: K=9, M=11, N=12
-  function chooseBetterBN(prevBN, curBN){
-    const tp = getTimeFromAny(prevBN?.[9]);
-    const tc = getTimeFromAny(curBN?.[9]);
-
-    if(!isNaN(tp) && !isNaN(tc) && tc !== tp){
-      return tc > tp ? curBN : prevBN;
-    }
-    const prevHasRefund = !!(String(prevBN?.[11] ?? '').trim() || String(prevBN?.[12] ?? '').trim());
-    const curHasRefund  = !!(String(curBN?.[11] ?? '').trim() || String(curBN?.[12] ?? '').trim());
-    if(prevHasRefund !== curHasRefund){
-      return curHasRefund ? curBN : prevBN;
-    }
-    return curBN;
   }
 
   // 신규 행들을 "삽입"하지 않고, B~N의 빈 행부터 "채워넣기"(update). A열 번호 안 밀림.
@@ -983,7 +1004,7 @@
       });
     }
 
-    // 전송 (UPSERT + 신규는 빈행 채워넣기, A열은 값판단에 사용 X, 키는 D/E/L + fallback)
+    // 전송 (UPSERT + 신규는 빈행 채워넣기, A열은 값판단에 사용 X, 키는 D/E/L + fallback, 중복은 최신 이벤트(K/N) 우선)
     $('#btnSend').addEventListener('click', async (e)=>{
       e.preventDefault();
       try{
@@ -1043,7 +1064,7 @@
 
         toast('기존 시트와 비교 중...');
 
-        // 2) 기존 시트 읽기(B2:N) -> map( primary + fallback 둘 다 등록 )
+        // 2) 기존 시트 읽기(B2:N) -> map( primary + fallback 둘 다 등록, 중복은 최신 이벤트 행 선택 )
         const existingBN = await fetchExistingBN(spreadsheetId, sheetName);
         const existingMap = buildExistingMap(existingBN);
 
