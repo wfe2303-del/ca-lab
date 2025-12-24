@@ -497,6 +497,25 @@
     return { filled, appended };
   }
 
+  // ✅ (D,E,L) 같은데 I(상태)만 달라지면, 해당 행의 I(+보너스로 M/N)만 업데이트
+  async function batchUpdateStatusRefund(spreadsheetId, sheetName, valueInputOption, updates){
+    // updates: [{rowNumber, iVal, mVal, nVal}]
+    if(!updates || !updates.length) return 0;
+    const data = [];
+    for(const u of updates){
+      const r = u.rowNumber;
+      data.push({ range: `${sheetName}!I${r}`, values: [[u.iVal ?? '']] });
+      // 환불로 바뀌면 보통 M/N도 같이 들어오니 같이 업데이트 (원치 않으면 아래 2줄 지우면 됨)
+      data.push({ range: `${sheetName}!M${r}`, values: [[u.mVal ?? '']] });
+      data.push({ range: `${sheetName}!N${r}`, values: [[u.nVal ?? '']] });
+    }
+    await gapi.client.sheets.spreadsheets.values.batchUpdate({
+      spreadsheetId,
+      resource: { valueInputOption, data }
+    });
+    return updates.length;
+  }
+
   /* =================== CSV 로드 =================== */
   function readCsv(file){
     return new Promise((resolve)=>{
@@ -743,16 +762,14 @@
     $('#summary').textContent=`열 ${colCount} · 데이터 행 ${bodyRows}`;
   }
 
-  /* =================== 차이점이면 전부 새로 입력 (행 전체 비교) ===================
-     - "동일 인물/동일 수단"이라도 결제/환불(I) 다르면 행이 달라서 둘 다 들어감
-     - 키로 중복 체크하지 않음
-     - 중복 스킵 기준: "B~N 13칸이 완전히 동일"한 행이 기존 시트에 이미 있을 때만
-     - A열은 무시(번호가 있어도 데이터로 인식하지 않음) + 번호 밀림 방지 위해 B~N만 채움
-  ============================================================================== */
+  /* =================== 중복/업데이트 규칙 ===================
+     1) 기존 시트에 (D,E,L)가 같고 "그 행의 나머지(=I/M/N 제외)가 완전히 같은" 행이 있으면
+        - I가 다르면 해당 행의 I(+M/N)만 업데이트
+     2) 위 업데이트 대상이 아니면서, 기존 시트에 B~N이 완전히 동일한 행이 있으면 스킵
+     3) 그 외는 새 행으로 추가 (A열은 무시/번호 유지)
+  ========================================================== */
 
-  function normPhone(s){
-    return String(s||'').replace(/\D/g,'');
-  }
+  function normPhone(s){ return String(s||'').replace(/\D/g,''); }
   function normMethod(s){
     const v = String(s||'').trim();
     if(!v) return '';
@@ -760,7 +777,6 @@
     if(/계좌|이체|bank|transfer/i.test(v)) return '계좌이체';
     return v;
   }
-  // 빈행 판단용 키 (A열 무시)
   function makeKey(name, phone, method){
     const n = normName(name);
     const p = normPhone(phone);
@@ -804,6 +820,30 @@
       set.add(hashBN(r));
     }
     return set;
+  }
+
+  function equalExceptIdx(a, b, skipSet){
+    if(!Array.isArray(a) || !Array.isArray(b)) return false;
+    if(a.length !== b.length) return false;
+    for(let i=0;i<a.length;i++){
+      if(skipSet.has(i)) continue;
+      if(String(a[i]??'') !== String(b[i]??'')) return false;
+    }
+    return true;
+  }
+
+  // key(D/E/L) -> [{slotIndex, bnCanonical}]
+  function buildKeyMap(existingBN){
+    const map = new Map();
+    for(let i=0;i<(existingBN||[]).length;i++){
+      const bn = canonicalizeBN(existingBN[i] || []);
+      // D=bn[2], E=bn[3], L=bn[10]
+      const key = makeKey(bn[2], bn[3], bn[10]);
+      if(!key) continue;
+      if(!map.has(key)) map.set(key, []);
+      map.get(key).push({ slotIndex:i, bn });
+    }
+    return map;
   }
 
   /* =================== 이벤트 =================== */
@@ -922,7 +962,7 @@
       });
     }
 
-    // ✅ 전송: 기존 시트에 "완전 동일 B~N 행"이 있으면 스킵, 다르면 전부 새 행 추가
+    // ✅ 전송
     $('#btnSend').addEventListener('click', async (e)=>{
       e.preventDefault();
       try{
@@ -951,50 +991,91 @@
 
         toast('기존 시트 읽는 중...');
         const existingBN = await fetchExistingBN(spreadsheetId, sheetName);
+
         const existingRowHashes = buildExistingRowHashSet(existingBN);
+        const keyMap = buildKeyMap(existingBN);
 
         const seenIncomingHashes = new Set();
-        const toAppend = [];
+
+        const updates = [];   // (D,E,L 동일 + 나머지(I/M/N 제외) 동일) 이면 I/M/N만 업데이트
+        const toAppend = [];  // 나머지는 새로 추가
+
+        const SKIP_FOR_UPDATE = new Set([7, 11, 12]); // I, M, N 제외하고 동일 비교
 
         for(const r of rowsAll){
           const row = Array.isArray(r) ? r : [];
-          const bn = row.slice(1, 14); // B~N(13)
-          while(bn.length < 13) bn.push('');
+          const bnRaw = row.slice(1, 14); // B~N(13)
+          while(bnRaw.length < 13) bnRaw.push('');
 
-          const hasAny = bn.some(v => String(v??'').trim() !== '');
+          const hasAny = bnRaw.some(v => String(v??'').trim() !== '');
           if(!hasAny) continue;
 
-          const h = hashBN(bn);
+          const bn = canonicalizeBN(bnRaw);
+          const h = bn.join('\u0001');
 
           // 파일 내부 완전 동일 행 중복 제거
           if(seenIncomingHashes.has(h)) continue;
           seenIncomingHashes.add(h);
 
-          // 기존 시트에 완전 동일 행이 있으면 스킵
-          if(existingRowHashes.has(h)) continue;
+          // 1) 업데이트 후보: (D,E,L) 동일 + 그 행의 나머지(I/M/N 제외)가 동일
+          const key = makeKey(bn[2], bn[3], bn[10]); // D/E/L
+          const candidates = key ? (keyMap.get(key) || []) : [];
 
-          // ✅ 조금이라도 다르면(예: I만 달라도, L만 달라도) 전부 새 행으로 추가
-          toAppend.push(canonicalizeBN(bn));
+          let didUpdate = false;
+          if(candidates.length){
+            for(const cand of candidates){
+              // I/M/N 제외하고 동일이면 "같은 거래의 상태 변화"로 보고 업데이트
+              if(equalExceptIdx(cand.bn, bn, SKIP_FOR_UPDATE)){
+                const rowNumber = 2 + cand.slotIndex; // B2 기준 슬롯 -> 실제 행 번호
+                const oldI = String(cand.bn[7] ?? '').trim();
+                const newI = String(bn[7] ?? '').trim();
+
+                // I가 다를 때만 업데이트 수행
+                if(oldI !== newI){
+                  updates.push({
+                    rowNumber,
+                    iVal: bn[7],
+                    mVal: bn[11],
+                    nVal: bn[12]
+                  });
+                }
+                didUpdate = true;
+                break;
+              }
+            }
+          }
+          if(didUpdate) continue;
+
+          // 2) 기존에 B~N 완전 동일 행이 있으면 스킵
+          if(existingRowHashes.has(hashBN(bn))) continue;
+
+          // 3) 그 외는 새 행 추가
+          toAppend.push(bn);
         }
 
-        if(!toAppend.length){
-          toast('추가할 새 기록이 없습니다(기존과 완전 동일한 행만 존재)','ok');
+        if(!updates.length && !toAppend.length){
+          toast('변경/추가할 항목이 없습니다. (업데이트/신규 모두 없음)','ok');
           return;
         }
 
         $('#btnSend').disabled=true;
-        toast(`새 기록 ${toAppend.length}행 추가 중...(기존과 다르면 전부 새 행)`);
 
-        const r2 = await writeNewRowsIntoEmptySlots(
-          spreadsheetId,
-          sheetName,
-          valueInputOption,
-          existingBN,
-          toAppend
-        );
+        // 업데이트 먼저
+        let updCnt = 0;
+        if(updates.length){
+          toast(`상태 변경 ${updates.length}건 업데이트 중...`);
+          updCnt = await batchUpdateStatusRefund(spreadsheetId, sheetName, valueInputOption, updates);
+        }
 
-        const addedCnt = (r2.filled || 0) + (r2.appended || 0);
-        toast(`완료: 새 기록 ${addedCnt}행 추가`, 'ok');
+        // 신규 추가
+        let addCnt = 0;
+        if(toAppend.length){
+          toast(`새 기록 ${toAppend.length}행 추가 중...`);
+          const r2 = await writeNewRowsIntoEmptySlots(spreadsheetId, sheetName, valueInputOption, existingBN, toAppend);
+          addCnt = (r2.filled || 0) + (r2.appended || 0);
+        }
+
+        toast(`완료: 업데이트 ${updCnt}건 · 신규추가 ${addCnt}행`, 'ok');
 
       }catch(err){
         console.error(err);
