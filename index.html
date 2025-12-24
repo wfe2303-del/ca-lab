@@ -669,7 +669,7 @@
     $('#summary').textContent=`열 ${colCount} · 데이터 행 ${bodyRows}`;
   }
 
-  /* =================== UPSERT: 기존 업데이트 + 신규 append 유틸 =================== */
+  /* =================== UPSERT(기존 업데이트 + 신규 채워넣기) =================== */
 
   // 전화번호 정규화(숫자만)
   function normPhone(s){
@@ -692,6 +692,17 @@
       majorDimension: 'ROWS'
     });
     return res.result?.values || [];
+  }
+
+  // A열(번호) 기준 마지막 "자리" 행 계산 (A값이 있어도 데이터로 취급 X, 자리 범위로만 사용)
+  async function getLastNumberRowFromA(spreadsheetId, sheetName){
+    const res = await gapi.client.sheets.spreadsheets.values.get({
+      spreadsheetId,
+      range: `${sheetName}!A2:A`,
+      majorDimension: 'ROWS'
+    });
+    const vals = res.result?.values || [];
+    return 1 + vals.length; // 헤더(1) + A2:A의 길이
   }
 
   // 기존 데이터에서 key -> { rowNumber, rowBN } 만들기
@@ -734,20 +745,6 @@
     return res.result?.totalUpdatedRows ?? updates.length;
   }
 
-  // append (신규 행 추가)
-  async function appendRows(spreadsheetId, sheetName, valueInputOption, rowsBN){
-    if(!rowsBN.length) return 0;
-    const res = await gapi.client.sheets.spreadsheets.values.append({
-      spreadsheetId,
-      range: `${sheetName}!B2:N`,
-      valueInputOption,
-      insertDataOption: 'INSERT_ROWS',
-      resource: { majorDimension:'ROWS', values: rowsBN }
-    });
-    const updated = res.result?.updates?.updatedRows;
-    return (typeof updated === 'number') ? updated : rowsBN.length;
-  }
-
   // 파일 내 동일 키 여러 건일 때 1개만 선택: (1) 결제시간 최신 (2) 환불정보 있는 쪽
   // BN 인덱스: K=9, M=11, N=12
   function chooseBetterBN(prevBN, curBN){
@@ -763,6 +760,69 @@
       return curHasRefund ? curBN : prevBN;
     }
     return curBN;
+  }
+
+  // 신규 행들을 "삽입"하지 않고, B~N의 빈 행부터 "채워넣기"(update). A열 번호 안 밀림.
+  async function writeNewRowsIntoEmptySlots(spreadsheetId, sheetName, valueInputOption, existingBN, rowsBN){
+    if(!rowsBN.length) return { filled:0, appended:0 };
+
+    // A열 번호가 깔려있는 마지막 행(자리)
+    const lastNumberRow = await getLastNumberRowFromA(spreadsheetId, sheetName);
+
+    // B2:N 슬롯 개수(=A2:A 자리 개수)
+    const maxSlots = Math.max(0, lastNumberRow - 1); // B2가 0번째 슬롯
+
+    // "데이터 있음" 판단은 A가 아니라 D/E(key)로만 한다.
+    let startSlot = maxSlots; // 기본: 전부 찼으면 끝 다음
+    for(let i=0;i<maxSlots;i++){
+      const row = existingBN[i] || []; // 없으면 빈행
+      const name = row[2] ?? '';
+      const phone = row[3] ?? '';
+      const key = makeKey(name, phone);
+      if(!key){
+        startSlot = i;
+        break;
+      }
+    }
+
+    let startRow = 2 + startSlot; // 실제 시트 행 번호(첫 빈자리)
+
+    // 번호 자리 안에서 채울 수 있는 개수
+    const availableCount = Math.max(0, lastNumberRow - startRow + 1);
+
+    const toFill = rowsBN.slice(0, availableCount);
+    const overflow = rowsBN.slice(availableCount);
+
+    let filled = 0;
+    let appended = 0;
+
+    // 1) 번호 자리 범위 내 빈자리 채우기 (UPDATE)
+    if(toFill.length){
+      const endRow = startRow + toFill.length - 1;
+      await gapi.client.sheets.spreadsheets.values.update({
+        spreadsheetId,
+        range: `${sheetName}!B${startRow}:N${endRow}`,
+        valueInputOption,
+        resource: { majorDimension:'ROWS', values: toFill }
+      });
+      filled = toFill.length;
+    }
+
+    // 2) 번호 자리 초과분은 아래로 append (여긴 행 삽입이지만 맨 아래에 붙는 거라 A번호 '밀림'은 없음)
+    //    (단, 새로 추가된 행의 A는 비어 있을 수 있음)
+    if(overflow.length){
+      const res = await gapi.client.sheets.spreadsheets.values.append({
+        spreadsheetId,
+        range: `${sheetName}!B2:N`,
+        valueInputOption,
+        insertDataOption: 'INSERT_ROWS',
+        resource: { majorDimension:'ROWS', values: overflow }
+      });
+      const updated = res.result?.updates?.updatedRows;
+      appended = (typeof updated === 'number') ? updated : overflow.length;
+    }
+
+    return { filled, appended };
   }
 
   /* =================== 이벤트 =================== */
@@ -883,7 +943,7 @@
       });
     }
 
-    // 전송 (UPSERT)
+    // 전송 (UPSERT + 신규는 빈행 채워넣기, A열은 값판단에 사용 X)
     $('#btnSend').addEventListener('click', async (e)=>{
       e.preventDefault();
       try{
@@ -910,7 +970,7 @@
 
         const valueInputOption = $('#valueInputOption').value;
 
-        // 1) 내부(14) -> BN(13) 변환 + 파일내 중복 제거
+        // 1) 내부(14) -> BN(13) 변환 + 파일내 중복 제거(키=이름|전화)
         const incomingMap = new Map(); // key -> rowBN
         for(const r of rowsAll){
           const row = Array.isArray(r) ? r : [];
@@ -941,16 +1001,15 @@
         const existingBN = await fetchExistingBN(spreadsheetId, sheetName);
         const existingMap = buildExistingMap(existingBN);
 
-        // 3) 업데이트/신규 분리
+        // 3) 업데이트/신규 분리 (A열은 무시, 값 판단은 키(D/E)로만)
         const updates = [];
-        const toAppend = [];
+        const toAppend = []; // 실제론 "빈행 채워넣기" 대상
 
         for(const key of incomingKeys){
           const bn = incomingMap.get(key);
           const hit = existingMap.get(key);
 
           if(hit){
-            // 변경된 경우만 업데이트
             if(!sameRowBN(hit.rowBN, bn)){
               updates.push({
                 range: `${sheetName}!B${hit.rowNumber}:N${hit.rowNumber}`,
@@ -969,19 +1028,27 @@
 
         $('#btnSend').disabled=true;
 
-        // 4) 업데이트 -> append
-        let updatedCnt = 0, appendedCnt = 0;
+        // 4) 업데이트 -> 신규 채워넣기
+        let updatedCnt = 0, addedCnt = 0;
 
         if(updates.length){
           toast(`기존 ${updates.length}행 업데이트 중...`);
           updatedCnt = await batchUpdateRows(spreadsheetId, valueInputOption, updates);
         }
+
         if(toAppend.length){
-          toast(`신규 ${toAppend.length}행 추가 중...`);
-          appendedCnt = await appendRows(spreadsheetId, sheetName, valueInputOption, toAppend);
+          toast(`신규 ${toAppend.length}행 추가 중...(A열 무시/번호 유지)`);
+          const r = await writeNewRowsIntoEmptySlots(
+            spreadsheetId,
+            sheetName,
+            valueInputOption,
+            existingBN,
+            toAppend
+          );
+          addedCnt = (r.filled || 0) + (r.appended || 0);
         }
 
-        toast(`완료: 업데이트 ${updatedCnt}행 / 신규추가 ${appendedCnt}행`, 'ok');
+        toast(`완료: 업데이트 ${updatedCnt}행 / 신규추가 ${addedCnt}행`, 'ok');
 
       }catch(err){
         console.error(err);
