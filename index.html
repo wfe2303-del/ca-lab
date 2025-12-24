@@ -676,12 +676,22 @@
     return String(s||'').replace(/\D/g,'');
   }
 
-  // (이름|전화) 키
-  function makeKey(name, phone){
+  // 결제수단 정규화
+  function normMethod(s){
+    const v = String(s||'').trim();
+    if(!v) return '';
+    if(/카드|credit|card/i.test(v)) return '신용카드';
+    if(/계좌|이체|bank|transfer/i.test(v)) return '계좌이체';
+    return v;
+  }
+
+  // (이름|전화|결제수단) 키
+  function makeKey(name, phone, method){
     const n = normName(name);
     const p = normPhone(phone);
+    const m = normMethod(method);
     if(!n && !p) return '';
-    return `${n}|${p}`;
+    return `${n}|${p}|${m}`;
   }
 
   // 시트의 기존 데이터(B2:N) 전체 가져오기 (13열)
@@ -706,14 +716,15 @@
   }
 
   // 기존 데이터에서 key -> { rowNumber, rowBN } 만들기
-  // (B~N 기준) 이름=D -> index 2, 전화=E -> index 3
+  // (B~N 기준) D=2, E=3, L=10
   function buildExistingMap(existingBN){
     const map = new Map();
     for(let i=0;i<existingBN.length;i++){
       const row = existingBN[i] || [];
-      const name = row[2] ?? '';
-      const phone = row[3] ?? '';
-      const key = makeKey(name, phone);
+      const name   = row[2] ?? '';  // D
+      const phone  = row[3] ?? '';  // E
+      const method = row[10] ?? ''; // L
+      const key = makeKey(name, phone, method);
       if(!key) continue;
       map.set(key, { rowNumber: 2 + i, rowBN: row });
     }
@@ -763,6 +774,7 @@
   }
 
   // 신규 행들을 "삽입"하지 않고, B~N의 빈 행부터 "채워넣기"(update). A열 번호 안 밀림.
+  // ⚠ 빈행 판단도 D/E/L 키로만 한다 (A열 무시)
   async function writeNewRowsIntoEmptySlots(spreadsheetId, sheetName, valueInputOption, existingBN, rowsBN){
     if(!rowsBN.length) return { filled:0, appended:0 };
 
@@ -772,13 +784,14 @@
     // B2:N 슬롯 개수(=A2:A 자리 개수)
     const maxSlots = Math.max(0, lastNumberRow - 1); // B2가 0번째 슬롯
 
-    // "데이터 있음" 판단은 A가 아니라 D/E(key)로만 한다.
+    // "데이터 있음" 판단은 A가 아니라 D/E/L(key)로만 한다.
     let startSlot = maxSlots; // 기본: 전부 찼으면 끝 다음
     for(let i=0;i<maxSlots;i++){
       const row = existingBN[i] || []; // 없으면 빈행
-      const name = row[2] ?? '';
-      const phone = row[3] ?? '';
-      const key = makeKey(name, phone);
+      const name   = row[2] ?? '';  // D
+      const phone  = row[3] ?? '';  // E
+      const method = row[10] ?? ''; // L
+      const key = makeKey(name, phone, method);
       if(!key){
         startSlot = i;
         break;
@@ -943,7 +956,7 @@
       });
     }
 
-    // 전송 (UPSERT + 신규는 빈행 채워넣기, A열은 값판단에 사용 X)
+    // 전송 (UPSERT + 신규는 빈행 채워넣기, A열은 값판단에 사용 X, 키는 D/E/L)
     $('#btnSend').addEventListener('click', async (e)=>{
       e.preventDefault();
       try{
@@ -970,13 +983,14 @@
 
         const valueInputOption = $('#valueInputOption').value;
 
-        // 1) 내부(14) -> BN(13) 변환 + 파일내 중복 제거(키=이름|전화)
+        // 1) 내부(14) -> BN(13) 변환 + 파일내 중복 제거(키=이름|전화|결제수단)
         const incomingMap = new Map(); // key -> rowBN
         for(const r of rowsAll){
           const row = Array.isArray(r) ? r : [];
-          const name = row?.[3] ?? ''; // 내부 D
-          const phone = row?.[4] ?? ''; // 내부 E
-          const key = makeKey(name, phone);
+          const name   = row?.[3] ?? '';   // 내부 D
+          const phone  = row?.[4] ?? '';   // 내부 E
+          const method = row?.[11] ?? '';  // 내부 L
+          const key = makeKey(name, phone, method);
           if(!key) continue;
 
           const bn = row.slice(1, 14); // B~N(13)
@@ -991,7 +1005,7 @@
 
         const incomingKeys = Array.from(incomingMap.keys());
         if(!incomingKeys.length){
-          toast('유효한 (이름+전화) 데이터가 없습니다','error');
+          toast('유효한 (이름/전화/결제수단) 데이터가 없습니다','error');
           return;
         }
 
@@ -1001,7 +1015,7 @@
         const existingBN = await fetchExistingBN(spreadsheetId, sheetName);
         const existingMap = buildExistingMap(existingBN);
 
-        // 3) 업데이트/신규 분리 (A열은 무시, 값 판단은 키(D/E)로만)
+        // 3) 업데이트/신규 분리 (A열은 무시)
         const updates = [];
         const toAppend = []; // 실제론 "빈행 채워넣기" 대상
 
