@@ -109,11 +109,9 @@
   </header>
 
   <main class="max-w-5xl mx-auto px-4 py-4 space-y-3">
-    <!-- 중단: 좌측 업로드 / 우측 시트 설정 + 실행 버튼 -->
     <section class="grid md:grid-cols-2 gap-3">
-      <!-- 왼쪽: CSV 업로드 패널 -->
+      <!-- 왼쪽: CSV 업로드 -->
       <div class="rounded-xl border border-slate-200 bg-white px-3 py-3 space-y-3 shadow-sm">
-        <!-- 카드 CSV -->
         <div class="space-y-1">
           <div class="flex items-center justify-between text-[12px]">
             <div class="flex items-center gap-1.5">
@@ -132,7 +130,6 @@
 
         <div class="h-px bg-slate-100 my-1"></div>
 
-        <!-- 계좌 -->
         <div class="space-y-1">
           <div class="flex items-center justify-between text-[12px]">
             <div class="flex items-center gap-1.5">
@@ -167,9 +164,8 @@
         </div>
       </div>
 
-      <!-- 오른쪽: 시트 설정 + 실행 컨트롤 -->
+      <!-- 오른쪽: 시트 설정 -->
       <div class="rounded-xl border border-slate-200 bg-white px-3 py-3 space-y-3 shadow-sm">
-        <!-- 시트 설정 -->
         <div class="space-y-1">
           <div class="flex items-center justify-between text-[12px]">
             <div class="flex items-center gap-1.5">
@@ -179,10 +175,8 @@
           </div>
 
           <div class="space-y-1.5 mt-1">
-            <!-- 고정 시트ID (hidden) -->
             <input id="sheetUrl" type="hidden" />
 
-            <!-- 검색 + 드롭다운(datalist) -->
             <div class="grid grid-cols-3 gap-2 items-end">
               <div class="col-span-2">
                 <label class="block text-[11px] text-slate-600 mb-0.5">시트 검색</label>
@@ -205,7 +199,6 @@
 
         <div class="h-px bg-slate-100 my-1"></div>
 
-        <!-- 옵션 + 실행 버튼 -->
         <div class="space-y-2">
           <div class="flex flex-wrap items-center gap-3 text-[11px] text-slate-600">
             <label class="inline-flex items-center gap-1.5">
@@ -273,8 +266,8 @@
 
   let parsedRows=[];               // 헤더+본체 (내부 14열 A~N)
   let csvCard=[], csvTickets=[], csvResp=[];
-  let allSheetTitles = [];         // 스프레드시트 내 시트 이름 목록
-  let currentSheetName = "";       // 선택된 시트 이름
+  let allSheetTitles = [];
+  let currentSheetName = "";
 
   const $ = (q)=>document.querySelector(q);
   const toast = (msg, type="info")=>{
@@ -416,8 +409,7 @@
 
   async function listSheets(spreadsheetId){
     const res = await gapi.client.sheets.spreadsheets.get({ spreadsheetId, fields: "sheets(properties(title))" });
-    const arr = (res.result?.sheets||[]).map(x=> x.properties?.title).filter(Boolean);
-    return arr;
+    return (res.result?.sheets||[]).map(x=> x.properties?.title).filter(Boolean);
   }
 
   /* =================== CSV 로드 =================== */
@@ -491,7 +483,6 @@
 
     const tHead = tickets[0] || [];
 
-    // 신청/응답 매핑
     const rHead = responses[0] || [];
     const rName  = findColIndex(rHead, ['성함','이름','신청자','name']);
     const rEmail = findColIndex(rHead, ['이메일','email']);
@@ -514,7 +505,6 @@
       }
     }
 
-    // 입금자 이름 추출
     const cName  = findColIndex(tHead, ['보낸분/받는분','거래상대명','거래처','성명','상대']);
     const cPlace = findColIndex(tHead, ['사용처','적요','내용','메모']);
     const cNote  = findColIndex(tHead, ['계좌적요']);
@@ -601,11 +591,8 @@
       }
 
       const row = ensureArrayLen(14);
-
-      // 사유 → B, C
       row[1] = g.reason || '';
       row[2] = g.reason || '';
-
       row[3]  = nameN;
       row[4]  = meta.phone;
       row[5]  = meta.email;
@@ -617,7 +604,6 @@
       row[11] = '계좌이체';
       row[12] = refundAmount || '';
       row[13] = refundDate;
-
       out.push(row);
     }
 
@@ -669,14 +655,17 @@
     $('#summary').textContent=`열 ${colCount} · 데이터 행 ${bodyRows}`;
   }
 
-  /* =================== UPSERT(기존 업데이트 + 신규 채워넣기) =================== */
+  /* =================== "차이점은 전부 새로 입력" 모드 ===================
+     - 키: (D,E,L) = (이름, 전화, 결제수단)
+     - 기존 시트에 "완전히 동일한 B~N 행"이 있으면 skip
+     - 동일 키인데 I(상태) 등 뭐든 다르면 "새로운 행"으로 추가(append/빈슬롯채움)
+     - A열은 무시(번호가 있어도 데이터로 인식하지 않음) + 번호는 밀리지 않게 B~N만 채움
+  ======================================================= */
 
-  // 전화번호 정규화(숫자만)
   function normPhone(s){
     return String(s||'').replace(/\D/g,'');
   }
 
-  // 결제수단 정규화
   function normMethod(s){
     const v = String(s||'').trim();
     if(!v) return '';
@@ -685,7 +674,6 @@
     return v;
   }
 
-  // (이름|전화|결제수단) 키
   function makeKey(name, phone, method){
     const n = normName(name);
     const p = normPhone(phone);
@@ -694,7 +682,13 @@
     return `${n}|${p}|${m}`;
   }
 
-  // 시트의 기존 데이터(B2:N) 전체 가져오기 (13열)
+  function hashBN(rowBN){
+    const row = Array.isArray(rowBN) ? rowBN : [];
+    const norm = [];
+    for(let i=0;i<13;i++) norm.push(String(row[i] ?? ''));
+    return norm.join('\u0001');
+  }
+
   async function fetchExistingBN(spreadsheetId, sheetName){
     const res = await gapi.client.sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -704,7 +698,7 @@
     return res.result?.values || [];
   }
 
-  // A열(번호) 기준 마지막 "자리" 행 계산 (A값이 있어도 데이터로 취급 X, 자리 범위로만 사용)
+  // A열(번호)로 "자리" 마지막 행만 계산(데이터 유무 판단 X)
   async function getLastNumberRowFromA(spreadsheetId, sheetName){
     const res = await gapi.client.sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -715,100 +709,40 @@
     return 1 + vals.length; // 헤더(1) + A2:A의 길이
   }
 
-  // 기존 데이터에서 key -> { rowNumber, rowBN } 만들기
+  // 기존 시트에서 key -> Set(hashBN)
   // (B~N 기준) D=2, E=3, L=10
-  function buildExistingMap(existingBN){
+  function buildExistingHashMap(existingBN){
     const map = new Map();
     for(let i=0;i<existingBN.length;i++){
       const row = existingBN[i] || [];
-      const name   = row[2] ?? '';  // D
-      const phone  = row[3] ?? '';  // E
-      const method = row[10] ?? ''; // L
+      const name   = row[2] ?? '';
+      const phone  = row[3] ?? '';
+      const method = row[10] ?? '';
       const key = makeKey(name, phone, method);
       if(!key) continue;
-      map.set(key, { rowNumber: 2 + i, rowBN: row });
+
+      const h = hashBN(row);
+      if(!map.has(key)) map.set(key, new Set());
+      map.get(key).add(h);
     }
     return map;
   }
 
-  // BN 비교(13칸)
-  function sameRowBN(a,b){
-    const A = (a||[]), B=(b||[]);
-    const len = Math.max(A.length, B.length, 13);
-    for(let i=0;i<len;i++){
-      const x = String(A[i] ?? '');
-      const y = String(B[i] ?? '');
-      if(x !== y) return false;
-    }
-    return true;
-  }
-
-  // batchUpdate (여러 행 업데이트)
-  async function batchUpdateRows(spreadsheetId, valueInputOption, updates){
-    if(!updates.length) return 0;
-    const res = await gapi.client.sheets.spreadsheets.values.batchUpdate({
-      spreadsheetId,
-      resource: {
-        valueInputOption,
-        data: updates
-      }
-    });
-    return res.result?.totalUpdatedRows ?? updates.length;
-  }
-
-  function statusRank(v){
-    const s = String(v||'').trim();
-    // 우선순위: 환불됨 > 부분환불 > 결제완료
-    if(/환불/.test(s) && !/부분/.test(s)) return 3;   // 환불됨
-    if(/부분환불/.test(s)) return 2;                 // 부분환불
-    if(/결제완료/.test(s)) return 1;                 // 결제완료
-    return 0;
-  }
-
-  // 파일 내 동일 키 여러 건일 때 1개만 선택
-  // BN 인덱스: I=7, K=9, M=11, N=12
-  function chooseBetterBN(prevBN, curBN){
-    // 0) 상태(I) 우선순위
-    const rp = statusRank(prevBN?.[7]);
-    const rc = statusRank(curBN?.[7]);
-    if(rp !== rc) return (rc > rp) ? curBN : prevBN;
-
-    // 1) 결제시간(K) 최신
-    const tp = getTimeFromAny(prevBN?.[9]);
-    const tc = getTimeFromAny(curBN?.[9]);
-    if(!isNaN(tp) && !isNaN(tc) && tc !== tp){
-      return tc > tp ? curBN : prevBN;
-    }
-
-    // 2) 환불정보(M/N) 있는 쪽 우선
-    const prevHasRefund = !!(String(prevBN?.[11] ?? '').trim() || String(prevBN?.[12] ?? '').trim());
-    const curHasRefund  = !!(String(curBN?.[11] ?? '').trim() || String(curBN?.[12] ?? '').trim());
-    if(prevHasRefund !== curHasRefund){
-      return curHasRefund ? curBN : prevBN;
-    }
-
-    // 3) 동률이면 최신
-    return curBN;
-  }
-
   // 신규 행들을 "삽입"하지 않고, B~N의 빈 행부터 "채워넣기"(update). A열 번호 안 밀림.
-  // ⚠ 빈행 판단도 D/E/L 키로만 한다 (A열 무시)
+  // 빈행 판단도 D/E/L key로만 한다 (A열 무시)
   async function writeNewRowsIntoEmptySlots(spreadsheetId, sheetName, valueInputOption, existingBN, rowsBN){
     if(!rowsBN.length) return { filled:0, appended:0 };
 
-    // A열 번호가 깔려있는 마지막 행(자리)
     const lastNumberRow = await getLastNumberRowFromA(spreadsheetId, sheetName);
-
-    // B2:N 슬롯 개수(=A2:A 자리 개수)
     const maxSlots = Math.max(0, lastNumberRow - 1); // B2가 0번째 슬롯
 
-    // "데이터 있음" 판단은 A가 아니라 D/E/L(key)로만 한다.
-    let startSlot = maxSlots; // 기본: 전부 찼으면 끝 다음
+    // 첫 빈자리 찾기: key가 비어있으면 "빈 자리"
+    let startSlot = maxSlots;
     for(let i=0;i<maxSlots;i++){
-      const row = existingBN[i] || []; // 없으면 빈행
-      const name   = row[2] ?? '';  // D
-      const phone  = row[3] ?? '';  // E
-      const method = row[10] ?? ''; // L
+      const row = existingBN[i] || [];
+      const name   = row[2] ?? '';
+      const phone  = row[3] ?? '';
+      const method = row[10] ?? '';
       const key = makeKey(name, phone, method);
       if(!key){
         startSlot = i;
@@ -816,9 +750,7 @@
       }
     }
 
-    let startRow = 2 + startSlot; // 실제 시트 행 번호(첫 빈자리)
-
-    // 번호 자리 안에서 채울 수 있는 개수
+    let startRow = 2 + startSlot;
     const availableCount = Math.max(0, lastNumberRow - startRow + 1);
 
     const toFill = rowsBN.slice(0, availableCount);
@@ -827,7 +759,6 @@
     let filled = 0;
     let appended = 0;
 
-    // 1) 번호 자리 범위 내 빈자리 채우기 (UPDATE)
     if(toFill.length){
       const endRow = startRow + toFill.length - 1;
       await gapi.client.sheets.spreadsheets.values.update({
@@ -839,7 +770,6 @@
       filled = toFill.length;
     }
 
-    // 2) 번호 자리 초과분은 아래로 append
     if(overflow.length){
       const res = await gapi.client.sheets.spreadsheets.values.append({
         spreadsheetId,
@@ -862,11 +792,9 @@
   document.addEventListener('DOMContentLoaded', ()=>{
     loadTokenFromSession();
 
-    // hidden 시트ID 세팅
     const sheetInput = $('#sheetUrl');
     if(sheetInput) sheetInput.value = FIXED_SPREADSHEET_ID;
 
-    // 파일 업로드
     $('#csvCard').addEventListener('change', async (e)=>{
       try{
         const f=e.target.files?.[0];
@@ -897,7 +825,6 @@
       }catch(err){ console.error(err); toast('responses 읽기 실패','error'); }
     }, {capture:true});
 
-    // 미리보기
     $('#btnPreviewCsv').addEventListener('click', (e)=>{
       e.preventDefault();
       try{
@@ -916,7 +843,6 @@
       }catch(err){ console.error(err); toast('정리 실패: 콘솔 확인','error'); }
     });
 
-    // 초기화
     $('#btnClear').addEventListener('click', (e)=>{
       e.preventDefault();
       csvCard=[]; csvTickets=[]; csvResp=[]; parsedRows=[];
@@ -925,7 +851,6 @@
       toast('초기화 완료');
     });
 
-    // 시트 목록 불러오기
     $('#btnLoadSheets').addEventListener('click', async (e)=>{
       e.preventDefault();
       try{
@@ -946,9 +871,7 @@
 
         currentSheetName = allSheetTitles[0] || '';
         const searchInput = $('#sheetSearch');
-        if (currentSheetName && searchInput) {
-          searchInput.value = currentSheetName;
-        }
+        if (currentSheetName && searchInput) searchInput.value = currentSheetName;
 
         toast(`시트 ${allSheetTitles.length}개 불러옴`,'ok');
       }catch(err){
@@ -957,7 +880,6 @@
       }
     });
 
-    // 시트 검색 인풋에서 선택 적용
     const searchInput = $('#sheetSearch');
     if (searchInput) {
       searchInput.addEventListener('change', (e)=>{
@@ -973,7 +895,7 @@
       });
     }
 
-    // 전송 (UPSERT + 신규는 빈행 채워넣기, A열은 값판단에 사용 X, 키는 D/E/L, 상태 우선순위 반영)
+    // ✅ 전송: "기존과 완전히 같은 행은 스킵, 다르면 전부 새 행으로 추가"
     $('#btnSend').addEventListener('click', async (e)=>{
       e.preventDefault();
       try{
@@ -992,7 +914,7 @@
         }
 
         const hasHeader = $('#optHasHeader').checked;
-        const rowsAll   = hasHeader ? parsedRows.slice(1) : parsedRows; // 내부 14열
+        const rowsAll   = hasHeader ? parsedRows.slice(1) : parsedRows; // 내부 14열(A~N)
         if(!rowsAll.length){
           toast('전송할 데이터 행이 없습니다','error');
           return;
@@ -1000,86 +922,61 @@
 
         const valueInputOption = $('#valueInputOption').value;
 
-        // 1) 내부(14) -> BN(13) 변환 + 파일내 중복 제거(키=이름|전화|결제수단)
-        const incomingMap = new Map(); // key -> rowBN
+        toast('기존 시트 읽는 중...');
+        const existingBN = await fetchExistingBN(spreadsheetId, sheetName);
+        const existingHashMap = buildExistingHashMap(existingBN);
+
+        // 1) incoming(파일) -> "행 단위"로 비교
+        //    - 키: D/E/L
+        //    - 기존에 동일 BN(13칸) 존재하면 skip
+        //    - 동일 키라도 I(상태) 등 뭐든 다르면 "새 행"으로 추가
+        const seenIncoming = new Set(); // 파일 내부 완전 동일 중복 방지(hash)
+        const toAppend = [];
+
         for(const r of rowsAll){
           const row = Array.isArray(r) ? r : [];
-          const name   = row?.[3] ?? '';   // 내부 D
-          const phone  = row?.[4] ?? '';   // 내부 E
-          const method = row?.[11] ?? '';  // 내부 L
+          const name   = row?.[3] ?? '';   // D
+          const phone  = row?.[4] ?? '';   // E
+          const method = row?.[11] ?? '';  // L
           const key = makeKey(name, phone, method);
           if(!key) continue;
 
           const bn = row.slice(1, 14); // B~N(13)
           while(bn.length < 13) bn.push('');
 
-          if(!incomingMap.has(key)){
-            incomingMap.set(key, bn);
-          }else{
-            incomingMap.set(key, chooseBetterBN(incomingMap.get(key), bn));
-          }
+          // 파일 내부 완전 동일 행 중복 제거
+          const inHash = key + '||' + hashBN(bn);
+          if(seenIncoming.has(inHash)) continue;
+          seenIncoming.add(inHash);
+
+          const existed = existingHashMap.get(key);
+          const bnHash = hashBN(bn);
+
+          // 기존에 동일한 BN이 있으면 스킵(이미 기록됨)
+          if(existed && existed.has(bnHash)) continue;
+
+          // ✅ 기존과 다르면(심지어 키가 같아도 I만 달라도) "새 행"으로 추가
+          toAppend.push(bn);
         }
 
-        const incomingKeys = Array.from(incomingMap.keys());
-        if(!incomingKeys.length){
-          toast('유효한 (이름/전화/결제수단) 데이터가 없습니다','error');
-          return;
-        }
-
-        toast('기존 시트와 비교 중...');
-
-        // 2) 기존 시트 읽기(B2:N) -> map
-        const existingBN = await fetchExistingBN(spreadsheetId, sheetName);
-        const existingMap = buildExistingMap(existingBN);
-
-        // 3) 업데이트/신규 분리 (A열은 무시)
-        const updates = [];
-        const toAppend = [];
-
-        for(const key of incomingKeys){
-          const bn = incomingMap.get(key);
-          const hit = existingMap.get(key);
-
-          if(hit){
-            if(!sameRowBN(hit.rowBN, bn)){
-              updates.push({
-                range: `${sheetName}!B${hit.rowNumber}:N${hit.rowNumber}`,
-                values: [bn]
-              });
-            }
-          }else{
-            toAppend.push(bn);
-          }
-        }
-
-        if(!updates.length && !toAppend.length){
-          toast('변경/추가할 내용이 없습니다','ok');
+        if(!toAppend.length){
+          toast('추가할 새 기록이 없습니다(기존과 동일)','ok');
           return;
         }
 
         $('#btnSend').disabled=true;
+        toast(`새 기록 ${toAppend.length}행 추가 중...(다르면 전부 새 행)`);
 
-        // 4) 업데이트 -> 신규 채워넣기
-        let updatedCnt = 0, addedCnt = 0;
+        const r = await writeNewRowsIntoEmptySlots(
+          spreadsheetId,
+          sheetName,
+          valueInputOption,
+          existingBN,
+          toAppend
+        );
 
-        if(updates.length){
-          toast(`기존 ${updates.length}행 업데이트 중...`);
-          updatedCnt = await batchUpdateRows(spreadsheetId, valueInputOption, updates);
-        }
-
-        if(toAppend.length){
-          toast(`신규 ${toAppend.length}행 추가 중...(A열 무시/번호 유지)`);
-          const r = await writeNewRowsIntoEmptySlots(
-            spreadsheetId,
-            sheetName,
-            valueInputOption,
-            existingBN,
-            toAppend
-          );
-          addedCnt = (r.filled || 0) + (r.appended || 0);
-        }
-
-        toast(`완료: 업데이트 ${updatedCnt}행 / 신규추가 ${addedCnt}행`, 'ok');
+        const addedCnt = (r.filled || 0) + (r.appended || 0);
+        toast(`완료: 새 기록 ${addedCnt}행 추가`, 'ok');
 
       }catch(err){
         console.error(err);
@@ -1089,7 +986,6 @@
       }
     });
 
-    // 상단 Google 인증 버튼
     $('#btnAuthRefresh').addEventListener('click', (e)=>{
       e.preventDefault();
       initGoogleAuth();
