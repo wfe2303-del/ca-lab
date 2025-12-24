@@ -756,20 +756,38 @@
     return res.result?.totalUpdatedRows ?? updates.length;
   }
 
-  // 파일 내 동일 키 여러 건일 때 1개만 선택: (1) 결제시간 최신 (2) 환불정보 있는 쪽
-  // BN 인덱스: K=9, M=11, N=12
+  function statusRank(v){
+    const s = String(v||'').trim();
+    // 우선순위: 환불됨 > 부분환불 > 결제완료
+    if(/환불/.test(s) && !/부분/.test(s)) return 3;   // 환불됨
+    if(/부분환불/.test(s)) return 2;                 // 부분환불
+    if(/결제완료/.test(s)) return 1;                 // 결제완료
+    return 0;
+  }
+
+  // 파일 내 동일 키 여러 건일 때 1개만 선택
+  // BN 인덱스: I=7, K=9, M=11, N=12
   function chooseBetterBN(prevBN, curBN){
+    // 0) 상태(I) 우선순위
+    const rp = statusRank(prevBN?.[7]);
+    const rc = statusRank(curBN?.[7]);
+    if(rp !== rc) return (rc > rp) ? curBN : prevBN;
+
+    // 1) 결제시간(K) 최신
     const tp = getTimeFromAny(prevBN?.[9]);
     const tc = getTimeFromAny(curBN?.[9]);
-
     if(!isNaN(tp) && !isNaN(tc) && tc !== tp){
       return tc > tp ? curBN : prevBN;
     }
+
+    // 2) 환불정보(M/N) 있는 쪽 우선
     const prevHasRefund = !!(String(prevBN?.[11] ?? '').trim() || String(prevBN?.[12] ?? '').trim());
     const curHasRefund  = !!(String(curBN?.[11] ?? '').trim() || String(curBN?.[12] ?? '').trim());
     if(prevHasRefund !== curHasRefund){
       return curHasRefund ? curBN : prevBN;
     }
+
+    // 3) 동률이면 최신
     return curBN;
   }
 
@@ -821,8 +839,7 @@
       filled = toFill.length;
     }
 
-    // 2) 번호 자리 초과분은 아래로 append (여긴 행 삽입이지만 맨 아래에 붙는 거라 A번호 '밀림'은 없음)
-    //    (단, 새로 추가된 행의 A는 비어 있을 수 있음)
+    // 2) 번호 자리 초과분은 아래로 append
     if(overflow.length){
       const res = await gapi.client.sheets.spreadsheets.values.append({
         spreadsheetId,
@@ -880,7 +897,7 @@
       }catch(err){ console.error(err); toast('responses 읽기 실패','error'); }
     }, {capture:true});
 
-    // 미리보기 (로그인 불필요)
+    // 미리보기
     $('#btnPreviewCsv').addEventListener('click', (e)=>{
       e.preventDefault();
       try{
@@ -956,7 +973,7 @@
       });
     }
 
-    // 전송 (UPSERT + 신규는 빈행 채워넣기, A열은 값판단에 사용 X, 키는 D/E/L)
+    // 전송 (UPSERT + 신규는 빈행 채워넣기, A열은 값판단에 사용 X, 키는 D/E/L, 상태 우선순위 반영)
     $('#btnSend').addEventListener('click', async (e)=>{
       e.preventDefault();
       try{
@@ -1017,7 +1034,7 @@
 
         // 3) 업데이트/신규 분리 (A열은 무시)
         const updates = [];
-        const toAppend = []; // 실제론 "빈행 채워넣기" 대상
+        const toAppend = [];
 
         for(const key of incomingKeys){
           const bn = incomingMap.get(key);
