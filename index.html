@@ -675,6 +675,10 @@
   function normPhone(s){
     return String(s||'').replace(/\D/g,'');
   }
+  function phoneLast4(s){
+    const m = String(s||'').match(/(\d{4})\s*$/);
+    return m ? m[1] : '';
+  }
 
   // 결제수단 정규화
   function normMethod(s){
@@ -685,13 +689,28 @@
     return v;
   }
 
-  // (이름|전화|결제수단) 키
-  function makeKey(name, phone, method){
+  // 1차 키: 이름|전화(전체)|결제수단
+  function makePrimaryKey(name, phone, method){
     const n = normName(name);
     const p = normPhone(phone);
     const m = normMethod(method);
     if(!n && !p) return '';
     return `${n}|${p}|${m}`;
+  }
+
+  // 2차(보조) 키: 이름|전화끝4|결제수단|결제시간(K)
+  function makeFallbackKey(name, phone, method, payTime){
+    const n = normName(name);
+    const last4 = phoneLast4(phone);
+    const m = normMethod(method);
+    const t = String(payTime||'').trim();
+    if(!n || !last4) return '';
+    return `${n}|${last4}|${m}|${t}`;
+  }
+
+  // 호환용: primary
+  function makeKey(name, phone, method){
+    return makePrimaryKey(name, phone, method);
   }
 
   // 시트의 기존 데이터(B2:N) 전체 가져오기 (13열)
@@ -716,18 +735,27 @@
   }
 
   // 기존 데이터에서 key -> { rowNumber, rowBN } 만들기
-  // (B~N 기준) D=2, E=3, L=10
+  // (B~N 기준) D=2, E=3, K=9, L=10
   function buildExistingMap(existingBN){
     const map = new Map();
+
     for(let i=0;i<existingBN.length;i++){
       const row = existingBN[i] || [];
-      const name   = row[2] ?? '';  // D
-      const phone  = row[3] ?? '';  // E
-      const method = row[10] ?? ''; // L
-      const key = makeKey(name, phone, method);
-      if(!key) continue;
-      map.set(key, { rowNumber: 2 + i, rowBN: row });
+
+      const name    = row[2] ?? '';   // D
+      const phone   = row[3] ?? '';   // E
+      const payTime = row[9] ?? '';   // K
+      const method  = row[10] ?? '';  // L
+
+      const primary = makePrimaryKey(name, phone, method);
+      const fallback = makeFallbackKey(name, phone, method, payTime);
+
+      const payload = { rowNumber: 2 + i, rowBN: row };
+
+      if(primary && !map.has(primary)) map.set(primary, payload);
+      if(fallback && !map.has(fallback)) map.set(fallback, payload);
     }
+
     return map;
   }
 
@@ -791,7 +819,7 @@
       const name   = row[2] ?? '';  // D
       const phone  = row[3] ?? '';  // E
       const method = row[10] ?? ''; // L
-      const key = makeKey(name, phone, method);
+      const key = makePrimaryKey(name, phone, method);
       if(!key){
         startSlot = i;
         break;
@@ -821,8 +849,7 @@
       filled = toFill.length;
     }
 
-    // 2) 번호 자리 초과분은 아래로 append (여긴 행 삽입이지만 맨 아래에 붙는 거라 A번호 '밀림'은 없음)
-    //    (단, 새로 추가된 행의 A는 비어 있을 수 있음)
+    // 2) 번호 자리 초과분은 아래로 append (A는 비어 있을 수 있음)
     if(overflow.length){
       const res = await gapi.client.sheets.spreadsheets.values.append({
         spreadsheetId,
@@ -956,7 +983,7 @@
       });
     }
 
-    // 전송 (UPSERT + 신규는 빈행 채워넣기, A열은 값판단에 사용 X, 키는 D/E/L)
+    // 전송 (UPSERT + 신규는 빈행 채워넣기, A열은 값판단에 사용 X, 키는 D/E/L + fallback)
     $('#btnSend').addEventListener('click', async (e)=>{
       e.preventDefault();
       try{
@@ -983,23 +1010,28 @@
 
         const valueInputOption = $('#valueInputOption').value;
 
-        // 1) 내부(14) -> BN(13) 변환 + 파일내 중복 제거(키=이름|전화|결제수단)
-        const incomingMap = new Map(); // key -> rowBN
+        // 1) 내부(14) -> BN(13) 변환 + 파일내 중복 제거
+        const incomingMap = new Map(); // key(primary or fallback) -> rowBN
         for(const r of rowsAll){
           const row = Array.isArray(r) ? r : [];
           const name   = row?.[3] ?? '';   // 내부 D
           const phone  = row?.[4] ?? '';   // 내부 E
+          const payTime= row?.[10] ?? '';  // 내부 K
           const method = row?.[11] ?? '';  // 내부 L
-          const key = makeKey(name, phone, method);
-          if(!key) continue;
+
+          const primary = makePrimaryKey(name, phone, method);
+          const fallback = makeFallbackKey(name, phone, method, payTime);
+
+          const useKey = primary || fallback;
+          if(!useKey) continue;
 
           const bn = row.slice(1, 14); // B~N(13)
           while(bn.length < 13) bn.push('');
 
-          if(!incomingMap.has(key)){
-            incomingMap.set(key, bn);
+          if(!incomingMap.has(useKey)){
+            incomingMap.set(useKey, bn);
           }else{
-            incomingMap.set(key, chooseBetterBN(incomingMap.get(key), bn));
+            incomingMap.set(useKey, chooseBetterBN(incomingMap.get(useKey), bn));
           }
         }
 
@@ -1011,17 +1043,28 @@
 
         toast('기존 시트와 비교 중...');
 
-        // 2) 기존 시트 읽기(B2:N) -> map
+        // 2) 기존 시트 읽기(B2:N) -> map( primary + fallback 둘 다 등록 )
         const existingBN = await fetchExistingBN(spreadsheetId, sheetName);
         const existingMap = buildExistingMap(existingBN);
 
-        // 3) 업데이트/신규 분리 (A열은 무시)
+        // 3) 업데이트/신규 분리
         const updates = [];
         const toAppend = []; // 실제론 "빈행 채워넣기" 대상
 
         for(const key of incomingKeys){
           const bn = incomingMap.get(key);
-          const hit = existingMap.get(key);
+          let hit = existingMap.get(key);
+
+          if(!hit){
+            // 반대쪽 키도 한 번 더 시도 (bn 기준: D=2, E=3, K=9, L=10)
+            const name2 = bn?.[2] ?? '';
+            const phone2 = bn?.[3] ?? '';
+            const payTime2 = bn?.[9] ?? '';
+            const method2 = bn?.[10] ?? '';
+            const p2 = makePrimaryKey(name2, phone2, method2);
+            const f2 = makeFallbackKey(name2, phone2, method2, payTime2);
+            hit = existingMap.get(p2) || existingMap.get(f2) || null;
+          }
 
           if(hit){
             if(!sameRowBN(hit.rowBN, bn)){
