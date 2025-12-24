@@ -60,15 +60,13 @@
       color:#1e293b;
     }
     .invalid{background:#fef2f2;color:#b91c1c}
-    .fname{display:none;} /* 아래 회색 파일명 숨김 */
+    .fname{display:none;}
   </style>
 </head>
 <body class="min-h-screen">
-  <!-- 상단 바 -->
   <header>
     <div class="max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
       <div class="flex items-center gap-3">
-        <!-- ClassAround 로고 -->
         <svg class="w-20 h-11" viewBox="0 0 90 50" role="img" aria-label="ClassAround">
           <rect width="90" height="50" rx="10" fill="white"/>
           <circle cx="66" cy="10" r="8" fill="#6b8bd6"/>
@@ -109,11 +107,8 @@
   </header>
 
   <main class="max-w-5xl mx-auto px-4 py-4 space-y-3">
-    <!-- 중단: 좌측 업로드 / 우측 시트 설정 + 실행 버튼 -->
     <section class="grid md:grid-cols-2 gap-3">
-      <!-- 왼쪽: CSV 업로드 패널 -->
       <div class="rounded-xl border border-slate-200 bg-white px-3 py-3 space-y-3 shadow-sm">
-        <!-- 카드 CSV -->
         <div class="space-y-1">
           <div class="flex items-center justify-between text-[12px]">
             <div class="flex items-center gap-1.5">
@@ -132,7 +127,6 @@
 
         <div class="h-px bg-slate-100 my-1"></div>
 
-        <!-- 계좌 -->
         <div class="space-y-1">
           <div class="flex items-center justify-between text-[12px]">
             <div class="flex items-center gap-1.5">
@@ -167,9 +161,7 @@
         </div>
       </div>
 
-      <!-- 오른쪽: 시트 설정 + 실행 컨트롤 -->
       <div class="rounded-xl border border-slate-200 bg-white px-3 py-3 space-y-3 shadow-sm">
-        <!-- 시트 설정 -->
         <div class="space-y-1">
           <div class="flex items-center justify-between text-[12px]">
             <div class="flex items-center gap-1.5">
@@ -179,10 +171,7 @@
           </div>
 
           <div class="space-y-1.5 mt-1">
-            <!-- 고정 시트ID (hidden) -->
             <input id="sheetUrl" type="hidden" />
-
-            <!-- 검색 + 드롭다운(datalist) -->
             <div class="grid grid-cols-3 gap-2 items-end">
               <div class="col-span-2">
                 <label class="block text-[11px] text-slate-600 mb-0.5">시트 검색</label>
@@ -205,7 +194,6 @@
 
         <div class="h-px bg-slate-100 my-1"></div>
 
-        <!-- 옵션 + 실행 버튼 -->
         <div class="space-y-2">
           <div class="flex flex-wrap items-center gap-3 text-[11px] text-slate-600">
             <label class="inline-flex items-center gap-1.5">
@@ -244,7 +232,6 @@
       </div>
     </section>
 
-    <!-- 미리보기 -->
     <section class="rounded-xl border border-slate-200 bg-white px-3 py-3 shadow-sm">
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center gap-2 text-[12px]">
@@ -273,8 +260,8 @@
 
   let parsedRows=[];               // 헤더+본체 (내부 14열 A~N)
   let csvCard=[], csvTickets=[], csvResp=[];
-  let allSheetTitles = [];         // 스프레드시트 내 시트 이름 목록
-  let currentSheetName = "";       // 선택된 시트 이름
+  let allSheetTitles = [];
+  let currentSheetName = "";
 
   const $ = (q)=>document.querySelector(q);
   const toast = (msg, type="info")=>{
@@ -410,14 +397,11 @@
     throw new Error('⚠ Google 인증이 필요합니다. 상단의 [Google 인증] 버튼을 눌러주세요.');
   }
 
-  function parseSpreadsheetId(){
-    return FIXED_SPREADSHEET_ID;
-  }
+  function parseSpreadsheetId(){ return FIXED_SPREADSHEET_ID; }
 
   async function listSheets(spreadsheetId){
     const res = await gapi.client.sheets.spreadsheets.get({ spreadsheetId, fields: "sheets(properties(title))" });
-    const arr = (res.result?.sheets||[]).map(x=> x.properties?.title).filter(Boolean);
-    return arr;
+    return (res.result?.sheets||[]).map(x=> x.properties?.title).filter(Boolean);
   }
 
   /* =================== CSV 로드 =================== */
@@ -478,20 +462,18 @@
     return out;
   }
 
-  /* ===== 계좌: 새 포맷 (A/B 날짜·시간, F=환불, G=결제, V=그룹, K=사유) ===== */
   function makeBankRows(tickets, responses, skipT = true, skipR = true) {
     if (!tickets.length) return [];
 
-    const IDX_DATE   = 0;   // A열
-    const IDX_TIME   = 1;   // B열
-    const IDX_REFUND = 5;   // F열: 환불금액
-    const IDX_SALE   = 6;   // G열: 결제금액
-    const IDX_REASON = 10;  // K열: 사유
-    const IDX_GROUP  = 21;  // V열: 그룹 키
+    const IDX_DATE   = 0;
+    const IDX_TIME   = 1;
+    const IDX_REFUND = 5;
+    const IDX_SALE   = 6;
+    const IDX_REASON = 10;
+    const IDX_GROUP  = 21;
 
     const tHead = tickets[0] || [];
 
-    // 신청/응답 매핑
     const rHead = responses[0] || [];
     const rName  = findColIndex(rHead, ['성함','이름','신청자','name']);
     const rEmail = findColIndex(rHead, ['이메일','email']);
@@ -514,7 +496,6 @@
       }
     }
 
-    // 입금자 이름 추출
     const cName  = findColIndex(tHead, ['보낸분/받는분','거래상대명','거래처','성명','상대']);
     const cPlace = findColIndex(tHead, ['사용처','적요','내용','메모']);
     const cNote  = findColIndex(tHead, ['계좌적요']);
@@ -559,19 +540,10 @@
       }
 
       const reasonCell = String(r[IDX_REASON] ?? '').trim();
-      if (reasonCell && !g.reason) {
-        g.reason = reasonCell;
-      }
+      if (reasonCell && !g.reason) g.reason = reasonCell;
 
-      if (saleRaw) {
-        const amt = Math.abs(saleRaw);
-        g.sales.push({ when, amt, name: nameN });
-      }
-
-      if (refundRaw) {
-        const amt = -Math.abs(refundRaw);
-        g.refunds.push({ when, amt });
-      }
+      if (saleRaw) g.sales.push({ when, amt: Math.abs(saleRaw), name: nameN });
+      if (refundRaw) g.refunds.push({ when, amt: -Math.abs(refundRaw) });
     }
 
     const out = [];
@@ -596,16 +568,11 @@
       const meta      = respMap.get(nameN) || { email: '', phone: '' };
 
       let status = '결제완료';
-      if (refundAmount > 0) {
-        status = (net === 0) ? '환불됨' : '부분환불';
-      }
+      if (refundAmount > 0) status = (net === 0) ? '환불됨' : '부분환불';
 
       const row = ensureArrayLen(14);
-
-      // 사유 → B, C
-      row[1] = g.reason || '';
-      row[2] = g.reason || '';
-
+      row[1]  = g.reason || '';
+      row[2]  = g.reason || '';
       row[3]  = nameN;
       row[4]  = meta.phone;
       row[5]  = meta.email;
@@ -617,7 +584,6 @@
       row[11] = '계좌이체';
       row[12] = refundAmount || '';
       row[13] = refundDate;
-
       out.push(row);
     }
 
@@ -625,7 +591,6 @@
     return out;
   }
 
-  /* =================== 빌드 & 프리뷰 =================== */
   function buildFinalRows(){
     const header=buildHeader();
     const card = csvCard.length ? processCardRows(csvCard, $('#headCard').checked) : [];
@@ -669,18 +634,8 @@
     $('#summary').textContent=`열 ${colCount} · 데이터 행 ${bodyRows}`;
   }
 
-  /* =================== UPSERT(기존 업데이트 + 신규 채워넣기) =================== */
-
-  // 전화번호 정규화(숫자만)
-  function normPhone(s){
-    return String(s||'').replace(/\D/g,'');
-  }
-  function phoneLast4(s){
-    const m = String(s||'').match(/(\d{4})\s*$/);
-    return m ? m[1] : '';
-  }
-
-  // 결제수단 정규화
+  /* =================== UPSERT =================== */
+  function normPhone(s){ return String(s||'').replace(/\D/g,''); }
   function normMethod(s){
     const v = String(s||'').trim();
     if(!v) return '';
@@ -689,8 +644,8 @@
     return v;
   }
 
-  // 1차 키: 이름|전화(전체)|결제수단
-  function makePrimaryKey(name, phone, method){
+  // 🔥 핵심: 기본키는 무조건 D/E/L
+  function makeDELKey(name, phone, method){
     const n = normName(name);
     const p = normPhone(phone);
     const m = normMethod(method);
@@ -698,22 +653,57 @@
     return `${n}|${p}|${m}`;
   }
 
-  // 2차(보조) 키: 이름|전화끝4|결제수단|결제시간(K)
-  function makeFallbackKey(name, phone, method, payTime){
-    const n = normName(name);
-    const last4 = phoneLast4(phone);
-    const m = normMethod(method);
-    const t = String(payTime||'').trim();
-    if(!n || !last4) return '';
-    return `${n}|${last4}|${m}|${t}`;
+  // BN 인덱스(B..N): D=2, E=3, I=7, K=9, L=10, M=11, N=12
+  function getEventTimeBN(bn){
+    const tPay = getTimeFromAny(bn?.[9]);
+    const tRef = getTimeFromAny(bn?.[12]);
+    const a = isNaN(tPay) ? -Infinity : tPay;
+    const b = isNaN(tRef) ? -Infinity : tRef;
+    return Math.max(a, b);
   }
 
-  // 호환용: primary
-  function makeKey(name, phone, method){
-    return makePrimaryKey(name, phone, method);
+  function statusRankBN(bn){
+    const s = String(bn?.[7] ?? '').trim();
+    if(s.includes('결제완료')) return 3;
+    if(s.includes('부분환불')) return 2;
+    if(s.includes('환불')) return 1;
+    return 0;
   }
 
-  // 시트의 기존 데이터(B2:N) 전체 가져오기 (13열)
+  // entry: { bn, seq }
+  function chooseBetterEntry(prev, cur){
+    if(!prev) return cur;
+    if(!cur) return prev;
+
+    const ep = getEventTimeBN(prev.bn);
+    const ec = getEventTimeBN(cur.bn);
+
+    // 1) 이벤트 시간 비교(파싱 성공 우선)
+    if(ep !== ec){
+      // Infinity/-Infinity 포함 비교
+      return (ec > ep) ? cur : prev;
+    }
+
+    // 2) 시간이 같거나 둘 다 파싱 실패면 상태 우선
+    const rp = statusRankBN(prev.bn);
+    const rc = statusRankBN(cur.bn);
+    if(rp !== rc) return (rc > rp) ? cur : prev;
+
+    // 3) 마지막: 파일에서 더 아래(나중) 행 우선
+    return (cur.seq > prev.seq) ? cur : prev;
+  }
+
+  function sameRowBN(a,b){
+    const A = (a||[]), B=(b||[]);
+    const len = 13;
+    for(let i=0;i<len;i++){
+      const x = String(A[i] ?? '');
+      const y = String(B[i] ?? '');
+      if(x !== y) return false;
+    }
+    return true;
+  }
+
   async function fetchExistingBN(spreadsheetId, sheetName){
     const res = await gapi.client.sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -723,7 +713,6 @@
     return res.result?.values || [];
   }
 
-  // A열(번호) 기준 마지막 "자리" 행 계산 (A값이 있어도 데이터로 취급 X, 자리 범위로만 사용)
   async function getLastNumberRowFromA(spreadsheetId, sheetName){
     const res = await gapi.client.sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -731,85 +720,38 @@
       majorDimension: 'ROWS'
     });
     const vals = res.result?.values || [];
-    return 1 + vals.length; // 헤더(1) + A2:A의 길이
+    return 1 + vals.length;
   }
 
-  // BN 인덱스: K=9, M=11, N=12
-  function getEventTimeBN(bn){
-    const tPay = getTimeFromAny(bn?.[9]);   // K
-    const tRef = getTimeFromAny(bn?.[12]);  // N
-    const a = isNaN(tPay) ? -Infinity : tPay;
-    const b = isNaN(tRef) ? -Infinity : tRef;
-    return Math.max(a, b);
-  }
-
-  // 파일 내 동일 키 여러 건일 때 1개만 선택: "최신 이벤트(K/N)" 우선
-  function chooseBetterBN(prevBN, curBN){
-    const ep = getEventTimeBN(prevBN);
-    const ec = getEventTimeBN(curBN);
-
-    if(ec !== ep) return ec > ep ? curBN : prevBN;
-
-    const prevHasRefund = !!(String(prevBN?.[11] ?? '').trim() || String(prevBN?.[12] ?? '').trim());
-    const curHasRefund  = !!(String(curBN?.[11] ?? '').trim() || String(curBN?.[12] ?? '').trim());
-    if(prevHasRefund !== curHasRefund){
-      return curHasRefund ? curBN : prevBN;
-    }
-
-    return curBN;
-  }
-
-  // 기존 데이터에서 key -> { rowNumber, rowBN } 만들기
-  // 기존 시트에 같은 키가 여러 행이면 "최신 이벤트" 행을 대표로 선택
-  function buildExistingMap(existingBN){
-    const map = new Map();
-
-    function upsertKey(key, rowNumber, rowBN){
-      if(!key) return;
-      const cur = map.get(key);
-      if(!cur){
-        map.set(key, { rowNumber, rowBN });
-        return;
-      }
-      const better = chooseBetterBN(cur.rowBN, rowBN);
-      if(better === rowBN){
-        map.set(key, { rowNumber, rowBN });
-      }
-    }
+  // ✅ 기존 시트: DEL키 중복이면 "최신" 대표행으로 교체
+  function buildExistingMapByDEL(existingBN){
+    const map = new Map(); // delKey -> { rowNumber, bn, seq(rowNumber) }
 
     for(let i=0;i<existingBN.length;i++){
-      const row = existingBN[i] || [];
-
-      const name    = row[2] ?? '';   // D
-      const phone   = row[3] ?? '';   // E
-      const payTime = row[9] ?? '';   // K
-      const method  = row[10] ?? '';  // L
-
-      const primary  = makePrimaryKey(name, phone, method);
-      const fallback = makeFallbackKey(name, phone, method, payTime);
-
+      const bn = existingBN[i] || [];
       const rowNumber = 2 + i;
 
-      upsertKey(primary,  rowNumber, row);
-      upsertKey(fallback, rowNumber, row);
-    }
+      const name = bn?.[2] ?? '';   // D
+      const phone = bn?.[3] ?? '';  // E
+      const method = bn?.[10] ?? ''; // L
+      const delKey = makeDELKey(name, phone, method);
+      if(!delKey) continue;
 
+      const cur = { rowNumber, bn, seq: rowNumber }; // seq로 rowNumber 사용(아래 행이 최신 취급)
+      const prev = map.get(delKey);
+      if(!prev){
+        map.set(delKey, cur);
+      }else{
+        const better = chooseBetterEntry({bn: prev.bn, seq: prev.seq}, {bn: cur.bn, seq: cur.seq});
+        // better가 cur이면 교체
+        if(better.seq === cur.seq){
+          map.set(delKey, cur);
+        }
+      }
+    }
     return map;
   }
 
-  // BN 비교(13칸)
-  function sameRowBN(a,b){
-    const A = (a||[]), B=(b||[]);
-    const len = Math.max(A.length, B.length, 13);
-    for(let i=0;i<len;i++){
-      const x = String(A[i] ?? '');
-      const y = String(B[i] ?? '');
-      if(x !== y) return false;
-    }
-    return true;
-  }
-
-  // batchUpdate (여러 행 업데이트)
   async function batchUpdateRows(spreadsheetId, valueInputOption, updates){
     if(!updates.length) return 0;
     const res = await gapi.client.sheets.spreadsheets.values.batchUpdate({
@@ -822,34 +764,28 @@
     return res.result?.totalUpdatedRows ?? updates.length;
   }
 
-  // 신규 행들을 "삽입"하지 않고, B~N의 빈 행부터 "채워넣기"(update). A열 번호 안 밀림.
-  // ⚠ 빈행 판단도 D/E/L 키로만 한다 (A열 무시)
+  // 신규는 "번호(A) 안 밀리게" 빈 슬롯부터 채우고 초과는 append
   async function writeNewRowsIntoEmptySlots(spreadsheetId, sheetName, valueInputOption, existingBN, rowsBN){
     if(!rowsBN.length) return { filled:0, appended:0 };
 
-    // A열 번호가 깔려있는 마지막 행(자리)
     const lastNumberRow = await getLastNumberRowFromA(spreadsheetId, sheetName);
+    const maxSlots = Math.max(0, lastNumberRow - 1);
 
-    // B2:N 슬롯 개수(=A2:A 자리 개수)
-    const maxSlots = Math.max(0, lastNumberRow - 1); // B2가 0번째 슬롯
-
-    // "데이터 있음" 판단은 A가 아니라 D/E/L(key)로만 한다.
-    let startSlot = maxSlots; // 기본: 전부 찼으면 끝 다음
+    // 빈슬롯 판단도 A 무시, D/E/L만
+    let startSlot = maxSlots;
     for(let i=0;i<maxSlots;i++){
-      const row = existingBN[i] || []; // 없으면 빈행
-      const name   = row[2] ?? '';  // D
-      const phone  = row[3] ?? '';  // E
-      const method = row[10] ?? ''; // L
-      const key = makePrimaryKey(name, phone, method);
-      if(!key){
+      const bn = existingBN[i] || [];
+      const name = bn?.[2] ?? '';
+      const phone = bn?.[3] ?? '';
+      const method = bn?.[10] ?? '';
+      const delKey = makeDELKey(name, phone, method);
+      if(!delKey){
         startSlot = i;
         break;
       }
     }
 
-    let startRow = 2 + startSlot; // 실제 시트 행 번호(첫 빈자리)
-
-    // 번호 자리 안에서 채울 수 있는 개수
+    let startRow = 2 + startSlot;
     const availableCount = Math.max(0, lastNumberRow - startRow + 1);
 
     const toFill = rowsBN.slice(0, availableCount);
@@ -858,7 +794,6 @@
     let filled = 0;
     let appended = 0;
 
-    // 1) 번호 자리 범위 내 빈자리 채우기 (UPDATE)
     if(toFill.length){
       const endRow = startRow + toFill.length - 1;
       await gapi.client.sheets.spreadsheets.values.update({
@@ -870,7 +805,6 @@
       filled = toFill.length;
     }
 
-    // 2) 번호 자리 초과분은 아래로 append (A는 비어 있을 수 있음)
     if(overflow.length){
       const res = await gapi.client.sheets.spreadsheets.values.append({
         spreadsheetId,
@@ -893,11 +827,9 @@
   document.addEventListener('DOMContentLoaded', ()=>{
     loadTokenFromSession();
 
-    // hidden 시트ID 세팅
     const sheetInput = $('#sheetUrl');
     if(sheetInput) sheetInput.value = FIXED_SPREADSHEET_ID;
 
-    // 파일 업로드
     $('#csvCard').addEventListener('change', async (e)=>{
       try{
         const f=e.target.files?.[0];
@@ -928,7 +860,6 @@
       }catch(err){ console.error(err); toast('responses 읽기 실패','error'); }
     }, {capture:true});
 
-    // 미리보기 (로그인 불필요)
     $('#btnPreviewCsv').addEventListener('click', (e)=>{
       e.preventDefault();
       try{
@@ -947,7 +878,6 @@
       }catch(err){ console.error(err); toast('정리 실패: 콘솔 확인','error'); }
     });
 
-    // 초기화
     $('#btnClear').addEventListener('click', (e)=>{
       e.preventDefault();
       csvCard=[]; csvTickets=[]; csvResp=[]; parsedRows=[];
@@ -956,7 +886,6 @@
       toast('초기화 완료');
     });
 
-    // 시트 목록 불러오기
     $('#btnLoadSheets').addEventListener('click', async (e)=>{
       e.preventDefault();
       try{
@@ -977,9 +906,7 @@
 
         currentSheetName = allSheetTitles[0] || '';
         const searchInput = $('#sheetSearch');
-        if (currentSheetName && searchInput) {
-          searchInput.value = currentSheetName;
-        }
+        if (currentSheetName && searchInput) searchInput.value = currentSheetName;
 
         toast(`시트 ${allSheetTitles.length}개 불러옴`,'ok');
       }catch(err){
@@ -988,7 +915,6 @@
       }
     });
 
-    // 시트 검색 인풋에서 선택 적용
     const searchInput = $('#sheetSearch');
     if (searchInput) {
       searchInput.addEventListener('change', (e)=>{
@@ -1004,7 +930,7 @@
       });
     }
 
-    // 전송 (UPSERT + 신규는 빈행 채워넣기, A열은 값판단에 사용 X, 키는 D/E/L + fallback, 중복은 최신 이벤트(K/N) 우선)
+    // ✅ 전송: DEL 키 기준 "같은 키면 무조건 같은 행 업데이트"
     $('#btnSend').addEventListener('click', async (e)=>{
       e.preventDefault();
       try{
@@ -1023,7 +949,7 @@
         }
 
         const hasHeader = $('#optHasHeader').checked;
-        const rowsAll   = hasHeader ? parsedRows.slice(1) : parsedRows; // 내부 14열
+        const rowsAll   = hasHeader ? parsedRows.slice(1) : parsedRows;
         if(!rowsAll.length){
           toast('전송할 데이터 행이 없습니다','error');
           return;
@@ -1031,64 +957,51 @@
 
         const valueInputOption = $('#valueInputOption').value;
 
-        // 1) 내부(14) -> BN(13) 변환 + 파일내 중복 제거
-        const incomingMap = new Map(); // key(primary or fallback) -> rowBN
+        // 1) incoming: DEL 키로만 병합 (중복이면 최신 이벤트/상태/파일순)
+        const incoming = new Map(); // delKey -> {bn, seq}
+        let seq = 0;
         for(const r of rowsAll){
+          seq++;
           const row = Array.isArray(r) ? r : [];
-          const name   = row?.[3] ?? '';   // 내부 D
-          const phone  = row?.[4] ?? '';   // 내부 E
-          const payTime= row?.[10] ?? '';  // 내부 K
-          const method = row?.[11] ?? '';  // 내부 L
 
-          const primary = makePrimaryKey(name, phone, method);
-          const fallback = makeFallbackKey(name, phone, method, payTime);
-
-          const useKey = primary || fallback;
-          if(!useKey) continue;
+          // 내부 index: D=3, E=4, L=11
+          const name   = row?.[3] ?? '';
+          const phone  = row?.[4] ?? '';
+          const method = row?.[11] ?? '';
+          const delKey = makeDELKey(name, phone, method);
+          if(!delKey) continue;
 
           const bn = row.slice(1, 14); // B~N(13)
           while(bn.length < 13) bn.push('');
 
-          if(!incomingMap.has(useKey)){
-            incomingMap.set(useKey, bn);
-          }else{
-            incomingMap.set(useKey, chooseBetterBN(incomingMap.get(useKey), bn));
-          }
+          const cur = { bn, seq };
+          const prev = incoming.get(delKey);
+          incoming.set(delKey, chooseBetterEntry(prev, cur));
         }
 
-        const incomingKeys = Array.from(incomingMap.keys());
-        if(!incomingKeys.length){
-          toast('유효한 (이름/전화/결제수단) 데이터가 없습니다','error');
+        const keys = Array.from(incoming.keys());
+        if(!keys.length){
+          toast('유효한 (D/E/L) 데이터가 없습니다','error');
           return;
         }
 
         toast('기존 시트와 비교 중...');
 
-        // 2) 기존 시트 읽기(B2:N) -> map( primary + fallback 둘 다 등록, 중복은 최신 이벤트 행 선택 )
+        // 2) existing: DEL키로 대표행 선택
         const existingBN = await fetchExistingBN(spreadsheetId, sheetName);
-        const existingMap = buildExistingMap(existingBN);
+        const existingMap = buildExistingMapByDEL(existingBN);
 
-        // 3) 업데이트/신규 분리
+        // 3) update vs new
         const updates = [];
-        const toAppend = []; // 실제론 "빈행 채워넣기" 대상
+        const toAppend = [];
 
-        for(const key of incomingKeys){
-          const bn = incomingMap.get(key);
-          let hit = existingMap.get(key);
+        for(const delKey of keys){
+          const entry = incoming.get(delKey);
+          const bn = entry.bn;
 
-          if(!hit){
-            // 반대쪽 키도 한 번 더 시도 (bn 기준: D=2, E=3, K=9, L=10)
-            const name2 = bn?.[2] ?? '';
-            const phone2 = bn?.[3] ?? '';
-            const payTime2 = bn?.[9] ?? '';
-            const method2 = bn?.[10] ?? '';
-            const p2 = makePrimaryKey(name2, phone2, method2);
-            const f2 = makeFallbackKey(name2, phone2, method2, payTime2);
-            hit = existingMap.get(p2) || existingMap.get(f2) || null;
-          }
-
+          const hit = existingMap.get(delKey);
           if(hit){
-            if(!sameRowBN(hit.rowBN, bn)){
+            if(!sameRowBN(hit.bn, bn)){
               updates.push({
                 range: `${sheetName}!B${hit.rowNumber}:N${hit.rowNumber}`,
                 values: [bn]
@@ -1104,9 +1017,8 @@
           return;
         }
 
-        $('#btnSend').disabled=true;
+        $('#btnSend').disabled = true;
 
-        // 4) 업데이트 -> 신규 채워넣기
         let updatedCnt = 0, addedCnt = 0;
 
         if(updates.length){
@@ -1136,7 +1048,6 @@
       }
     });
 
-    // 상단 Google 인증 버튼
     $('#btnAuthRefresh').addEventListener('click', (e)=>{
       e.preventDefault();
       initGoogleAuth();
