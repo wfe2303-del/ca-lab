@@ -4,61 +4,19 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>수강생 시트 자동 업데이트 · ClassAround</title>
-  <!-- Tailwind -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- PapaParse -->
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
-  <!-- Google Identity Services -->
   <script src="https://accounts.google.com/gsi/client" async defer></script>
-  <!-- Google API (Sheets) -->
   <script src="https://apis.google.com/js/api.js" async defer></script>
   <style>
-    body{
-      margin:0;
-      background:#f1f5f9;
-      color:#0f172a;
-      font:13px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial;
-    }
-    header{
-      background:#ffffff;
-      border-bottom:1px solid #e2e8f0;
-    }
-    .toast{
-      position:fixed;
-      right:14px;
-      bottom:14px;
-      padding:8px 12px;
-      border-radius:999px;
-      background:#0f172a;
-      color:#fff;
-      opacity:0;
-      box-shadow:0 6px 20px rgba(15,23,42,.35);
-      z-index:1000;
-      font-size:12px;
-      transform:translateY(8px);
-      pointer-events:none;
-      transition:.22s;
-    }
-    .toast.show{
-      opacity:.97;
-      transform:translateY(0);
-      pointer-events:auto;
-    }
+    body{margin:0;background:#f1f5f9;color:#0f172a;font:13px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial;}
+    header{background:#ffffff;border-bottom:1px solid #e2e8f0;}
+    .toast{position:fixed;right:14px;bottom:14px;padding:8px 12px;border-radius:999px;background:#0f172a;color:#fff;opacity:0;box-shadow:0 6px 20px rgba(15,23,42,.35);z-index:1000;font-size:12px;transform:translateY(8px);pointer-events:none;transition:.22s;}
+    .toast.show{opacity:.97;transform:translateY(0);pointer-events:auto;}
     .scroll-xy{overflow:auto}
     table.preview{border-collapse:collapse;width:100%}
-    table.preview td,table.preview th{
-      border:1px solid #e2e8f0;
-      padding:4px 6px;
-      white-space:nowrap;
-      font-size:11px;
-    }
-    table.preview th{
-      background:#eff6ff;
-      position:sticky;
-      top:0;
-      z-index:1;
-      color:#1e293b;
-    }
+    table.preview td,table.preview th{border:1px solid #e2e8f0;padding:4px 6px;white-space:nowrap;font-size:11px;}
+    table.preview th{background:#eff6ff;position:sticky;top:0;z-index:1;color:#1e293b;}
     .invalid{background:#fef2f2;color:#b91c1c}
     .fname{display:none;}
   </style>
@@ -74,15 +32,11 @@
           <text x="8" y="24"
                 style="font-family:'Nunito','Arial Rounded MT','SF Pro Rounded','Quicksand','Pretendard','Noto Sans KR',sans-serif;
                        font-weight:900; letter-spacing:-0.2px; fill:#0f172a; font-size:18px;
-                       paint-order:stroke fill; stroke:#0f172a; stroke-width:.9px;">
-            Class
-          </text>
+                       paint-order:stroke fill; stroke:#0f172a; stroke-width:.9px;">Class</text>
           <text x="8" y="42"
                 style="font-family:'Nunito','Arial Rounded MT','SF Pro Rounded','Quicksand','Pretendard','Noto Sans KR',sans-serif;
                        font-weight:900; letter-spacing:-0.2px; fill:#0f172a; font-size:18px;
-                       paint-order:stroke fill; stroke:#0f172a; stroke-width:.9px;">
-            Around
-          </text>
+                       paint-order:stroke fill; stroke:#0f172a; stroke-width:.9px;">Around</text>
         </svg>
         <div class="flex flex-col">
           <span class="text-xs md:text-sm font-bold text-slate-900">수강생 시트 업데이트</span>
@@ -93,8 +47,7 @@
           <span id="authStateDot" class="inline-block w-2 h-2 rounded-full bg-slate-300"></span>
           <span id="authState" class="text-slate-500">Google 시트 연동 준비 중</span>
         </div>
-        <button id="btnAuthRefresh"
-                type="button"
+        <button id="btnAuthRefresh" type="button"
                 class="px-2.5 py-1 rounded-full border border-sky-500 bg-white text-sky-600 hover:bg-sky-50 text-[11px]">
           Google 인증
         </button>
@@ -175,9 +128,7 @@
             <div class="grid grid-cols-3 gap-2 items-end">
               <div class="col-span-2">
                 <label class="block text-[11px] text-slate-600 mb-0.5">시트 검색</label>
-                <input id="sheetSearch"
-                       list="sheetList"
-                       type="text"
+                <input id="sheetSearch" list="sheetList" type="text"
                        class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-[12px]"
                        placeholder="시트 이름 입력 후 드롭다운에서 선택" />
                 <datalist id="sheetList"></datalist>
@@ -206,8 +157,7 @@
             </label>
             <div class="flex items-center gap-1">
               <span class="text-slate-500">값 입력 방식</span>
-              <select id="valueInputOption"
-                      class="bg-white border border-slate-300 rounded-md px-2 py-1 text-[11px]">
+              <select id="valueInputOption" class="bg-white border border-slate-300 rounded-md px-2 py-1 text-[11px]">
                 <option value="USER_ENTERED">USER_ENTERED</option>
                 <option value="RAW">RAW</option>
               </select>
@@ -255,7 +205,6 @@
   const FIXED_SPREADSHEET_ID = "1qclrbo3_VG-sSNIqMW4j1juzwP3nq_ZaT-y1z6WLafc";
 
   let tokenClient = null;
-  let oauthReady  = false;
   let accessToken = null;
 
   let parsedRows=[];               // 헤더+본체 (내부 14열 A~N)
@@ -346,10 +295,7 @@
 
   function loadTokenFromSession(){
     const saved = sessionStorage.getItem("ca_gapi_token");
-    if(saved){
-      accessToken = saved;
-      oauthReady  = true;
-    }
+    if(saved) accessToken = saved;
   }
 
   function initGoogleAuth(){
@@ -365,10 +311,7 @@
           if(resp?.access_token){
             accessToken = resp.access_token;
             sessionStorage.setItem("ca_gapi_token", accessToken);
-            if(window.gapi?.client){
-              gapi.client.setToken({access_token:accessToken});
-            }
-            oauthReady = true;
+            if(window.gapi?.client) gapi.client.setToken({access_token:accessToken});
             updateAuthUI();
             toast('Google 인증 완료','ok');
           }else{
@@ -390,7 +333,6 @@
     if(saved){
       accessToken = saved;
       gapi.client.setToken({access_token:accessToken});
-      oauthReady = true;
       updateAuthUI();
       return;
     }
@@ -419,9 +361,7 @@
           fr.onload=()=>{
             const parsed=Papa.parse(String(fr.result||''),{skipEmptyLines:'greedy'});
             let r=Array.isArray(parsed.data)?parsed.data:[]; r=r.map(x=>Array.isArray(x)?x:[x]);
-            const c=r.filter(x=>x.some(y=>String(y).trim()!=='' )).length;
-            if(c>0 || idx>=tryEnc.length-1) resolve(r);
-            else { idx++; fr.readAsText(file, tryEnc[idx]); }
+            resolve(r);
           };
           fr.onerror=()=>resolve([]);
           fr.readAsText(file, tryEnc[idx]);
@@ -464,16 +404,9 @@
 
   function makeBankRows(tickets, responses, skipT = true, skipR = true) {
     if (!tickets.length) return [];
-
-    const IDX_DATE   = 0;
-    const IDX_TIME   = 1;
-    const IDX_REFUND = 5;
-    const IDX_SALE   = 6;
-    const IDX_REASON = 10;
-    const IDX_GROUP  = 21;
+    const IDX_DATE=0, IDX_TIME=1, IDX_REFUND=5, IDX_SALE=6, IDX_REASON=10, IDX_GROUP=21;
 
     const tHead = tickets[0] || [];
-
     const rHead = responses[0] || [];
     const rName  = findColIndex(rHead, ['성함','이름','신청자','name']);
     const rEmail = findColIndex(rHead, ['이메일','email']);
@@ -481,7 +414,6 @@
 
     const respMap = new Map();
     const rStart  = skipR ? 1 : 0;
-
     if (rName >= 0) {
       for (let i = rStart; i < responses.length; i++) {
         const rr = responses[i] || [];
@@ -547,8 +479,7 @@
     }
 
     const out = [];
-
-    for (const [groupKey, g] of groups.entries()) {
+    for (const g of groups.values()) {
       if (!g.sales.length) continue;
 
       const saleSum   = g.sales.reduce((s, x) => s + (x.amt || 0), 0);
@@ -634,8 +565,7 @@
     $('#summary').textContent=`열 ${colCount} · 데이터 행 ${bodyRows}`;
   }
 
-  /* =================== UPSERT =================== */
-  function normPhone(s){ return String(s||'').replace(/\D/g,''); }
+  /* =================== UPSERT (핵심) =================== */
   function normMethod(s){
     const v = String(s||'').trim();
     if(!v) return '';
@@ -644,24 +574,42 @@
     return v;
   }
 
-  // 기본키: D/E/L
+  // ✅ 전화번호 정규화 강화:
+  // - 숫자만 추출
+  // - 선행 0이 빠진 "10xxxxxxxxx" 형태면 "0" 붙여서 맞춤
+  // - +82 로 시작하면 국내형으로 변환 시도
+  function canonPhone(s){
+    let d = String(s||'').replace(/\D/g,'');
+    if(!d) return '';
+
+    // +82(대한민국) 케이스 간단 보정
+    // 8210xxxxxxxx => 010xxxxxxxx
+    if(d.startsWith('82') && d.length >= 11){
+      const rest = d.slice(2);
+      if(rest.startsWith('10')) d = '0' + rest; // 82 10...
+    }
+
+    // 선행 0 누락 보정 (10자리인데 0으로 시작 안 하고 10으로 시작하면)
+    if(d.length === 10 && !d.startsWith('0') && d.startsWith('10')){
+      d = '0' + d;
+    }
+    // 11자리인데 0이 없고 10으로 시작하면
+    if(d.length === 11 && !d.startsWith('0') && d.startsWith('10')){
+      d = '0' + d;
+    }
+
+    return d;
+  }
+
   function makeDELKey(name, phone, method){
     const n = normName(name);
-    const p = normPhone(phone);
+    const p = canonPhone(phone);
     const m = normMethod(method);
     if(!n && !p) return '';
     return `${n}|${p}|${m}`;
   }
 
-  // 보조키: D/E (결제수단 안 섞기 위해 method별로 다시 필터)
-  function makeDEKey(name, phone){
-    const n = normName(name);
-    const p = normPhone(phone);
-    if(!n && !p) return '';
-    return `${n}|${p}`;
-  }
-
-  // BN 인덱스(B..N): D=2, E=3, I=7, K=9, L=10, M=11, N=12
+  // B..N(13) 인덱스 기준: D=2, E=3, I=7, K=9, L=10, N=12
   function getEventTimeBN(bn){
     const tPay = getTimeFromAny(bn?.[9]);
     const tRef = getTimeFromAny(bn?.[12]);
@@ -669,7 +617,6 @@
     const b = isNaN(tRef) ? -Infinity : tRef;
     return Math.max(a, b);
   }
-
   function statusRankBN(bn){
     const s = String(bn?.[7] ?? '').trim();
     if(s.includes('결제완료')) return 3;
@@ -677,15 +624,12 @@
     if(s.includes('환불')) return 1;
     return 0;
   }
-
-  // entry: { bn, seq }
   function chooseBetterEntry(prev, cur){
     if(!prev) return cur;
     if(!cur) return prev;
 
     const ep = getEventTimeBN(prev.bn);
     const ec = getEventTimeBN(cur.bn);
-
     if(ep !== ec) return (ec > ep) ? cur : prev;
 
     const rp = statusRankBN(prev.bn);
@@ -697,11 +641,8 @@
 
   function sameRowBN(a,b){
     const A = (a||[]), B=(b||[]);
-    const len = 13;
-    for(let i=0;i<len;i++){
-      const x = String(A[i] ?? '');
-      const y = String(B[i] ?? '');
-      if(x !== y) return false;
+    for(let i=0;i<13;i++){
+      if(String(A[i] ?? '') !== String(B[i] ?? '')) return false;
     }
     return true;
   }
@@ -726,88 +667,65 @@
   }
 
   // ✅ 기존 인덱스:
-  // - mapDEL: DEL 대표(중복이면 "최신" 대표행)
-  // - mapDEMethod: DE -> (method -> 대표행)  ← DEL 미스매치 보험
-  function buildExistingIndexes(existingBN){
-    const mapDEL = new Map(); // delKey -> { rowNumber, bn, seq }
-    const mapDEMethod = new Map(); // deKey -> Map(methodNorm -> { rowNumber, bn, seq })
+  // - mapDELBest: delKey -> 대표(최신) 1개
+  // - mapDELAll : delKey -> [{rowNumber,bn}, ...]  (중복 행 전부)
+  function buildExistingIndex(existingBN){
+    const mapDELBest = new Map();
+    const mapDELAll  = new Map();
 
     for(let i=0;i<existingBN.length;i++){
       const bn = existingBN[i] || [];
       const rowNumber = 2 + i;
 
-      const name = bn?.[2] ?? '';   // D
-      const phone = bn?.[3] ?? '';  // E
-      const method = bn?.[10] ?? ''; // L
+      const name   = bn?.[2] ?? '';   // D
+      const phone  = bn?.[3] ?? '';   // E
+      const method = bn?.[10] ?? '';  // L
 
       const delKey = makeDELKey(name, phone, method);
-      const deKey  = makeDEKey(name, phone);
-      const mNorm  = normMethod(method);
+      if(!delKey) continue;
 
-      // 1) DEL 대표
-      if(delKey){
-        const cur = { rowNumber, bn, seq: rowNumber };
-        const prev = mapDEL.get(delKey);
-        if(!prev){
-          mapDEL.set(delKey, cur);
-        }else{
-          const better = chooseBetterEntry({bn: prev.bn, seq: prev.seq}, {bn: cur.bn, seq: cur.seq});
-          if(better.seq === cur.seq) mapDEL.set(delKey, cur);
-        }
-      }
+      // all
+      if(!mapDELAll.has(delKey)) mapDELAll.set(delKey, []);
+      mapDELAll.get(delKey).push({ rowNumber, bn });
 
-      // 2) DE + method 대표 (보험)
-      if(deKey && mNorm){
-        let byMethod = mapDEMethod.get(deKey);
-        if(!byMethod){
-          byMethod = new Map();
-          mapDEMethod.set(deKey, byMethod);
-        }
-        const cur = { rowNumber, bn, seq: rowNumber };
-        const prev = byMethod.get(mNorm);
-        if(!prev){
-          byMethod.set(mNorm, cur);
-        }else{
-          const better = chooseBetterEntry({bn: prev.bn, seq: prev.seq}, {bn: cur.bn, seq: cur.seq});
-          if(better.seq === cur.seq) byMethod.set(mNorm, cur);
-        }
+      // best
+      const cur = { rowNumber, bn, seq: rowNumber };
+      const prev = mapDELBest.get(delKey);
+      if(!prev){
+        mapDELBest.set(delKey, cur);
+      }else{
+        const better = chooseBetterEntry({bn: prev.bn, seq: prev.seq}, {bn: cur.bn, seq: cur.seq});
+        if(better.seq === cur.seq) mapDELBest.set(delKey, cur);
       }
     }
 
-    return { mapDEL, mapDEMethod };
+    return { mapDELBest, mapDELAll };
   }
 
   async function batchUpdateRows(spreadsheetId, valueInputOption, updates){
     if(!updates.length) return 0;
     const res = await gapi.client.sheets.spreadsheets.values.batchUpdate({
       spreadsheetId,
-      resource: {
-        valueInputOption,
-        data: updates
-      }
+      resource: { valueInputOption, data: updates }
     });
     return res.result?.totalUpdatedRows ?? updates.length;
   }
 
-  // 신규는 "번호(A) 안 밀리게" 빈 슬롯부터 채우고 초과는 append
   async function writeNewRowsIntoEmptySlots(spreadsheetId, sheetName, valueInputOption, existingBN, rowsBN){
     if(!rowsBN.length) return { filled:0, appended:0 };
 
     const lastNumberRow = await getLastNumberRowFromA(spreadsheetId, sheetName);
     const maxSlots = Math.max(0, lastNumberRow - 1);
 
-    // 빈슬롯 판단도 A 무시, D/E/L만
+    // 빈 슬롯 판단: A 무시, D/E/L(BN 기준 2/3/10)로만 판단
     let startSlot = maxSlots;
     for(let i=0;i<maxSlots;i++){
       const bn = existingBN[i] || [];
       const name = bn?.[2] ?? '';
       const phone = bn?.[3] ?? '';
       const method = bn?.[10] ?? '';
-      const delKey = makeDELKey(name, phone, method);
-      if(!delKey){
-        startSlot = i;
-        break;
-      }
+      const k = makeDELKey(name, phone, method);
+      if(!k){ startSlot = i; break; }
     }
 
     let startRow = 2 + startSlot;
@@ -860,8 +778,7 @@
         const f=e.target.files?.[0];
         if(!f){ toast('카드 CSV 선택이 비었습니다','error'); return; }
         csvCard=await readCsv(f);
-        const cnt=csvCard.filter(r=>Array.isArray(r)&&r.some(c=>String(c).trim()!=='')).length;
-        toast(`카드 CSV 로드: ${csvCard.length}행 (유효 ${cnt}행)`, cnt?'ok':'error');
+        toast(`카드 CSV 로드: ${csvCard.length}행`,'ok');
       }catch(err){ console.error(err); toast('카드 CSV 읽기 실패','error'); }
     }, {capture:true});
 
@@ -870,8 +787,7 @@
         const f=e.target.files?.[0];
         if(!f){ toast('tickets CSV 선택이 비었습니다','error'); return; }
         csvTickets=await readCsv(f);
-        const cnt=csvTickets.filter(r=>Array.isArray(r)&&r.some(c=>String(c).trim()!=='')).length;
-        toast(`tickets 로드: ${csvTickets.length}행 (유효 ${cnt}행)`, cnt?'ok':'error');
+        toast(`tickets 로드: ${csvTickets.length}행`,'ok');
       }catch(err){ console.error(err); toast('tickets 읽기 실패','error'); }
     }, {capture:true});
 
@@ -880,8 +796,7 @@
         const f=e.target.files?.[0];
         if(!f){ toast('responses CSV 선택이 비었습니다','error'); return; }
         csvResp=await readCsv(f);
-        const cnt=csvResp.filter(r=>Array.isArray(r)&&r.some(c=>String(c).trim()!=='')).length;
-        toast(`responses 로드: ${csvResp.length}행 (유효 ${cnt}행)`, cnt?'ok':'error');
+        toast(`responses 로드: ${csvResp.length}행`,'ok');
       }catch(err){ console.error(err); toast('responses 읽기 실패','error'); }
     }, {capture:true});
 
@@ -914,11 +829,10 @@
     $('#btnLoadSheets').addEventListener('click', async (e)=>{
       e.preventDefault();
       try{
-        toast('시트 목록을 불러오는 중입니다...');
+        toast('시트 목록을 불러오는 중...');
         await ensureAuth();
         const spreadsheetId = parseSpreadsheetId();
         const titles = await listSheets(spreadsheetId);
-
         allSheetTitles = titles || [];
 
         const dl = $('#sheetList');
@@ -955,14 +869,14 @@
       });
     }
 
-    // ✅ 전송: DEL 같으면 무조건 update (신용카드가 새로 쭉 append 되는 문제 방지)
+    // ✅ 전송: DEL 동일이면 "추가"가 아니라 "기존 행(들) 업데이트"
     $('#btnSend').addEventListener('click', async (e)=>{
       e.preventDefault();
       try{
         await ensureAuth();
 
         if(!parsedRows.length){
-          toast('먼저 정리 미리보기를 실행하세요','error');
+          toast('먼저 미리보기를 실행하세요','error');
           return;
         }
 
@@ -982,73 +896,56 @@
 
         const valueInputOption = $('#valueInputOption').value;
 
-        // 1) incoming: DEL 키로만 병합 (중복이면 최신 이벤트/상태/파일순)
-        const incoming = new Map(); // delKey -> {bn, seq, deKey, methodNorm}
+        // 1) incoming: delKey로 1개(최신)로 합치기
+        const incoming = new Map(); // delKey -> {bn, seq}
         let seq = 0;
         for(const r of rowsAll){
           seq++;
           const row = Array.isArray(r) ? r : [];
-
-          // 내부 index: D=3, E=4, L=11
-          const name   = row?.[3] ?? '';
-          const phone  = row?.[4] ?? '';
-          const method = row?.[11] ?? '';
-
+          const name   = row?.[3] ?? '';   // D
+          const phone  = row?.[4] ?? '';   // E
+          const method = row?.[11] ?? '';  // L
           const delKey = makeDELKey(name, phone, method);
           if(!delKey) continue;
 
           const bn = row.slice(1, 14); // B~N(13)
           while(bn.length < 13) bn.push('');
-
-          const deKey = makeDEKey(name, phone);
-          const mNorm = normMethod(method);
-
-          const cur = { bn, seq, deKey, methodNorm: mNorm };
+          const cur = { bn, seq };
           const prev = incoming.get(delKey);
           incoming.set(delKey, chooseBetterEntry(prev, cur));
         }
 
-        const keys = Array.from(incoming.keys());
-        if(!keys.length){
+        if(!incoming.size){
           toast('유효한 (D/E/L) 데이터가 없습니다','error');
           return;
         }
 
         toast('기존 시트와 비교 중...');
 
-        // 2) existing 인덱스(DEL + 보험(DE+method))
+        // 2) existing 인덱스
         const existingBN = await fetchExistingBN(spreadsheetId, sheetName);
-        const { mapDEL, mapDEMethod } = buildExistingIndexes(existingBN);
+        const { mapDELBest, mapDELAll } = buildExistingIndex(existingBN);
 
-        // 3) update vs new
         const updates = [];
         const toAppend = [];
 
-        for(const delKey of keys){
-          const entry = incoming.get(delKey);
-          const bn = entry.bn;
+        for(const [delKey, inc] of incoming.entries()){
+          const hitBest = mapDELBest.get(delKey);
+          const hitAll  = mapDELAll.get(delKey);
 
-          let hit = mapDEL.get(delKey);
-
-          // ✅ 보험: DEL이 미세하게 안 맞아도, DE 같고 methodNorm 같으면 그 행 업데이트로 처리
-          if(!hit && entry.deKey && entry.methodNorm){
-            const byMethod = mapDEMethod.get(entry.deKey);
-            if(byMethod){
-              const cand = byMethod.get(entry.methodNorm);
-              if(cand) hit = cand;
-            }
-          }
-
-          if(hit){
-            if(!sameRowBN(hit.bn, bn)){
-              updates.push({
-                range: `${sheetName}!B${hit.rowNumber}:N${hit.rowNumber}`,
-                values: [bn]
-              });
+          if(hitBest && hitAll && hitAll.length){
+            // ✅ 중복 존재하면 "전부 최신으로 업데이트" (옛날 환불/결제 남는 문제 제거)
+            for(const h of hitAll){
+              if(!sameRowBN(h.bn, inc.bn)){
+                updates.push({
+                  range: `${sheetName}!B${h.rowNumber}:N${h.rowNumber}`,
+                  values: [inc.bn]
+                });
+              }
             }
           }else{
-            // 진짜로 동일 DE+method가 없을 때만 신규 append
-            toAppend.push(bn);
+            // 진짜 없을 때만 신규
+            toAppend.push(inc.bn);
           }
         }
 
@@ -1062,23 +959,17 @@
         let updatedCnt = 0, addedCnt = 0;
 
         if(updates.length){
-          toast(`기존 ${updates.length}행 업데이트 중...`);
+          toast(`업데이트 ${updates.length}행 처리 중...`);
           updatedCnt = await batchUpdateRows(spreadsheetId, valueInputOption, updates);
         }
 
         if(toAppend.length){
           toast(`신규 ${toAppend.length}행 추가 중...(A열 무시/번호 유지)`);
-          const r = await writeNewRowsIntoEmptySlots(
-            spreadsheetId,
-            sheetName,
-            valueInputOption,
-            existingBN,
-            toAppend
-          );
+          const r = await writeNewRowsIntoEmptySlots(spreadsheetId, sheetName, valueInputOption, existingBN, toAppend);
           addedCnt = (r.filled || 0) + (r.appended || 0);
         }
 
-        toast(`완료: 업데이트 ${updatedCnt}행 / 신규추가 ${addedCnt}행`, 'ok');
+        toast(`완료: 업데이트 ${updatedCnt} / 신규추가 ${addedCnt}`,'ok');
 
       }catch(err){
         console.error(err);
