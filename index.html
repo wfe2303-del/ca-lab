@@ -354,17 +354,7 @@
         complete:(res)=>{
           let rows=Array.isArray(res.data)?res.data:[];
           rows=rows.map(r=> Array.isArray(r)?r:[r]);
-          const cnt=rows.filter(r=> r.some(c=> String(c).trim()!=='')).length;
-          if(cnt>0){ resolve(rows); return; }
-          const tryEnc=['UTF-8','EUC-KR','CP949','ISO-8859-1']; let idx=0;
-          const fr=new FileReader();
-          fr.onload=()=>{
-            const parsed=Papa.parse(String(fr.result||''),{skipEmptyLines:'greedy'});
-            let r=Array.isArray(parsed.data)?parsed.data:[]; r=r.map(x=>Array.isArray(x)?x:[x]);
-            resolve(r);
-          };
-          fr.onerror=()=>resolve([]);
-          fr.readAsText(file, tryEnc[idx]);
+          resolve(rows);
         },
         error:()=>{
           const fr=new FileReader();
@@ -574,26 +564,18 @@
     return v;
   }
 
-  // ✅ 전화번호 정규화 강화:
-  // - 숫자만 추출
-  // - 선행 0이 빠진 "10xxxxxxxxx" 형태면 "0" 붙여서 맞춤
-  // - +82 로 시작하면 국내형으로 변환 시도
   function canonPhone(s){
     let d = String(s||'').replace(/\D/g,'');
     if(!d) return '';
 
-    // +82(대한민국) 케이스 간단 보정
-    // 8210xxxxxxxx => 010xxxxxxxx
     if(d.startsWith('82') && d.length >= 11){
       const rest = d.slice(2);
-      if(rest.startsWith('10')) d = '0' + rest; // 82 10...
+      if(rest.startsWith('10')) d = '0' + rest;
     }
 
-    // 선행 0 누락 보정 (10자리인데 0으로 시작 안 하고 10으로 시작하면)
     if(d.length === 10 && !d.startsWith('0') && d.startsWith('10')){
       d = '0' + d;
     }
-    // 11자리인데 0이 없고 10으로 시작하면
     if(d.length === 11 && !d.startsWith('0') && d.startsWith('10')){
       d = '0' + d;
     }
@@ -601,15 +583,24 @@
     return d;
   }
 
-  function makeDELKey(name, phone, method){
+  // ✅ 결제금액(H)도 키에 포함: 같은 DEL이더라도 H가 다르면 다른 건으로 처리
+  function canonAmount(v){
+    const n = Math.round(Math.abs(parseMoney(v) || 0));
+    return String(n);
+  }
+
+  // ✅ 최종 키: D/E/L/H
+  function makeDELHKey(name, phone, method, amountH){
     const n = normName(name);
     const p = canonPhone(phone);
     const m = normMethod(method);
+    const a = canonAmount(amountH);
     if(!n && !p) return '';
-    return `${n}|${p}|${m}`;
+    // amount는 0이면 애매할 수 있으니, 0이면 빈값으로 두지 않고 '0' 그대로 포함 (원하면 정책 바꿔도 됨)
+    return `${n}|${p}|${m}|${a}`;
   }
 
-  // B..N(13) 인덱스 기준: D=2, E=3, I=7, K=9, L=10, N=12
+  // B..N(13) 인덱스 기준: D=2, E=3, H=6, I=7, K=9, L=10, N=12
   function getEventTimeBN(bn){
     const tPay = getTimeFromAny(bn?.[9]);
     const tRef = getTimeFromAny(bn?.[12]);
@@ -666,12 +657,10 @@
     return 1 + vals.length;
   }
 
-  // ✅ 기존 인덱스:
-  // - mapDELBest: delKey -> 대표(최신) 1개
-  // - mapDELAll : delKey -> [{rowNumber,bn}, ...]  (중복 행 전부)
+  // ✅ existing index도 DELH로 묶음 (중복이면 전부 최신으로 갱신)
   function buildExistingIndex(existingBN){
-    const mapDELBest = new Map();
-    const mapDELAll  = new Map();
+    const mapBest = new Map(); // key -> {rowNumber,bn,seq}
+    const mapAll  = new Map(); // key -> [{rowNumber,bn}...]
 
     for(let i=0;i<existingBN.length;i++){
       const bn = existingBN[i] || [];
@@ -679,27 +668,26 @@
 
       const name   = bn?.[2] ?? '';   // D
       const phone  = bn?.[3] ?? '';   // E
+      const amount = bn?.[6] ?? '';   // H
       const method = bn?.[10] ?? '';  // L
 
-      const delKey = makeDELKey(name, phone, method);
-      if(!delKey) continue;
+      const key = makeDELHKey(name, phone, method, amount);
+      if(!key) continue;
 
-      // all
-      if(!mapDELAll.has(delKey)) mapDELAll.set(delKey, []);
-      mapDELAll.get(delKey).push({ rowNumber, bn });
+      if(!mapAll.has(key)) mapAll.set(key, []);
+      mapAll.get(key).push({ rowNumber, bn });
 
-      // best
       const cur = { rowNumber, bn, seq: rowNumber };
-      const prev = mapDELBest.get(delKey);
+      const prev = mapBest.get(key);
       if(!prev){
-        mapDELBest.set(delKey, cur);
+        mapBest.set(key, cur);
       }else{
         const better = chooseBetterEntry({bn: prev.bn, seq: prev.seq}, {bn: cur.bn, seq: cur.seq});
-        if(better.seq === cur.seq) mapDELBest.set(delKey, cur);
+        if(better.seq === cur.seq) mapBest.set(key, cur);
       }
     }
 
-    return { mapDELBest, mapDELAll };
+    return { mapBest, mapAll };
   }
 
   async function batchUpdateRows(spreadsheetId, valueInputOption, updates){
@@ -717,15 +705,16 @@
     const lastNumberRow = await getLastNumberRowFromA(spreadsheetId, sheetName);
     const maxSlots = Math.max(0, lastNumberRow - 1);
 
-    // 빈 슬롯 판단: A 무시, D/E/L(BN 기준 2/3/10)로만 판단
+    // 빈 슬롯 판단: A 무시, "D/E/L"이 비었으면 빈 슬롯로 간주 (금액은 무시)
     let startSlot = maxSlots;
     for(let i=0;i<maxSlots;i++){
       const bn = existingBN[i] || [];
       const name = bn?.[2] ?? '';
       const phone = bn?.[3] ?? '';
       const method = bn?.[10] ?? '';
-      const k = makeDELKey(name, phone, method);
-      if(!k){ startSlot = i; break; }
+      const k = makeDELHKey(name, phone, method, 0); // amount는 슬롯 판정에서 의미없음
+      // name/phone이 없으면 빈 슬롯 처리
+      if(!k || k.startsWith('||')) { startSlot = i; break; }
     }
 
     let startRow = 2 + startSlot;
@@ -769,7 +758,6 @@
 
   document.addEventListener('DOMContentLoaded', ()=>{
     loadTokenFromSession();
-
     const sheetInput = $('#sheetUrl');
     if(sheetInput) sheetInput.value = FIXED_SPREADSHEET_ID;
 
@@ -869,7 +857,7 @@
       });
     }
 
-    // ✅ 전송: DEL 동일이면 "추가"가 아니라 "기존 행(들) 업데이트"
+    // ✅ 전송: 키 = D/E/L/H
     $('#btnSend').addEventListener('click', async (e)=>{
       e.preventDefault();
       try{
@@ -896,8 +884,8 @@
 
         const valueInputOption = $('#valueInputOption').value;
 
-        // 1) incoming: delKey로 1개(최신)로 합치기
-        const incoming = new Map(); // delKey -> {bn, seq}
+        // 1) incoming: key로 1개(최신)로 합치기
+        const incoming = new Map(); // key -> {bn, seq}
         let seq = 0;
         for(const r of rowsAll){
           seq++;
@@ -905,18 +893,19 @@
           const name   = row?.[3] ?? '';   // D
           const phone  = row?.[4] ?? '';   // E
           const method = row?.[11] ?? '';  // L
-          const delKey = makeDELKey(name, phone, method);
-          if(!delKey) continue;
+          const amount = row?.[7]  ?? '';  // H (결제금액)
+          const key = makeDELHKey(name, phone, method, amount);
+          if(!key) continue;
 
           const bn = row.slice(1, 14); // B~N(13)
           while(bn.length < 13) bn.push('');
           const cur = { bn, seq };
-          const prev = incoming.get(delKey);
-          incoming.set(delKey, chooseBetterEntry(prev, cur));
+          const prev = incoming.get(key);
+          incoming.set(key, chooseBetterEntry(prev, cur));
         }
 
         if(!incoming.size){
-          toast('유효한 (D/E/L) 데이터가 없습니다','error');
+          toast('유효한 (D/E/L/H) 데이터가 없습니다','error');
           return;
         }
 
@@ -924,17 +913,17 @@
 
         // 2) existing 인덱스
         const existingBN = await fetchExistingBN(spreadsheetId, sheetName);
-        const { mapDELBest, mapDELAll } = buildExistingIndex(existingBN);
+        const { mapBest, mapAll } = buildExistingIndex(existingBN);
 
         const updates = [];
         const toAppend = [];
 
-        for(const [delKey, inc] of incoming.entries()){
-          const hitBest = mapDELBest.get(delKey);
-          const hitAll  = mapDELAll.get(delKey);
+        for(const [key, inc] of incoming.entries()){
+          const hitBest = mapBest.get(key);
+          const hitAll  = mapAll.get(key);
 
           if(hitBest && hitAll && hitAll.length){
-            // ✅ 중복 존재하면 "전부 최신으로 업데이트" (옛날 환불/결제 남는 문제 제거)
+            // 동일 키가 여러 행이면 전부 최신으로 업데이트(값이 다를 때만)
             for(const h of hitAll){
               if(!sameRowBN(h.bn, inc.bn)){
                 updates.push({
@@ -944,7 +933,7 @@
               }
             }
           }else{
-            // 진짜 없을 때만 신규
+            // 키가 다르면(DEL 중 하나라도 다르거나, H가 다르면) 신규 추가
             toAppend.push(inc.bn);
           }
         }
