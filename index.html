@@ -64,11 +64,9 @@
   </style>
 </head>
 <body class="min-h-screen">
-  <!-- 상단 바 -->
   <header>
     <div class="max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
       <div class="flex items-center gap-3">
-        <!-- ClassAround 로고 -->
         <svg class="w-20 h-11" viewBox="0 0 90 50" role="img" aria-label="ClassAround">
           <rect width="90" height="50" rx="10" fill="white"/>
           <circle cx="66" cy="10" r="8" fill="#6b8bd6"/>
@@ -109,11 +107,8 @@
   </header>
 
   <main class="max-w-5xl mx-auto px-4 py-4 space-y-3">
-    <!-- 중단: 좌측 업로드 / 우측 시트 설정 + 실행 버튼 -->
     <section class="grid md:grid-cols-2 gap-3">
-      <!-- 왼쪽: CSV 업로드 패널 -->
       <div class="rounded-xl border border-slate-200 bg-white px-3 py-3 space-y-3 shadow-sm">
-        <!-- 카드 CSV -->
         <div class="space-y-1">
           <div class="flex items-center justify-between text-[12px]">
             <div class="flex items-center gap-1.5">
@@ -132,7 +127,6 @@
 
         <div class="h-px bg-slate-100 my-1"></div>
 
-        <!-- 계좌 -->
         <div class="space-y-1">
           <div class="flex items-center justify-between text-[12px]">
             <div class="flex items-center gap-1.5">
@@ -167,9 +161,7 @@
         </div>
       </div>
 
-      <!-- 오른쪽: 시트 설정 + 실행 컨트롤 -->
       <div class="rounded-xl border border-slate-200 bg-white px-3 py-3 space-y-3 shadow-sm">
-        <!-- 시트 설정 -->
         <div class="space-y-1">
           <div class="flex items-center justify-between text-[12px]">
             <div class="flex items-center gap-1.5">
@@ -179,10 +171,8 @@
           </div>
 
           <div class="space-y-1.5 mt-1">
-            <!-- 고정 시트ID (hidden) -->
             <input id="sheetUrl" type="hidden" />
 
-            <!-- 검색 + 드롭다운(datalist) -->
             <div class="grid grid-cols-3 gap-2 items-end">
               <div class="col-span-2">
                 <label class="block text-[11px] text-slate-600 mb-0.5">시트 검색</label>
@@ -205,7 +195,6 @@
 
         <div class="h-px bg-slate-100 my-1"></div>
 
-        <!-- 옵션 + 실행 버튼 -->
         <div class="space-y-2">
           <div class="flex flex-wrap items-center gap-3 text-[11px] text-slate-600">
             <label class="inline-flex items-center gap-1.5">
@@ -244,7 +233,6 @@
       </div>
     </section>
 
-    <!-- 미리보기 -->
     <section class="rounded-xl border border-slate-200 bg-white px-3 py-3 shadow-sm">
       <div class="flex items-center justify-between mb-2">
         <div class="flex items-center gap-2 text-[12px]">
@@ -439,19 +427,228 @@
     return ['A','B','C','D','E','F','G','H(결제금액)','I(상태)','J','K(결제시간)','L(결제수단)','M(환불금액)','N(환불일시)'];
   }
 
-  function processCardRows(rows, skipHeader=true){
-    const out=[]; const start=skipHeader?1:0;
-    for(let i=start;i<rows.length;i++){
-      const r=rows[i]||[];
-      if(r.length===0 || r.every(x=>String(x).trim()==='')) continue;
-      const o=ensureArrayLen(14);
-      for(let j=0;j<10;j++){ o[1+j]=r[j]??''; }
-      o[11]='신용카드';
-      o[12]= r[10] ?? o[12];
-      o[13]= r[11] ?? o[13];
-      out.push(o);
+  /* =================== UPSERT(키/정규화) 공통 =================== */
+  function normMethod(s){
+    const v = String(s||'').trim();
+    if(!v) return '';
+    if(/카드|credit|card/i.test(v)) return '신용카드';
+    if(/계좌|이체|bank|transfer/i.test(v)) return '계좌이체';
+    return v;
+  }
+
+  function canonPhone(s){
+    let d = String(s||'').replace(/\D/g,'');
+    if(!d) return '';
+    if(d.startsWith('82') && d.length >= 11){
+      const rest = d.slice(2);
+      if(rest.startsWith('10')) d = '0' + rest;
     }
-    out.sort((a,b)=> (getTimeFromAny(a[10])||Infinity) - (getTimeFromAny(b[10])||Infinity));
+    if(d.length === 10 && !d.startsWith('0') && d.startsWith('10')) d = '0' + d;
+    if(d.length === 11 && !d.startsWith('0') && d.startsWith('10')) d = '0' + d;
+    return d;
+  }
+
+  function canonAmount(v){
+    const n = Math.round(Math.abs(parseMoney(v) || 0));
+    return String(n);
+  }
+
+  // ✅ 최종 키: D/E/L/H
+  function makeDELHKey(name, phone, method, amountH){
+    const n = normName(name);
+    const p = canonPhone(phone);
+    const m = normMethod(method);
+    const a = canonAmount(amountH);
+    if(!n && !p) return '';
+    return `${n}|${p}|${m}|${a}`;
+  }
+
+  // B..N(13) 인덱스 기준: D=2, E=3, H=6, I=7, K=9, L=10, M=11, N=12
+  function getEventTimeBN(bn){
+    const tPay = getTimeFromAny(bn?.[9]);
+    const tRef = getTimeFromAny(bn?.[12]);
+    const a = isNaN(tPay) ? -Infinity : tPay;
+    const b = isNaN(tRef) ? -Infinity : tRef;
+    return Math.max(a, b);
+  }
+
+  function refundLikeBN(bn){
+    const s = String(bn?.[7] ?? '').trim();                 // I(결제상태)
+    const refundAmt = Math.abs(parseMoney(bn?.[11] ?? '')); // M(환불금액)
+    const refT = String(bn?.[12] ?? '').trim();             // N(환불일시)
+    return /환불/.test(s) || refundAmt > 0 || !!refT;
+  }
+
+  // ✅ 환불 상태인데 CSV가 M/N을 비워서 보내면 기존 환불값 보존
+  function mergeBNForUpdate(existingBN, incomingBN){
+    const out = (incomingBN || []).slice();
+    if(refundLikeBN(incomingBN)){
+      const mEmpty = String(out[11] ?? '').trim() === '';
+      const nEmpty = String(out[12] ?? '').trim() === '';
+      if(mEmpty) out[11] = existingBN?.[11] ?? '';
+      if(nEmpty) out[12] = existingBN?.[12] ?? '';
+    }
+    return out;
+  }
+
+  function sameRowBN(a,b){
+    const A = (a||[]), B=(b||[]);
+    for(let i=0;i<13;i++){
+      if(String(A[i] ?? '') !== String(B[i] ?? '')) return false;
+    }
+    return true;
+  }
+
+  /* =================== (중요) 카드: DELH 동일이면 "계좌이체 규칙"으로 합치기 =================== */
+  // - DELH 키 기준으로 하나로 합침
+  // - 환불총액(M) 기준:
+  //    refund=0 -> 결제완료 (M,N 비움)
+  //    refund==H -> 환불됨
+  //    0<refund<H -> 부분환불
+  // - 시간:
+  //    결제시간(K)=가장 최근 결제시간
+  //    환불일시(N)=가장 최근 환불일시
+  function makeCardRows(cardCsv, skipHeader=true){
+    const start = skipHeader ? 1 : 0;
+    const rawRows14 = [];
+
+    for(let i=start;i<cardCsv.length;i++){
+      const r = cardCsv[i] || [];
+      if(r.length===0 || r.every(x=>String(x).trim()==='')) continue;
+
+      // 기존 매핑 그대로 사용(당신이 쓰던 포맷 가정)
+      // B~K(10개) = r[0..9]
+      // L=신용카드
+      // M=r[10], N=r[11]
+      const o = ensureArrayLen(14);
+      for(let j=0;j<10;j++){ o[1+j] = r[j] ?? ''; }
+      o[11] = '신용카드';
+      o[12] = r[10] ?? '';
+      o[13] = r[11] ?? '';
+      rawRows14.push(o);
+    }
+
+    // 그룹핑
+    const groups = new Map(); // key -> { sample14, payTimes[], refundTimes[], maxRefund, maxRefundTime, lastRow14, lastEventTime, lastSeq, amountH }
+    let seq = 0;
+    for(const row14 of rawRows14){
+      seq++;
+
+      const name   = row14?.[3]  ?? ''; // D
+      const phone  = row14?.[4]  ?? ''; // E
+      const method = row14?.[11] ?? ''; // L
+      const amount = row14?.[7]  ?? ''; // H
+      const key = makeDELHKey(name, phone, method, amount);
+      if(!key) continue;
+
+      const bn = row14.slice(1, 14); // B~N
+      while(bn.length < 13) bn.push('');
+
+      const payT = getTimeFromAny(bn[9]);
+      const refT = getTimeFromAny(bn[12]);
+      const eventT = Math.max(isNaN(payT)?-Infinity:payT, isNaN(refT)?-Infinity:refT);
+
+      const isRefund = refundLikeBN(bn);
+      const refundAmtRaw = Math.abs(parseMoney(bn[11] ?? ''));
+      const paymentAmt = Math.abs(parseMoney(bn[6] ?? '')); // H
+
+      let g = groups.get(key);
+      if(!g){
+        g = {
+          key,
+          amountH: paymentAmt,
+          sample14: row14,
+          payTimes: [],
+          refundTimes: [],
+          maxRefund: 0,
+          maxRefundTime: -Infinity,
+          lastRow14: row14,
+          lastEventTime: eventT,
+          lastSeq: seq
+        };
+        groups.set(key, g);
+      }
+
+      // 최신 row(주문명 등 최신값 유지용)
+      if(eventT > g.lastEventTime || (eventT === g.lastEventTime && seq > g.lastSeq)){
+        g.lastRow14 = row14;
+        g.lastEventTime = eventT;
+        g.lastSeq = seq;
+      }
+
+      if(!isNaN(payT) && payT > -Infinity) g.payTimes.push(payT);
+      if(!isNaN(refT) && refT > -Infinity) {
+        g.refundTimes.push(refT);
+        if(refT > g.maxRefundTime) g.maxRefundTime = refT;
+      }
+
+      // 환불총액은 "최대값"으로 잡음(대부분 카드 CSV가 이미 총계를 들고 있음)
+      // (여기서 sum으로 합치면, 같은 키로 여러 결제(재결제)가 있을 때 망가질 수 있어서 max 사용)
+      if(isRefund){
+        const effRefund = refundAmtRaw > 0 ? refundAmtRaw : paymentAmt;
+        if(effRefund > g.maxRefund) g.maxRefund = effRefund;
+      }
+    }
+
+    const out = [];
+
+    for(const g of groups.values()){
+      const base = (g.lastRow14 || g.sample14 || ensureArrayLen(14)).slice();
+
+      // 결제시간: 가장 최근 결제시간
+      let payTimeStr = base[10] ?? '';
+      if(g.payTimes.length){
+        const mx = Math.max(...g.payTimes);
+        // 원본 문자열을 완벽히 복원하기 어렵기 때문에, base의 K가 빈값이면 Date로 포맷
+        if(!String(payTimeStr).trim()){
+          const d = new Date(mx);
+          payTimeStr = `${d.getFullYear()}. ${d.getMonth()+1}. ${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+        }
+      }
+
+      // 환불일시: 가장 최근 환불일시(있으면)
+      let refundTimeStr = base[13] ?? '';
+      if(g.maxRefundTime > -Infinity){
+        if(!String(refundTimeStr).trim()){
+          const d = new Date(g.maxRefundTime);
+          refundTimeStr = `${d.getFullYear()}. ${d.getMonth()+1}. ${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+        }
+      }
+
+      const H = Math.abs(parseMoney(base[7] ?? '')) || g.amountH || 0;
+      const refund = Math.round(Math.abs(g.maxRefund || 0));
+      const pay = Math.round(Math.abs(H || 0));
+
+      let status = '결제완료';
+      let refundAmtOut = '';
+      let refundTimeOut = '';
+
+      if(refund > 0){
+        if(refund >= pay){
+          status = '환불됨';
+          refundAmtOut = pay ? pay : refund;
+          refundTimeOut = refundTimeStr || base[13] || '';
+        }else{
+          status = '부분환불';
+          refundAmtOut = refund;
+          refundTimeOut = refundTimeStr || base[13] || '';
+        }
+      }else{
+        status = '결제완료';
+        refundAmtOut = '';
+        refundTimeOut = '';
+      }
+
+      base[10] = payTimeStr || base[10] || '';
+      base[8]  = status;
+      base[12] = refundAmtOut;
+      base[13] = refundTimeOut;
+
+      out.push(base);
+    }
+
+    // 최종 정렬: 결제시간(K) 기준 오름차순
+    out.sort((a,b)=> (getTimeFromAny(a?.[10])||Infinity) - (getTimeFromAny(b?.[10])||Infinity));
     return out;
   }
 
@@ -537,13 +734,13 @@
       if (!g.sales.length) continue;
 
       const saleSum   = g.sales.reduce((s, x) => s + (x.amt || 0), 0);
-      const refundSum = g.refunds.reduce((s, x) => s + (x.amt || 0), 0);
+      const refundSum = g.refunds.reduce((s, x) => s + (x.amt || 0), 0); // 음수
       const net       = saleSum + refundSum;
       const refundAmount = -refundSum || 0;
 
       let refundDate = '';
       if (g.refunds.length) {
-        g.refunds.sort((a, b) => (getTimeFromAny(a.when) || 0) - (getTimeFromAny(a.when) || 0));
+        g.refunds.sort((a, b) => (getTimeFromAny(a.when) || 0) - (getTimeFromAny(b.when) || 0));
         refundDate = g.refunds[g.refunds.length - 1].when || '';
       }
 
@@ -579,7 +776,10 @@
   /* =================== 빌드 & 프리뷰 =================== */
   function buildFinalRows(){
     const header=buildHeader();
-    const card = csvCard.length ? processCardRows(csvCard, $('#headCard').checked) : [];
+
+    // ✅ 카드도 DELH 기준으로 "계좌이체 규칙" 적용해서 1개로 합침
+    const card = csvCard.length ? makeCardRows(csvCard, $('#headCard').checked) : [];
+
     const bank = csvTickets.length ? makeBankRows(csvTickets, csvResp, $('#headTicket').checked, $('#headResp').checked) : [];
     parsedRows=[header, ...card, ...bank];
     $('#optHasHeader').checked=true;
@@ -620,100 +820,7 @@
     $('#summary').textContent=`열 ${colCount} · 데이터 행 ${bodyRows}`;
   }
 
-  /* =================== UPSERT (핵심) =================== */
-  function normMethod(s){
-    const v = String(s||'').trim();
-    if(!v) return '';
-    if(/카드|credit|card/i.test(v)) return '신용카드';
-    if(/계좌|이체|bank|transfer/i.test(v)) return '계좌이체';
-    return v;
-  }
-
-  function canonPhone(s){
-    let d = String(s||'').replace(/\D/g,'');
-    if(!d) return '';
-
-    if(d.startsWith('82') && d.length >= 11){
-      const rest = d.slice(2);
-      if(rest.startsWith('10')) d = '0' + rest;
-    }
-
-    if(d.length === 10 && !d.startsWith('0') && d.startsWith('10')){
-      d = '0' + d;
-    }
-    if(d.length === 11 && !d.startsWith('0') && d.startsWith('10')){
-      d = '0' + d;
-    }
-    return d;
-  }
-
-  function canonAmount(v){
-    const n = Math.round(Math.abs(parseMoney(v) || 0));
-    return String(n);
-  }
-
-  // ✅ 최종 키: D/E/L/H
-  function makeDELHKey(name, phone, method, amountH){
-    const n = normName(name);
-    const p = canonPhone(phone);
-    const m = normMethod(method);
-    const a = canonAmount(amountH);
-    if(!n && !p) return '';
-    return `${n}|${p}|${m}|${a}`;
-  }
-
-  // B..N(13) 인덱스 기준: D=2, E=3, H=6, I=7, K=9, L=10, M=11, N=12
-  function getEventTimeBN(bn){
-    const tPay = getTimeFromAny(bn?.[9]);
-    const tRef = getTimeFromAny(bn?.[12]);
-    const a = isNaN(tPay) ? -Infinity : tPay;
-    const b = isNaN(tRef) ? -Infinity : tRef;
-    return Math.max(a, b);
-  }
-
-  // ✅ 환불 판단: 상태에 '환불' 또는 환불금액(M) > 0
-  function refundLikeBN(bn){
-    const s = String(bn?.[7] ?? '').trim();       // I(결제상태)
-    const refundAmt = Math.abs(parseMoney(bn?.[11] ?? '')); // M(환불금액)
-    return /환불/.test(s) || refundAmt > 0;
-  }
-
-  // ✅ 환불 상태인데 CSV가 M/N을 비워서 보내면 기존 환불값 보존
-  function mergeBNForUpdate(existingBN, incomingBN){
-    const out = (incomingBN || []).slice();
-    if(refundLikeBN(incomingBN)){
-      const mEmpty = String(out[11] ?? '').trim() === '';
-      const nEmpty = String(out[12] ?? '').trim() === '';
-      if(mEmpty) out[11] = existingBN?.[11] ?? '';
-      if(nEmpty) out[12] = existingBN?.[12] ?? '';
-    }
-    return out;
-  }
-
-  function chooseBetterEntry(prev, cur){
-    if(!prev) return cur;
-    if(!cur) return prev;
-
-    const ep = getEventTimeBN(prev.bn);
-    const ec = getEventTimeBN(cur.bn);
-    if(ep !== ec) return (ec > ep) ? cur : prev;
-
-    // ✅ 동률이면 환불 상태를 더 우선 (결제완료가 환불됨을 덮는 문제 방지)
-    const rp = refundLikeBN(prev.bn);
-    const rc = refundLikeBN(cur.bn);
-    if(rp !== rc) return rc ? cur : prev;
-
-    return (cur.seq > prev.seq) ? cur : prev;
-  }
-
-  function sameRowBN(a,b){
-    const A = (a||[]), B=(b||[]);
-    for(let i=0;i<13;i++){
-      if(String(A[i] ?? '') !== String(B[i] ?? '')) return false;
-    }
-    return true;
-  }
-
+  /* =================== 시트 읽기/쓰기 (A열 무시) =================== */
   async function fetchExistingBN(spreadsheetId, sheetName){
     const res = await gapi.client.sheets.spreadsheets.values.get({
       spreadsheetId,
@@ -734,7 +841,6 @@
   }
 
   function buildExistingIndex(existingBN){
-    const mapBest = new Map(); // key -> {rowNumber,bn,seq}
     const mapAll  = new Map(); // key -> [{rowNumber,bn}...]
 
     for(let i=0;i<existingBN.length;i++){
@@ -751,12 +857,8 @@
 
       if(!mapAll.has(key)) mapAll.set(key, []);
       mapAll.get(key).push({ rowNumber, bn });
-
-      const cur = { rowNumber, bn, seq: rowNumber };
-      const prev = mapBest.get(key);
-      mapBest.set(key, chooseBetterEntry(prev, cur));
     }
-    return { mapBest, mapAll };
+    return { mapAll };
   }
 
   async function batchUpdateRows(spreadsheetId, valueInputOption, updates){
@@ -928,7 +1030,7 @@
       });
     }
 
-    // ✅ 전송: 키 = D/E/L/H, 환불 우선 + 환불 M/N 누락 시 기존 값 보존
+    // 전송: 키 = D/E/L/H
     $('#btnSend').addEventListener('click', async (e)=>{
       e.preventDefault();
       try{
@@ -955,24 +1057,20 @@
 
         const valueInputOption = $('#valueInputOption').value;
 
-        // 1) incoming: key로 1개(최신)로 합치기
-        const incoming = new Map(); // key -> {bn, seq}
-        let seq = 0;
-        for(const r of rowsAll){
-          seq++;
-          const row = Array.isArray(r) ? r : [];
-          const name   = row?.[3] ?? '';   // D
-          const phone  = row?.[4] ?? '';   // E
-          const method = row?.[11] ?? '';  // L
-          const amount = row?.[7]  ?? '';  // H
+        // 1) incoming: key로 1개(이미 카드 쪽은 합쳐져 있음)
+        const incoming = new Map(); // key -> bn
+        for(const row14 of rowsAll){
+          const row = Array.isArray(row14) ? row14 : [];
+          const name   = row?.[3] ?? '';
+          const phone  = row?.[4] ?? '';
+          const method = row?.[11] ?? '';
+          const amount = row?.[7] ?? '';
           const key = makeDELHKey(name, phone, method, amount);
           if(!key) continue;
 
           const bn = row.slice(1, 14); // B~N(13)
           while(bn.length < 13) bn.push('');
-          const cur = { bn, seq };
-          const prev = incoming.get(key);
-          incoming.set(key, chooseBetterEntry(prev, cur));
+          incoming.set(key, bn);
         }
 
         if(!incoming.size){
@@ -989,13 +1087,12 @@
         const updates = [];
         const toAppend = [];
 
-        for(const [key, inc] of incoming.entries()){
+        for(const [key, bnNew] of incoming.entries()){
           const hitAll = mapAll.get(key);
 
           if(hitAll && hitAll.length){
-            // 동일 키가 여러 행이면 전부 최신으로 업데이트(값이 다를 때만)
             for(const h of hitAll){
-              const merged = mergeBNForUpdate(h.bn, inc.bn);
+              const merged = mergeBNForUpdate(h.bn, bnNew);
               if(!sameRowBN(h.bn, merged)){
                 updates.push({
                   range: `${sheetName}!B${h.rowNumber}:N${h.rowNumber}`,
@@ -1004,7 +1101,7 @@
               }
             }
           }else{
-            toAppend.push(inc.bn);
+            toAppend.push(bnNew);
           }
         }
 
@@ -1038,7 +1135,6 @@
       }
     });
 
-    // 상단 Google 인증 버튼
     $('#btnAuthRefresh').addEventListener('click', (e)=>{
       e.preventDefault();
       initGoogleAuth();
