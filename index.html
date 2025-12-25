@@ -19,1142 +19,1008 @@
       color:#0f172a;
       font:13px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial;
     }
-    header{
-      background:#ffffff;
-      border-bottom:1px solid #e2e8f0;
-    }
+    header{ background:#fff; border-bottom:1px solid #e2e8f0; }
     .toast{
-      position:fixed;
-      right:14px;
-      bottom:14px;
-      padding:8px 12px;
-      border-radius:999px;
-      background:#0f172a;
-      color:#fff;
-      opacity:0;
+      position:fixed; right:14px; bottom:14px;
+      padding:8px 12px; border-radius:999px;
+      background:#0f172a; color:#fff; opacity:0;
       box-shadow:0 6px 20px rgba(15,23,42,.35);
-      z-index:1000;
-      font-size:12px;
+      z-index:1000; font-size:12px;
       transform:translateY(8px);
       pointer-events:none;
       transition:.22s;
     }
-    .toast.show{
-      opacity:.97;
-      transform:translateY(0);
-      pointer-events:auto;
-    }
+    .toast.show{ opacity:.97; transform:translateY(0); pointer-events:auto; }
     .scroll-xy{overflow:auto}
     table.preview{border-collapse:collapse;width:100%}
     table.preview td,table.preview th{
-      border:1px solid #e2e8f0;
-      padding:4px 6px;
-      white-space:nowrap;
-      font-size:11px;
+      border:1px solid #e2e8f0; padding:4px 6px;
+      white-space:nowrap; font-size:11px;
     }
     table.preview th{
-      background:#eff6ff;
-      position:sticky;
-      top:0;
-      z-index:1;
-      color:#1e293b;
+      background:#eff6ff; position:sticky; top:0; z-index:1; color:#1e293b;
     }
     .invalid{background:#fef2f2;color:#b91c1c}
-    .fname{display:none;} /* 아래 회색 파일명 숨김 */
+    .fname{display:none;}
   </style>
 </head>
 <body class="min-h-screen">
-  <header>
-    <div class="max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
-      <div class="flex items-center gap-3">
-        <svg class="w-20 h-11" viewBox="0 0 90 50" role="img" aria-label="ClassAround">
-          <rect width="90" height="50" rx="10" fill="white"/>
-          <circle cx="66" cy="10" r="8" fill="#6b8bd6"/>
-          <circle cx="80" cy="18" r="5" fill="#ef4444"/>
-          <text x="8" y="24"
-                style="font-family:'Nunito','Arial Rounded MT','SF Pro Rounded','Quicksand','Pretendard','Noto Sans KR',sans-serif;
-                       font-weight:900; letter-spacing:-0.2px; fill:#0f172a; font-size:18px;
-                       paint-order:stroke fill; stroke:#0f172a; stroke-width:.9px;">
-            Class
-          </text>
-          <text x="8" y="42"
-                style="font-family:'Nunito','Arial Rounded MT','SF Pro Rounded','Quicksand','Pretendard','Noto Sans KR',sans-serif;
-                       font-weight:900; letter-spacing:-0.2px; fill:#0f172a; font-size:18px;
-                       paint-order:stroke fill; stroke:#0f172a; stroke-width:.9px;">
-            Around
-          </text>
-        </svg>
-        <div class="flex flex-col">
-          <span class="text-xs md:text-sm font-bold text-slate-900">수강생 시트 업데이트</span>
-        </div>
-      </div>
-      <div class="flex items-center gap-2 md:gap-3 text-[11px]">
-        <div class="flex items-center gap-1">
-          <span id="authStateDot" class="inline-block w-2 h-2 rounded-full bg-slate-300"></span>
-          <span id="authState" class="text-slate-500">Google 시트 연동 준비 중</span>
-        </div>
-        <button id="btnAuthRefresh"
-                type="button"
-                class="px-2.5 py-1 rounded-full border border-sky-500 bg-white text-sky-600 hover:bg-sky-50 text-[11px]">
-          Google 인증
-        </button>
-        <a href="index.html"
-           class="px-2.5 py-1 rounded-full border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[11px]">
-          메인으로
-        </a>
+<header>
+  <div class="max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
+    <div class="flex items-center gap-3">
+      <svg class="w-20 h-11" viewBox="0 0 90 50" role="img" aria-label="ClassAround">
+        <rect width="90" height="50" rx="10" fill="white"/>
+        <circle cx="66" cy="10" r="8" fill="#6b8bd6"/>
+        <circle cx="80" cy="18" r="5" fill="#ef4444"/>
+        <text x="8" y="24"
+              style="font-family:'Nunito','Arial Rounded MT','SF Pro Rounded','Quicksand','Pretendard','Noto Sans KR',sans-serif;
+                     font-weight:900; letter-spacing:-0.2px; fill:#0f172a; font-size:18px;
+                     paint-order:stroke fill; stroke:#0f172a; stroke-width:.9px;">Class</text>
+        <text x="8" y="42"
+              style="font-family:'Nunito','Arial Rounded MT','SF Pro Rounded','Quicksand','Pretendard','Noto Sans KR',sans-serif;
+                     font-weight:900; letter-spacing:-0.2px; fill:#0f172a; font-size:18px;
+                     paint-order:stroke fill; stroke:#0f172a; stroke-width:.9px;">Around</text>
+      </svg>
+      <div class="flex flex-col">
+        <span class="text-xs md:text-sm font-bold text-slate-900">수강생 시트 업데이트</span>
       </div>
     </div>
-  </header>
+    <div class="flex items-center gap-2 md:gap-3 text-[11px]">
+      <div class="flex items-center gap-1">
+        <span id="authStateDot" class="inline-block w-2 h-2 rounded-full bg-slate-300"></span>
+        <span id="authState" class="text-slate-500">Google 시트 연동 준비 중</span>
+      </div>
+      <button id="btnAuthRefresh" type="button"
+              class="px-2.5 py-1 rounded-full border border-sky-500 bg-white text-sky-600 hover:bg-sky-50 text-[11px]">
+        Google 인증
+      </button>
+      <a href="index.html"
+         class="px-2.5 py-1 rounded-full border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 text-[11px]">
+        메인으로
+      </a>
+    </div>
+  </div>
+</header>
 
-  <main class="max-w-5xl mx-auto px-4 py-4 space-y-3">
-    <section class="grid md:grid-cols-2 gap-3">
-      <div class="rounded-xl border border-slate-200 bg-white px-3 py-3 space-y-3 shadow-sm">
-        <div class="space-y-1">
-          <div class="flex items-center justify-between text-[12px]">
-            <div class="flex items-center gap-1.5">
-              <span>💳</span>
-              <span class="font-semibold text-slate-900">카드결제</span>
-            </div>
-          </div>
-          <input id="csvCard" type="file" accept="text/csv,.csv"
-                 class="block w-full text-[12px] cursor-pointer bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 file:mr-2 file:px-2 file:py-1 file:rounded-md file:border-0 file:bg-slate-100 file:text-[11px] file:text-slate-700 file:cursor-pointer" />
-          <div id="nameCard" class="fname"></div>
-          <label class="inline-flex items-center gap-1.5 text-[11px] mt-0.5 text-slate-600">
-            <input type="checkbox" id="headCard" class="accent-blue-600" checked />
-            헤더
-          </label>
-        </div>
-
-        <div class="h-px bg-slate-100 my-1"></div>
-
-        <div class="space-y-1">
-          <div class="flex items-center justify-between text-[12px]">
-            <div class="flex items-center gap-1.5">
-              <span>🏦</span>
-              <span class="font-semibold text-slate-900">계좌이체</span>
-            </div>
-          </div>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
-            <div class="space-y-1">
-              <label class="text-[11px] text-slate-600">입출금 원장</label>
-              <input id="csvTicket" type="file" accept="text/csv,.csv"
-                     class="block w-full text-[12px] cursor-pointer bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 file:mr-2 file:px-2 file:py-1 file:rounded-md file:border-0 file:bg-slate-100 file:text-[11px] file:text-slate-700 file:cursor-pointer" />
-              <div id="nameTicket" class="fname"></div>
-              <label class="inline-flex items-center gap-1.5 text-[11px] mt-0.5 text-slate-600">
-                <input type="checkbox" id="headTicket" class="accent-blue-600" checked />
-                헤더
-              </label>
-            </div>
-
-            <div class="space-y-1">
-              <label class="text-[11px] text-slate-600">신청/응답</label>
-              <input id="csvResp" type="file" accept="text/csv,.csv"
-                     class="block w-full text-[12px] cursor-pointer bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 file:mr-2 file:px-2 file:py-1 file:rounded-md file:border-0 file:bg-slate-100 file:text-[11px] file:text-slate-700 file:cursor-pointer" />
-              <div id="nameResp" class="fname"></div>
-              <label class="inline-flex items-center gap-1.5 text-[11px] mt-0.5 text-slate-600">
-                <input type="checkbox" id="headResp" class="accent-blue-600" checked />
-                헤더
-              </label>
-            </div>
+<main class="max-w-5xl mx-auto px-4 py-4 space-y-3">
+  <section class="grid md:grid-cols-2 gap-3">
+    <div class="rounded-xl border border-slate-200 bg-white px-3 py-3 space-y-3 shadow-sm">
+      <div class="space-y-1">
+        <div class="flex items-center justify-between text-[12px]">
+          <div class="flex items-center gap-1.5">
+            <span>💳</span>
+            <span class="font-semibold text-slate-900">카드결제</span>
           </div>
         </div>
+        <input id="csvCard" type="file" accept="text/csv,.csv"
+               class="block w-full text-[12px] cursor-pointer bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 file:mr-2 file:px-2 file:py-1 file:rounded-md file:border-0 file:bg-slate-100 file:text-[11px] file:text-slate-700 file:cursor-pointer" />
+        <div id="nameCard" class="fname"></div>
+        <label class="inline-flex items-center gap-1.5 text-[11px] mt-0.5 text-slate-600">
+          <input type="checkbox" id="headCard" class="accent-blue-600" checked />
+          헤더
+        </label>
       </div>
 
-      <div class="rounded-xl border border-slate-200 bg-white px-3 py-3 space-y-3 shadow-sm">
-        <div class="space-y-1">
-          <div class="flex items-center justify-between text-[12px]">
-            <div class="flex items-center gap-1.5">
-              <span>📄</span>
-              <span class="font-semibold text-slate-900">시트 설정</span>
-            </div>
-          </div>
+      <div class="h-px bg-slate-100 my-1"></div>
 
-          <div class="space-y-1.5 mt-1">
-            <input id="sheetUrl" type="hidden" />
-
-            <div class="grid grid-cols-3 gap-2 items-end">
-              <div class="col-span-2">
-                <label class="block text-[11px] text-slate-600 mb-0.5">시트 검색</label>
-                <input id="sheetSearch"
-                       list="sheetList"
-                       type="text"
-                       class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-[12px]"
-                       placeholder="시트 이름 입력 후 드롭다운에서 선택" />
-                <datalist id="sheetList"></datalist>
-              </div>
-              <div>
-                <button id="btnLoadSheets" type="button"
-                        class="w-full text-[11px] px-2.5 py-1.5 rounded-full border border-blue-500 bg-white text-blue-600 hover:bg-blue-50">
-                  불러오기
-                </button>
-              </div>
-            </div>
+      <div class="space-y-1">
+        <div class="flex items-center justify-between text-[12px]">
+          <div class="flex items-center gap-1.5">
+            <span>🏦</span>
+            <span class="font-semibold text-slate-900">계좌이체</span>
           </div>
         </div>
 
-        <div class="h-px bg-slate-100 my-1"></div>
-
-        <div class="space-y-2">
-          <div class="flex flex-wrap items-center gap-3 text-[11px] text-slate-600">
-            <label class="inline-flex items-center gap-1.5">
-              <input type="checkbox" id="optHasHeader" class="accent-blue-600" checked />
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+          <div class="space-y-1">
+            <label class="text-[11px] text-slate-600">입출금 원장</label>
+            <input id="csvTicket" type="file" accept="text/csv,.csv"
+                   class="block w-full text-[12px] cursor-pointer bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 file:mr-2 file:px-2 file:py-1 file:rounded-md file:border-0 file:bg-slate-100 file:text-[11px] file:text-slate-700 file:cursor-pointer" />
+            <div id="nameTicket" class="fname"></div>
+            <label class="inline-flex items-center gap-1.5 text-[11px] mt-0.5 text-slate-600">
+              <input type="checkbox" id="headTicket" class="accent-blue-600" checked />
               헤더
             </label>
-            <label class="inline-flex items-center gap-1.5">
-              <input type="checkbox" id="optMaskPhone" class="accent-blue-600" />
-              전화번호 마스킹
+          </div>
+
+          <div class="space-y-1">
+            <label class="text-[11px] text-slate-600">신청/응답</label>
+            <input id="csvResp" type="file" accept="text/csv,.csv"
+                   class="block w-full text-[12px] cursor-pointer bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 file:mr-2 file:px-2 file:py-1 file:rounded-md file:border-0 file:bg-slate-100 file:text-[11px] file:text-slate-700 file:cursor-pointer" />
+            <div id="nameResp" class="fname"></div>
+            <label class="inline-flex items-center gap-1.5 text-[11px] mt-0.5 text-slate-600">
+              <input type="checkbox" id="headResp" class="accent-blue-600" checked />
+              헤더
             </label>
-            <div class="flex items-center gap-1">
-              <span class="text-slate-500">값 입력 방식</span>
-              <select id="valueInputOption"
-                      class="bg-white border border-slate-300 rounded-md px-2 py-1 text-[11px]">
-                <option value="USER_ENTERED">USER_ENTERED</option>
-                <option value="RAW">RAW</option>
-              </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="rounded-xl border border-slate-200 bg-white px-3 py-3 space-y-3 shadow-sm">
+      <div class="space-y-1">
+        <div class="flex items-center justify-between text-[12px]">
+          <div class="flex items-center gap-1.5">
+            <span>📄</span>
+            <span class="font-semibold text-slate-900">시트 설정</span>
+          </div>
+        </div>
+
+        <div class="space-y-1.5 mt-1">
+          <input id="sheetUrl" type="hidden" />
+          <div class="grid grid-cols-3 gap-2 items-end">
+            <div class="col-span-2">
+              <label class="block text-[11px] text-slate-600 mb-0.5">시트 검색</label>
+              <input id="sheetSearch"
+                     list="sheetList"
+                     type="text"
+                     class="w-full bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-[12px]"
+                     placeholder="시트 이름 입력 후 드롭다운에서 선택" />
+              <datalist id="sheetList"></datalist>
+            </div>
+            <div>
+              <button id="btnLoadSheets" type="button"
+                      class="w-full text-[11px] px-2.5 py-1.5 rounded-full border border-blue-500 bg-white text-blue-600 hover:bg-blue-50">
+                불러오기
+              </button>
             </div>
           </div>
+        </div>
+      </div>
 
-          <div class="flex flex-wrap items-center gap-2">
-            <button id="btnPreviewCsv" type="button"
-                    class="px-3 py-1.5 rounded-full bg-blue-600 text-white text-[12px] font-medium hover:bg-blue-700 shadow-sm">
-              미리보기
-            </button>
-            <button id="btnClear" type="button"
-                    class="px-3 py-1.5 rounded-full border border-slate-300 bg-white text-slate-700 text-[12px] hover:bg-slate-50">
-              초기화
-            </button>
-            <button id="btnSend" type="button"
-                    class="px-3 py-1.5 rounded-full bg-red-500 text-white text-[12px] font-semibold hover:bg-red-600 shadow-sm">
-              시트로 전송
-            </button>
+      <div class="h-px bg-slate-100 my-1"></div>
+
+      <div class="space-y-2">
+        <div class="flex flex-wrap items-center gap-3 text-[11px] text-slate-600">
+          <label class="inline-flex items-center gap-1.5">
+            <input type="checkbox" id="optHasHeader" class="accent-blue-600" checked />
+            헤더
+          </label>
+          <label class="inline-flex items-center gap-1.5">
+            <input type="checkbox" id="optMaskPhone" class="accent-blue-600" />
+            전화번호 마스킹
+          </label>
+          <div class="flex items-center gap-1">
+            <span class="text-slate-500">값 입력 방식</span>
+            <select id="valueInputOption"
+                    class="bg-white border border-slate-300 rounded-md px-2 py-1 text-[11px]">
+              <option value="USER_ENTERED">USER_ENTERED</option>
+              <option value="RAW">RAW</option>
+            </select>
           </div>
         </div>
-      </div>
-    </section>
 
-    <section class="rounded-xl border border-slate-200 bg-white px-3 py-3 shadow-sm">
-      <div class="flex items-center justify-between mb-2">
-        <div class="flex items-center gap-2 text-[12px]">
-          <span>👀</span>
-          <span class="font-semibold text-slate-900">시트 미리보기</span>
+        <div class="flex flex-wrap items-center gap-2">
+          <button id="btnPreviewCsv" type="button"
+                  class="px-3 py-1.5 rounded-full bg-blue-600 text-white text-[12px] font-medium hover:bg-blue-700 shadow-sm">
+            미리보기
+          </button>
+          <button id="btnClear" type="button"
+                  class="px-3 py-1.5 rounded-full border border-slate-300 bg-white text-slate-700 text-[12px] hover:bg-slate-50">
+            초기화
+          </button>
+          <button id="btnSend" type="button"
+                  class="px-3 py-1.5 rounded-full bg-red-500 text-white text-[12px] font-semibold hover:bg-red-600 shadow-sm">
+            시트로 전송
+          </button>
         </div>
-        <div id="summary" class="text-[11px] text-slate-500"></div>
       </div>
-      <div class="scroll-xy" style="max-height: 420px;">
-        <table id="previewTable" class="preview"></table>
+    </div>
+  </section>
+
+  <section class="rounded-xl border border-slate-200 bg-white px-3 py-3 shadow-sm">
+    <div class="flex items-center justify-between mb-2">
+      <div class="flex items-center gap-2 text-[12px]">
+        <span>👀</span>
+        <span class="font-semibold text-slate-900">시트 미리보기</span>
       </div>
-    </section>
-  </main>
+      <div id="summary" class="text-[11px] text-slate-500"></div>
+    </div>
+    <div class="scroll-xy" style="max-height: 420px;">
+      <table id="previewTable" class="preview"></table>
+    </div>
+  </section>
+</main>
 
-  <div id="toast" class="toast"></div>
+<div id="toast" class="toast"></div>
 
-  <script>
-  /* =================== 기본 설정 =================== */
-  const OAUTH_CLIENT_ID = "18228268359-iifm4ck3j9kqj74eh1p90tco1k2mbpi0.apps.googleusercontent.com";
-  const OAUTH_SCOPES   = "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly";
-  const FIXED_SPREADSHEET_ID = "1qclrbo3_VG-sSNIqMW4j1juzwP3nq_ZaT-y1z6WLafc";
+<script>
+/* =================== 기본 설정 =================== */
+const OAUTH_CLIENT_ID = "18228268359-iifm4ck3j9kqj74eh1p90tco1k2mbpi0.apps.googleusercontent.com";
+const OAUTH_SCOPES   = "https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.readonly";
+const FIXED_SPREADSHEET_ID = "1qclrbo3_VG-sSNIqMW4j1juzwP3nq_ZaT-y1z6WLafc";
 
-  let tokenClient = null;
-  let accessToken = null;
+let tokenClient = null;
+let accessToken = null;
 
-  let parsedRows=[];               // 헤더+본체 (내부 14열 A~N)
-  let csvCard=[], csvTickets=[], csvResp=[];
-  let allSheetTitles = [];
-  let currentSheetName = "";
+let parsedRows=[]; // 내부 14열 A~N
+let csvCard=[], csvTickets=[], csvResp=[];
+let allSheetTitles = [];
+let currentSheetName = "";
 
-  const $ = (q)=>document.querySelector(q);
-  const toast = (msg, type="info")=>{
-    const el=$("#toast"); if(!el) return;
-    el.textContent=msg;
-    el.classList.add("show");
-    if(type==='error') el.style.background='#b91c1c';
-    else if(type==='ok') el.style.background='#15803d';
-    else el.style.background='#0f172a';
-    setTimeout(()=> el.classList.remove("show"), 2600);
-  };
+const $ = (q)=>document.querySelector(q);
+const toast = (msg, type="info")=>{
+  const el=$("#toast"); if(!el) return;
+  el.textContent=msg;
+  el.classList.add("show");
+  if(type==='error') el.style.background='#b91c1c';
+  else if(type==='ok') el.style.background='#15803d';
+  else el.style.background='#0f172a';
+  setTimeout(()=> el.classList.remove("show"), 2600);
+};
 
-  const ensureArrayLen=(len)=>{const a=new Array(len); for(let i=0;i<len;i++) a[i]=''; return a;};
-  const equalizeRowLength=(rows)=>{ if(!rows.length) return rows; const m=rows.reduce((p,r)=>Math.max(p,r.length),0); return rows.map(r=>{const c=r.slice(); while(c.length<m) c.push(''); return c;}); };
+const ensureArrayLen=(len)=>{const a=new Array(len); for(let i=0;i<len;i++) a[i]=''; return a;};
+const equalizeRowLength=(rows)=>{ if(!rows.length) return rows; const m=rows.reduce((p,r)=>Math.max(p,r.length),0); return rows.map(r=>{const c=r.slice(); while(c.length<m) c.push(''); return c;}); };
 
-  const maskPhones=(rows)=>{
-    const re1=/(\b\d{3})(\d{4})(\d{4}\b)/g, re2=/(\b\d{2,3}-)(\d{3,4})(-\d{4}\b)/g;
-    return rows.map(row=> row.map(cell=>{
-      if(typeof cell!=='string') return cell;
-      let out=cell.replace(re1,(m,a,b,c)=>`${a}****${c}`);
-      out=out.replace(re2,(m,a,b,c)=>`${a}****${c}`);
-      return out;
-    }));
-  };
-
-  const normName=(s)=> String(s||'').trim()
-    .replace(/[\s]*[\(\[\{（【][^)\]\}）】]*[\)\]\}）】]\s*$/,'')
-    .replace(/[/_\-\s]+$/,'')
-    .replace(/\s+/g,' ')
-    .trim();
-
-  function parseMoney(v){
-    const s=String(v??'').replace(/[^\d\-\.\,()]/g,'');
-    if(!s) return 0;
-    let neg=false, t=s;
-    if(/\(/.test(t) && /\)/.test(t)) { neg=true; t=t.replace(/[()]/g,''); }
-    t=t.replace(/,/g,'');
-    if(/^-/.test(t)) neg=!neg;
-    const n=parseFloat(t);
-    return (neg?-1:1) * (isNaN(n)?0:n);
-  }
-
-  function findColIndex(head, names){
-    const H=(head||[]).map(x=>String(x||'').toLowerCase().trim());
-    for(let i=0;i<H.length;i++){
-      for(const nm of names){ if(H[i].includes(String(nm).toLowerCase())) return i; }
-    }
-    return -1;
-  }
-
-  /* =================== 날짜 파싱 =================== */
-  function getTimeFromAny(val){
-    if(val===undefined || val===null) return NaN;
-    const s0=String(val).trim(); if(!s0) return NaN;
-    const pm=/오후/.test(s0), am=/오전/.test(s0);
-    const m=s0.match(/(\d{4})\D(\d{1,2})\D(\d{1,2})(?:\D+(\d{1,2})(?::(\d{1,2})(?::(\d{1,2}))?)?)?/);
-    if(m){
-      let [,yy,MM,dd,hh,mm,ss]=m;
-      let H=hh?parseInt(hh,10):0, Mi=mm?parseInt(mm,10):0, S=ss?parseInt(ss,10):0;
-      if(pm && H<12) H+=12; if(am && H===12) H=0;
-      return new Date(+yy, +MM-1, +dd, H, Mi, S).getTime();
-    }
-    const iso=s0.replace(/[./]/g,'-').replace('T',' '); const t=Date.parse(iso);
-    return isNaN(t)?NaN:t;
-  }
-
-  /* =================== Google API =================== */
-  async function ensureGapiLoaded(){
-    await new Promise(res=>{
-      const chk=()=>{if(window.gapi && gapi.load){res();} else setTimeout(chk,50);};
-      chk();
-    });
-    await new Promise((res,rej)=>{
-      gapi.load('client', async ()=>{
-        try{
-          await gapi.client.load('https://sheets.googleapis.com/$discovery/rest?version=v4');
-          res();
-        }catch(e){ rej(e); }
-      });
-    });
-  }
-
-  function loadTokenFromSession(){
-    const saved = sessionStorage.getItem("ca_gapi_token");
-    if(saved) accessToken = saved;
-  }
-
-  function initGoogleAuth(){
-    if(!window.google?.accounts?.oauth2){
-      toast('Google 로그인 스크립트를 불러오는 중입니다. 잠시 후 다시 시도해주세요.','error');
-      return;
-    }
-    if(!tokenClient){
-      tokenClient = google.accounts.oauth2.initTokenClient({
-        client_id: OAUTH_CLIENT_ID,
-        scope: OAUTH_SCOPES,
-        callback: (resp)=>{
-          if(resp?.access_token){
-            accessToken = resp.access_token;
-            sessionStorage.setItem("ca_gapi_token", accessToken);
-            if(window.gapi?.client) gapi.client.setToken({access_token:accessToken});
-            updateAuthUI();
-            toast('Google 인증 완료','ok');
-          }else{
-            toast('인증 실패','error');
-          }
-        }
-      });
-    }
-    tokenClient.requestAccessToken({prompt:'consent'});
-  }
-
-  async function ensureAuth(){
-    await ensureGapiLoaded();
-    if(accessToken){
-      gapi.client.setToken({access_token:accessToken});
-      return;
-    }
-    const saved = sessionStorage.getItem("ca_gapi_token");
-    if(saved){
-      accessToken = saved;
-      gapi.client.setToken({access_token:accessToken});
-      updateAuthUI();
-      return;
-    }
-    throw new Error('⚠ Google 인증이 필요합니다. 상단의 [Google 인증] 버튼을 눌러주세요.');
-  }
-
-  function parseSpreadsheetId(){ return FIXED_SPREADSHEET_ID; }
-
-  async function listSheets(spreadsheetId){
-    const res = await gapi.client.sheets.spreadsheets.get({ spreadsheetId, fields: "sheets(properties(title))" });
-    return (res.result?.sheets||[]).map(x=> x.properties?.title).filter(Boolean);
-  }
-
-  /* =================== CSV 로드 =================== */
-  function readCsv(file){
-    return new Promise((resolve)=>{
-      if(!file){ resolve([]); return; }
-      Papa.parse(file,{
-        complete:(res)=>{
-          let rows=Array.isArray(res.data)?res.data:[];
-          rows=rows.map(r=> Array.isArray(r)?r:[r]);
-          resolve(rows);
-        },
-        error:()=>{
-          const fr=new FileReader();
-          fr.onload=()=>{
-            const parsed=Papa.parse(String(fr.result||''),{skipEmptyLines:'greedy'});
-            let r=Array.isArray(parsed.data)?parsed.data:[]; r=r.map(x=>Array.isArray(x)?x:[x]);
-            resolve(r);
-          };
-          fr.onerror=()=>resolve([]);
-          fr.readAsText(file,'UTF-8');
-        },
-        skipEmptyLines:'greedy'
-      });
-    });
-  }
-
-  /* =================== 시트 헤더 & 공통 =================== */
-  function buildHeader(){
-    return ['A','B','C','D','E','F','G','H(결제금액)','I(상태)','J','K(결제시간)','L(결제수단)','M(환불금액)','N(환불일시)'];
-  }
-
-  /* =================== UPSERT(키/정규화) 공통 =================== */
-  function normMethod(s){
-    const v = String(s||'').trim();
-    if(!v) return '';
-    if(/카드|credit|card/i.test(v)) return '신용카드';
-    if(/계좌|이체|bank|transfer/i.test(v)) return '계좌이체';
-    return v;
-  }
-
-  function canonPhone(s){
-    let d = String(s||'').replace(/\D/g,'');
-    if(!d) return '';
-    if(d.startsWith('82') && d.length >= 11){
-      const rest = d.slice(2);
-      if(rest.startsWith('10')) d = '0' + rest;
-    }
-    if(d.length === 10 && !d.startsWith('0') && d.startsWith('10')) d = '0' + d;
-    if(d.length === 11 && !d.startsWith('0') && d.startsWith('10')) d = '0' + d;
-    return d;
-  }
-
-  function canonAmount(v){
-    const n = Math.round(Math.abs(parseMoney(v) || 0));
-    return String(n);
-  }
-
-  // ✅ 최종 키: D/E/L/H
-  function makeDELHKey(name, phone, method, amountH){
-    const n = normName(name);
-    const p = canonPhone(phone);
-    const m = normMethod(method);
-    const a = canonAmount(amountH);
-    if(!n && !p) return '';
-    return `${n}|${p}|${m}|${a}`;
-  }
-
-  // B..N(13) 인덱스 기준: D=2, E=3, H=6, I=7, K=9, L=10, M=11, N=12
-  function getEventTimeBN(bn){
-    const tPay = getTimeFromAny(bn?.[9]);
-    const tRef = getTimeFromAny(bn?.[12]);
-    const a = isNaN(tPay) ? -Infinity : tPay;
-    const b = isNaN(tRef) ? -Infinity : tRef;
-    return Math.max(a, b);
-  }
-
-  function refundLikeBN(bn){
-    const s = String(bn?.[7] ?? '').trim();                 // I(결제상태)
-    const refundAmt = Math.abs(parseMoney(bn?.[11] ?? '')); // M(환불금액)
-    const refT = String(bn?.[12] ?? '').trim();             // N(환불일시)
-    return /환불/.test(s) || refundAmt > 0 || !!refT;
-  }
-
-  // ✅ 환불 상태인데 CSV가 M/N을 비워서 보내면 기존 환불값 보존
-  function mergeBNForUpdate(existingBN, incomingBN){
-    const out = (incomingBN || []).slice();
-    if(refundLikeBN(incomingBN)){
-      const mEmpty = String(out[11] ?? '').trim() === '';
-      const nEmpty = String(out[12] ?? '').trim() === '';
-      if(mEmpty) out[11] = existingBN?.[11] ?? '';
-      if(nEmpty) out[12] = existingBN?.[12] ?? '';
-    }
+const maskPhones=(rows)=>{
+  const re1=/(\b\d{3})(\d{4})(\d{4}\b)/g, re2=/(\b\d{2,3}-)(\d{3,4})(-\d{4}\b)/g;
+  return rows.map(row=> row.map(cell=>{
+    if(typeof cell!=='string') return cell;
+    let out=cell.replace(re1,(m,a,b,c)=>`${a}****${c}`);
+    out=out.replace(re2,(m,a,b,c)=>`${a}****${c}`);
     return out;
+  }));
+};
+
+const normName=(s)=> String(s||'').trim()
+  .replace(/[\s]*[\(\[\{（【][^)\]\}）】]*[\)\]\}）】]\s*$/,'')
+  .replace(/[/_\-\s]+$/,'')
+  .replace(/\s+/g,' ')
+  .trim();
+
+function parseMoney(v){
+  const s=String(v??'').replace(/[^\d\-\.\,()]/g,'');
+  if(!s) return 0;
+  let neg=false, t=s;
+  if(/\(/.test(t) && /\)/.test(t)) { neg=true; t=t.replace(/[()]/g,''); }
+  t=t.replace(/,/g,'');
+  if(/^-/.test(t)) neg=!neg;
+  const n=parseFloat(t);
+  return (neg?-1:1) * (isNaN(n)?0:n);
+}
+
+function findColIndex(head, names){
+  const H=(head||[]).map(x=>String(x||'').toLowerCase().trim());
+  for(let i=0;i<H.length;i++){
+    for(const nm of names){ if(H[i].includes(String(nm).toLowerCase())) return i; }
   }
+  return -1;
+}
 
-  function sameRowBN(a,b){
-    const A = (a||[]), B=(b||[]);
-    for(let i=0;i<13;i++){
-      if(String(A[i] ?? '') !== String(B[i] ?? '')) return false;
-    }
-    return true;
+/* =================== 날짜 파싱 =================== */
+function getTimeFromAny(val){
+  if(val===undefined || val===null) return NaN;
+  const s0=String(val).trim(); if(!s0) return NaN;
+  const pm=/오후/.test(s0), am=/오전/.test(s0);
+  const m=s0.match(/(\d{4})\D(\d{1,2})\D(\d{1,2})(?:\D+(\d{1,2})(?::(\d{1,2})(?::(\d{1,2}))?)?)?/);
+  if(m){
+    let [,yy,MM,dd,hh,mm,ss]=m;
+    let H=hh?parseInt(hh,10):0, Mi=mm?parseInt(mm,10):0, S=ss?parseInt(ss,10):0;
+    if(pm && H<12) H+=12; if(am && H===12) H=0;
+    return new Date(+yy, +MM-1, +dd, H, Mi, S).getTime();
   }
+  const iso=s0.replace(/[./]/g,'-').replace('T',' ');
+  const t=Date.parse(iso);
+  return isNaN(t)?NaN:t;
+}
 
-  /* =================== (중요) 카드: DELH 동일이면 "계좌이체 규칙"으로 합치기 =================== */
-  // - DELH 키 기준으로 하나로 합침
-  // - 환불총액(M) 기준:
-  //    refund=0 -> 결제완료 (M,N 비움)
-  //    refund==H -> 환불됨
-  //    0<refund<H -> 부분환불
-  // - 시간:
-  //    결제시간(K)=가장 최근 결제시간
-  //    환불일시(N)=가장 최근 환불일시
-  function makeCardRows(cardCsv, skipHeader=true){
-    const start = skipHeader ? 1 : 0;
-    const rawRows14 = [];
+/* =================== Google API =================== */
+async function ensureGapiLoaded(){
+  await new Promise(res=>{
+    const chk=()=>{if(window.gapi && gapi.load){res();} else setTimeout(chk,50);};
+    chk();
+  });
+  await new Promise((res,rej)=>{
+    gapi.load('client', async ()=>{
+      try{
+        await gapi.client.load('https://sheets.googleapis.com/$discovery/rest?version=v4');
+        res();
+      }catch(e){ rej(e); }
+    });
+  });
+}
 
-    for(let i=start;i<cardCsv.length;i++){
-      const r = cardCsv[i] || [];
-      if(r.length===0 || r.every(x=>String(x).trim()==='')) continue;
+function loadTokenFromSession(){
+  const saved = sessionStorage.getItem("ca_gapi_token");
+  if(saved) accessToken = saved;
+}
 
-      // 기존 매핑 그대로 사용(당신이 쓰던 포맷 가정)
-      // B~K(10개) = r[0..9]
-      // L=신용카드
-      // M=r[10], N=r[11]
-      const o = ensureArrayLen(14);
-      for(let j=0;j<10;j++){ o[1+j] = r[j] ?? ''; }
-      o[11] = '신용카드';
-      o[12] = r[10] ?? '';
-      o[13] = r[11] ?? '';
-      rawRows14.push(o);
-    }
+function initGoogleAuth(){
+  if(!window.google?.accounts?.oauth2){
+    toast('Google 로그인 스크립트를 불러오는 중입니다. 잠시 후 다시 시도해주세요.','error');
+    return;
+  }
+  if(!tokenClient){
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: OAUTH_CLIENT_ID,
+      scope: OAUTH_SCOPES,
+      callback: (resp)=>{
+        if(resp?.access_token){
+          accessToken = resp.access_token;
+          sessionStorage.setItem("ca_gapi_token", accessToken);
+          if(window.gapi?.client) gapi.client.setToken({access_token:accessToken});
+          updateAuthUI();
+          toast('Google 인증 완료','ok');
+        }else toast('인증 실패','error');
+      }
+    });
+  }
+  tokenClient.requestAccessToken({prompt:'consent'});
+}
 
-    // 그룹핑
-    const groups = new Map(); // key -> { sample14, payTimes[], refundTimes[], maxRefund, maxRefundTime, lastRow14, lastEventTime, lastSeq, amountH }
-    let seq = 0;
-    for(const row14 of rawRows14){
-      seq++;
+async function ensureAuth(){
+  await ensureGapiLoaded();
+  if(accessToken){
+    gapi.client.setToken({access_token:accessToken});
+    return;
+  }
+  const saved = sessionStorage.getItem("ca_gapi_token");
+  if(saved){
+    accessToken = saved;
+    gapi.client.setToken({access_token:accessToken});
+    updateAuthUI();
+    return;
+  }
+  throw new Error('⚠ Google 인증이 필요합니다. 상단의 [Google 인증] 버튼을 눌러주세요.');
+}
 
-      const name   = row14?.[3]  ?? ''; // D
-      const phone  = row14?.[4]  ?? ''; // E
-      const method = row14?.[11] ?? ''; // L
-      const amount = row14?.[7]  ?? ''; // H
-      const key = makeDELHKey(name, phone, method, amount);
-      if(!key) continue;
+function parseSpreadsheetId(){ return FIXED_SPREADSHEET_ID; }
 
-      const bn = row14.slice(1, 14); // B~N
-      while(bn.length < 13) bn.push('');
+async function listSheets(spreadsheetId){
+  const res = await gapi.client.sheets.spreadsheets.get({ spreadsheetId, fields: "sheets(properties(title))" });
+  return (res.result?.sheets||[]).map(x=> x.properties?.title).filter(Boolean);
+}
 
-      const payT = getTimeFromAny(bn[9]);
-      const refT = getTimeFromAny(bn[12]);
-      const eventT = Math.max(isNaN(payT)?-Infinity:payT, isNaN(refT)?-Infinity:refT);
-
-      const isRefund = refundLikeBN(bn);
-      const refundAmtRaw = Math.abs(parseMoney(bn[11] ?? ''));
-      const paymentAmt = Math.abs(parseMoney(bn[6] ?? '')); // H
-
-      let g = groups.get(key);
-      if(!g){
-        g = {
-          key,
-          amountH: paymentAmt,
-          sample14: row14,
-          payTimes: [],
-          refundTimes: [],
-          maxRefund: 0,
-          maxRefundTime: -Infinity,
-          lastRow14: row14,
-          lastEventTime: eventT,
-          lastSeq: seq
+/* =================== CSV 로드 =================== */
+function readCsv(file){
+  return new Promise((resolve)=>{
+    if(!file){ resolve([]); return; }
+    Papa.parse(file,{
+      complete:(res)=>{
+        let rows=Array.isArray(res.data)?res.data:[];
+        rows=rows.map(r=> Array.isArray(r)?r:[r]);
+        resolve(rows);
+      },
+      error:()=>{
+        const fr=new FileReader();
+        fr.onload=()=>{
+          const parsed=Papa.parse(String(fr.result||''),{skipEmptyLines:'greedy'});
+          let r=Array.isArray(parsed.data)?parsed.data:[]; r=r.map(x=>Array.isArray(x)?x:[x]);
+          resolve(r);
         };
-        groups.set(key, g);
-      }
+        fr.onerror=()=>resolve([]);
+        fr.readAsText(file,'UTF-8');
+      },
+      skipEmptyLines:'greedy'
+    });
+  });
+}
 
-      // 최신 row(주문명 등 최신값 유지용)
-      if(eventT > g.lastEventTime || (eventT === g.lastEventTime && seq > g.lastSeq)){
-        g.lastRow14 = row14;
-        g.lastEventTime = eventT;
-        g.lastSeq = seq;
-      }
+/* =================== 시트 헤더 & 공통 =================== */
+function buildHeader(){
+  return ['A','B','C','D','E','F','G','H(결제금액)','I(상태)','J','K(결제시간)','L(결제수단)','M(환불금액)','N(환불일시)'];
+}
 
-      if(!isNaN(payT) && payT > -Infinity) g.payTimes.push(payT);
-      if(!isNaN(refT) && refT > -Infinity) {
-        g.refundTimes.push(refT);
-        if(refT > g.maxRefundTime) g.maxRefundTime = refT;
-      }
+function processCardRows(rows, skipHeader=true){
+  const out=[]; const start=skipHeader?1:0;
+  for(let i=start;i<rows.length;i++){
+    const r=rows[i]||[];
+    if(r.length===0 || r.every(x=>String(x).trim()==='')) continue;
+    const o=ensureArrayLen(14);
+    for(let j=0;j<10;j++){ o[1+j]=r[j]??''; } // B~K
+    o[11]='신용카드';                          // L
+    o[12]= r[10] ?? o[12];                     // M
+    o[13]= r[11] ?? o[13];                     // N
+    out.push(o);
+  }
+  out.sort((a,b)=> (getTimeFromAny(a[10])||Infinity) - (getTimeFromAny(b[10])||Infinity));
+  return out;
+}
 
-      // 환불총액은 "최대값"으로 잡음(대부분 카드 CSV가 이미 총계를 들고 있음)
-      // (여기서 sum으로 합치면, 같은 키로 여러 결제(재결제)가 있을 때 망가질 수 있어서 max 사용)
-      if(isRefund){
-        const effRefund = refundAmtRaw > 0 ? refundAmtRaw : paymentAmt;
-        if(effRefund > g.maxRefund) g.maxRefund = effRefund;
+/* ===== 계좌: 새 포맷 (A/B 날짜·시간, F=환불, G=결제, V=그룹, K=사유) ===== */
+function makeBankRows(tickets, responses, skipT = true, skipR = true) {
+  if (!tickets.length) return [];
+  const IDX_DATE=0, IDX_TIME=1, IDX_REFUND=5, IDX_SALE=6, IDX_REASON=10, IDX_GROUP=21;
+
+  const tHead = tickets[0] || [];
+
+  const rHead = responses[0] || [];
+  const rName  = findColIndex(rHead, ['성함','이름','신청자','name']);
+  const rEmail = findColIndex(rHead, ['이메일','email']);
+  const rPhone = findColIndex(rHead, ['연락처','전화','휴대폰','phone','mobile']);
+
+  const respMap = new Map();
+  const rStart  = skipR ? 1 : 0;
+  if (rName >= 0) {
+    for (let i = rStart; i < responses.length; i++) {
+      const rr = responses[i] || [];
+      const nm = normName(rr[rName] || '');
+      if (!nm) continue;
+      if (!respMap.has(nm)) {
+        respMap.set(nm, {
+          email: rEmail >= 0 ? (rr[rEmail] || '') : '',
+          phone: rPhone >= 0 ? (rr[rPhone] || '') : ''
+        });
       }
     }
-
-    const out = [];
-
-    for(const g of groups.values()){
-      const base = (g.lastRow14 || g.sample14 || ensureArrayLen(14)).slice();
-
-      // 결제시간: 가장 최근 결제시간
-      let payTimeStr = base[10] ?? '';
-      if(g.payTimes.length){
-        const mx = Math.max(...g.payTimes);
-        // 원본 문자열을 완벽히 복원하기 어렵기 때문에, base의 K가 빈값이면 Date로 포맷
-        if(!String(payTimeStr).trim()){
-          const d = new Date(mx);
-          payTimeStr = `${d.getFullYear()}. ${d.getMonth()+1}. ${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
-        }
-      }
-
-      // 환불일시: 가장 최근 환불일시(있으면)
-      let refundTimeStr = base[13] ?? '';
-      if(g.maxRefundTime > -Infinity){
-        if(!String(refundTimeStr).trim()){
-          const d = new Date(g.maxRefundTime);
-          refundTimeStr = `${d.getFullYear()}. ${d.getMonth()+1}. ${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
-        }
-      }
-
-      const H = Math.abs(parseMoney(base[7] ?? '')) || g.amountH || 0;
-      const refund = Math.round(Math.abs(g.maxRefund || 0));
-      const pay = Math.round(Math.abs(H || 0));
-
-      let status = '결제완료';
-      let refundAmtOut = '';
-      let refundTimeOut = '';
-
-      if(refund > 0){
-        if(refund >= pay){
-          status = '환불됨';
-          refundAmtOut = pay ? pay : refund;
-          refundTimeOut = refundTimeStr || base[13] || '';
-        }else{
-          status = '부분환불';
-          refundAmtOut = refund;
-          refundTimeOut = refundTimeStr || base[13] || '';
-        }
-      }else{
-        status = '결제완료';
-        refundAmtOut = '';
-        refundTimeOut = '';
-      }
-
-      base[10] = payTimeStr || base[10] || '';
-      base[8]  = status;
-      base[12] = refundAmtOut;
-      base[13] = refundTimeOut;
-
-      out.push(base);
-    }
-
-    // 최종 정렬: 결제시간(K) 기준 오름차순
-    out.sort((a,b)=> (getTimeFromAny(a?.[10])||Infinity) - (getTimeFromAny(b?.[10])||Infinity));
-    return out;
   }
 
-  /* ===== 계좌: 새 포맷 (A/B 날짜·시간, F=환불, G=결제, V=그룹, K=사유) ===== */
-  function makeBankRows(tickets, responses, skipT = true, skipR = true) {
-    if (!tickets.length) return [];
-    const IDX_DATE=0, IDX_TIME=1, IDX_REFUND=5, IDX_SALE=6, IDX_REASON=10, IDX_GROUP=21;
+  const cName  = findColIndex(tHead, ['보낸분/받는분','거래상대명','거래처','성명','상대']);
+  const cPlace = findColIndex(tHead, ['사용처','적요','내용','메모']);
+  const cNote  = findColIndex(tHead, ['계좌적요']);
 
-    const tHead = tickets[0] || [];
-    const rHead = responses[0] || [];
-    const rName  = findColIndex(rHead, ['성함','이름','신청자','name']);
-    const rEmail = findColIndex(rHead, ['이메일','email']);
-    const rPhone = findColIndex(rHead, ['연락처','전화','휴대폰','phone','mobile']);
-
-    const respMap = new Map();
-    const rStart  = skipR ? 1 : 0;
-    if (rName >= 0) {
-      for (let i = rStart; i < responses.length; i++) {
-        const rr = responses[i] || [];
-        const nm = normName(rr[rName] || '');
-        if (!nm) continue;
-        if (!respMap.has(nm)) {
-          respMap.set(nm, {
-            email: rEmail >= 0 ? (rr[rEmail] || '') : '',
-            phone: rPhone >= 0 ? (rr[rPhone] || '') : ''
-          });
-        }
-      }
-    }
-
-    const cName  = findColIndex(tHead, ['보낸분/받는분','거래상대명','거래처','성명','상대']);
-    const cPlace = findColIndex(tHead, ['사용처','적요','내용','메모']);
-    const cNote  = findColIndex(tHead, ['계좌적요']);
-
-    function pickCounterpartyName(row) {
-      let s = '';
-      if (cNote  >= 0) s = row[cNote]  || '';
-      if (!s && cName  >= 0) s = row[cName]  || '';
-      if (!s && cPlace >= 0) s = row[cPlace] || '';
-      s = String(s || '').trim();
-      if (!s) return '';
-      if (s.includes('←')) s = s.split('←')[0];
-      if (s.includes('→')) s = s.split('→')[0];
-      return normName(s);
-    }
-
-    const groups = new Map();
-    const tStart = skipT ? 1 : 0;
-
-    for (let i = tStart; i < tickets.length; i++) {
-      const r = tickets[i] || [];
-      if (r.every(x => String(x).trim() === '')) continue;
-      if (r.length <= Math.max(IDX_GROUP, IDX_SALE, IDX_REFUND)) continue;
-
-      const groupKey = String(r[IDX_GROUP] ?? '').trim();
-      if (!groupKey) continue;
-
-      const dateStr = String(r[IDX_DATE] ?? '').trim();
-      const timeStr = String(r[IDX_TIME] ?? '').trim();
-      const when = (dateStr || timeStr) ? `${dateStr} ${timeStr}`.trim() : '';
-
-      const saleRaw   = parseMoney(r[IDX_SALE]);
-      const refundRaw = parseMoney(r[IDX_REFUND]);
-      if (!saleRaw && !refundRaw) continue;
-
-      const nameN = pickCounterpartyName(r);
-
-      let g = groups.get(groupKey);
-      if (!g) {
-        g = { sales: [], refunds: [], reason: '' };
-        groups.set(groupKey, g);
-      }
-
-      const reasonCell = String(r[IDX_REASON] ?? '').trim();
-      if (reasonCell && !g.reason) g.reason = reasonCell;
-
-      if (saleRaw) g.sales.push({ when, amt: Math.abs(saleRaw), name: nameN });
-      if (refundRaw) g.refunds.push({ when, amt: -Math.abs(refundRaw) });
-    }
-
-    const out = [];
-    for (const g of groups.values()) {
-      if (!g.sales.length) continue;
-
-      const saleSum   = g.sales.reduce((s, x) => s + (x.amt || 0), 0);
-      const refundSum = g.refunds.reduce((s, x) => s + (x.amt || 0), 0); // 음수
-      const net       = saleSum + refundSum;
-      const refundAmount = -refundSum || 0;
-
-      let refundDate = '';
-      if (g.refunds.length) {
-        g.refunds.sort((a, b) => (getTimeFromAny(a.when) || 0) - (getTimeFromAny(b.when) || 0));
-        refundDate = g.refunds[g.refunds.length - 1].when || '';
-      }
-
-      g.sales.sort((a, b) => (getTimeFromAny(a.when) || 0) - (getTimeFromAny(b.when) || 0));
-      const firstSale = g.sales[0];
-      const nameN     = firstSale.name || '';
-      const meta      = respMap.get(nameN) || { email: '', phone: '' };
-
-      let status = '결제완료';
-      if (refundAmount > 0) status = (net === 0) ? '환불됨' : '부분환불';
-
-      const row = ensureArrayLen(14);
-      row[1]  = g.reason || '';
-      row[2]  = g.reason || '';
-      row[3]  = nameN;
-      row[4]  = meta.phone;
-      row[5]  = meta.email;
-      row[6]  = '강의';
-      row[7]  = saleSum;
-      row[8]  = status;
-      row[9]  = '면세';
-      row[10] = firstSale.when;
-      row[11] = '계좌이체';
-      row[12] = refundAmount || '';
-      row[13] = refundDate;
-      out.push(row);
-    }
-
-    out.sort((a, b) => (getTimeFromAny(a[10]) || Infinity) - (getTimeFromAny(b[10])||Infinity));
-    return out;
+  function pickCounterpartyName(row) {
+    let s = '';
+    if (cNote  >= 0) s = row[cNote]  || '';
+    if (!s && cName  >= 0) s = row[cName]  || '';
+    if (!s && cPlace >= 0) s = row[cPlace] || '';
+    s = String(s || '').trim();
+    if (!s) return '';
+    if (s.includes('←')) s = s.split('←')[0];
+    if (s.includes('→')) s = s.split('→')[0];
+    return normName(s);
   }
 
-  /* =================== 빌드 & 프리뷰 =================== */
-  function buildFinalRows(){
-    const header=buildHeader();
+  const groups = new Map();
+  const tStart = skipT ? 1 : 0;
 
-    // ✅ 카드도 DELH 기준으로 "계좌이체 규칙" 적용해서 1개로 합침
-    const card = csvCard.length ? makeCardRows(csvCard, $('#headCard').checked) : [];
+  for (let i = tStart; i < tickets.length; i++) {
+    const r = tickets[i] || [];
+    if (r.every(x => String(x).trim() === '')) continue;
+    if (r.length <= Math.max(IDX_GROUP, IDX_SALE, IDX_REFUND)) continue;
 
-    const bank = csvTickets.length ? makeBankRows(csvTickets, csvResp, $('#headTicket').checked, $('#headResp').checked) : [];
-    parsedRows=[header, ...card, ...bank];
-    $('#optHasHeader').checked=true;
+    const groupKey = String(r[IDX_GROUP] ?? '').trim();
+    if (!groupKey) continue;
+
+    const dateStr = String(r[IDX_DATE] ?? '').trim();
+    const timeStr = String(r[IDX_TIME] ?? '').trim();
+    const when = (dateStr || timeStr) ? `${dateStr} ${timeStr}`.trim() : '';
+
+    const saleRaw   = parseMoney(r[IDX_SALE]);
+    const refundRaw = parseMoney(r[IDX_REFUND]);
+    if (!saleRaw && !refundRaw) continue;
+
+    const nameN = pickCounterpartyName(r);
+
+    let g = groups.get(groupKey);
+    if (!g) { g = { sales: [], refunds: [], reason: '' }; groups.set(groupKey, g); }
+
+    const reasonCell = String(r[IDX_REASON] ?? '').trim();
+    if (reasonCell && !g.reason) g.reason = reasonCell;
+
+    if (saleRaw) g.sales.push({ when, amt: Math.abs(saleRaw), name: nameN });
+    if (refundRaw) g.refunds.push({ when, amt: -Math.abs(refundRaw) });
   }
 
-  function renderPreview(rows){
-    const table=$('#previewTable'); table.innerHTML='';
-    if(!rows.length){ $('#summary').textContent='행 0'; return; }
+  const out = [];
+  for (const g of groups.values()) {
+    if (!g.sales.length) continue;
 
-    const thead=document.createElement('thead');
-    const tbody=document.createElement('tbody');
-    const colCount=rows[0].length;
+    const saleSum   = g.sales.reduce((s, x) => s + (x.amt || 0), 0);
+    const refundSum = g.refunds.reduce((s, x) => s + (x.amt || 0), 0);
+    const net       = saleSum + refundSum;
+    const refundAmount = -refundSum || 0;
 
-    if($('#optHasHeader').checked){
-      const tr=document.createElement('tr');
-      rows[0].forEach((h,idx)=>{
-        const th=document.createElement('th');
-        th.textContent=h||`(col${idx+1})`;
-        tr.appendChild(th);
-      });
-      thead.appendChild(tr);
+    let refundDate = '';
+    if (g.refunds.length) {
+      g.refunds.sort((a, b) => (getTimeFromAny(a.when) || 0) - (getTimeFromAny(b.when) || 0));
+      refundDate = g.refunds[g.refunds.length - 1].when || '';
     }
-    const startIdx=$('#optHasHeader').checked?1:0;
-    for(let r=startIdx;r<rows.length;r++){
-      const tr=document.createElement('tr'), row=rows[r];
-      for(let c=0;c<colCount;c++){
-        const td=document.createElement('td');
-        const v=(row[c]??'').toString();
-        if(row.length!==colCount) td.classList.add('invalid');
-        td.textContent=v;
-        tr.appendChild(td);
-      }
-      tbody.appendChild(tr);
-    }
-    table.appendChild(thead);
-    table.appendChild(tbody);
-    const bodyRows=Math.max(0, rows.length-(startIdx));
-    $('#summary').textContent=`열 ${colCount} · 데이터 행 ${bodyRows}`;
+
+    g.sales.sort((a, b) => (getTimeFromAny(a.when) || 0) - (getTimeFromAny(b.when) || 0));
+    const firstSale = g.sales[0];
+    const nameN     = firstSale.name || '';
+    const meta      = respMap.get(nameN) || { email: '', phone: '' };
+
+    let status = '결제완료';
+    if (refundAmount > 0) status = (net === 0) ? '환불됨' : '부분환불';
+
+    const row = ensureArrayLen(14);
+    row[1]  = g.reason || '';
+    row[2]  = g.reason || '';
+    row[3]  = nameN;
+    row[4]  = meta.phone;
+    row[5]  = meta.email;
+    row[6]  = '강의';
+    row[7]  = saleSum;
+    row[8]  = status;
+    row[9]  = '면세';
+    row[10] = firstSale.when;
+    row[11] = '계좌이체';
+    row[12] = refundAmount || '';
+    row[13] = refundDate;
+    out.push(row);
   }
 
-  /* =================== 시트 읽기/쓰기 (A열 무시) =================== */
-  async function fetchExistingBN(spreadsheetId, sheetName){
-    const res = await gapi.client.sheets.spreadsheets.values.get({
+  out.sort((a, b) => (getTimeFromAny(a[10]) || Infinity) - (getTimeFromAny(b[10])||Infinity));
+  return out;
+}
+
+/* =================== 빌드 & 프리뷰 =================== */
+function buildFinalRows(){
+  const header=buildHeader();
+  const card = csvCard.length ? processCardRows(csvCard, $('#headCard').checked) : [];
+  const bank = csvTickets.length ? makeBankRows(csvTickets, csvResp, $('#headTicket').checked, $('#headResp').checked) : [];
+  parsedRows=[header, ...card, ...bank];
+  $('#optHasHeader').checked=true;
+}
+
+function renderPreview(rows){
+  const table=$('#previewTable'); table.innerHTML='';
+  if(!rows.length){ $('#summary').textContent='행 0'; return; }
+
+  const thead=document.createElement('thead');
+  const tbody=document.createElement('tbody');
+  const colCount=rows[0].length;
+
+  if($('#optHasHeader').checked){
+    const tr=document.createElement('tr');
+    rows[0].forEach((h,idx)=>{
+      const th=document.createElement('th');
+      th.textContent=h||`(col${idx+1})`;
+      tr.appendChild(th);
+    });
+    thead.appendChild(tr);
+  }
+  const startIdx=$('#optHasHeader').checked?1:0;
+  for(let r=startIdx;r<rows.length;r++){
+    const tr=document.createElement('tr'), row=rows[r];
+    for(let c=0;c<colCount;c++){
+      const td=document.createElement('td');
+      const v=(row[c]??'').toString();
+      if(row.length!==colCount) td.classList.add('invalid');
+      td.textContent=v;
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  }
+  table.appendChild(thead);
+  table.appendChild(tbody);
+  const bodyRows=Math.max(0, rows.length-(startIdx));
+  $('#summary').textContent=`열 ${colCount} · 데이터 행 ${bodyRows}`;
+}
+
+/* =================== UPSERT (핵심) =================== */
+function normMethod(s){
+  const v = String(s||'').trim();
+  if(!v) return '';
+  if(/카드|credit|card/i.test(v)) return '신용카드';
+  if(/계좌|이체|bank|transfer/i.test(v)) return '계좌이체';
+  return v;
+}
+function isCardMethod(method){ return normMethod(method) === '신용카드'; }
+
+function canonPhone(s){
+  let d = String(s||'').replace(/\D/g,'');
+  if(!d) return '';
+  if(d.startsWith('82') && d.length >= 11){
+    const rest = d.slice(2);
+    if(rest.startsWith('10')) d = '0' + rest;
+  }
+  if(d.length === 10 && d.startsWith('10')) d = '0' + d;
+  if(d.length === 11 && !d.startsWith('0') && d.startsWith('10')) d = '0' + d;
+  return d;
+}
+function canonAmount(v){
+  const n = Math.round(Math.abs(parseMoney(v) || 0));
+  return String(n);
+}
+function canonPayTime(val){
+  const t = getTimeFromAny(val);
+  if(!isNaN(t)) return String(t);           // epoch 문자열로 고정
+  return String(val||'').trim();            // 파싱 실패 시 원문
+}
+
+// DELH 키
+function makeDELHKey(name, phone, method, amountH){
+  const n = normName(name);
+  const p = canonPhone(phone);
+  const m = normMethod(method);
+  const a = canonAmount(amountH);
+  if(!n && !p) return '';
+  return `${n}|${p}|${m}|${a}`;
+}
+
+// ✅ 최종 매칭키:
+// - 신용카드: DELH + 결제시간(K)
+// - 계좌이체: DELH (그룹으로 이미 합쳐짐)
+function makeMatchKeyFromBN(bn){
+  // bn = B..N(13)
+  const name   = bn?.[2] ?? '';   // D
+  const phone  = bn?.[3] ?? '';   // E
+  const amount = bn?.[6] ?? '';   // H
+  const method = bn?.[10] ?? '';  // L
+  const delh = makeDELHKey(name, phone, method, amount);
+  if(!delh) return '';
+  if(isCardMethod(method)){
+    const payT = canonPayTime(bn?.[9] ?? ''); // K
+    return `${delh}|${payT}`;
+  }
+  return delh;
+}
+
+// 이벤트 시간: 결제시간(K) vs 환불일시(N) 중 큰 값
+function getEventTimeBN(bn){
+  const tPay = getTimeFromAny(bn?.[9]);
+  const tRef = getTimeFromAny(bn?.[12]);
+  const a = isNaN(tPay) ? -Infinity : tPay;
+  const b = isNaN(tRef) ? -Infinity : tRef;
+  return Math.max(a, b);
+}
+
+// 환불 판단(동률 타이브레이크용)
+function refundLikeBN(bn){
+  const s = String(bn?.[7] ?? '').trim();          // I(상태)
+  const refundAmt = Math.abs(parseMoney(bn?.[11] ?? '')); // M(환불금액)
+  return /환불/.test(s) || refundAmt > 0;
+}
+
+// 환불 상태인데 CSV가 M/N 비워서 보내면 기존 환불값 보존
+function mergeBNForUpdate(existingBN, incomingBN){
+  const out = (incomingBN || []).slice();
+  if(refundLikeBN(incomingBN)){
+    const mEmpty = String(out[11] ?? '').trim() === '';
+    const nEmpty = String(out[12] ?? '').trim() === '';
+    if(mEmpty) out[11] = existingBN?.[11] ?? '';
+    if(nEmpty) out[12] = existingBN?.[12] ?? '';
+  }
+  return out;
+}
+
+// incoming 중복(동일 키) 대표 선택: 최신 이벤트 우선, 동률이면 환불 우선
+function chooseBetterEntry(prev, cur){
+  if(!prev) return cur;
+  if(!cur) return prev;
+
+  const ep = getEventTimeBN(prev.bn);
+  const ec = getEventTimeBN(cur.bn);
+  if(ep !== ec) return (ec > ep) ? cur : prev;
+
+  const rp = refundLikeBN(prev.bn);
+  const rc = refundLikeBN(cur.bn);
+  if(rp !== rc) return rc ? cur : prev;
+
+  return (cur.seq > prev.seq) ? cur : prev;
+}
+
+// 실제 업데이트 필요 여부: B..N 전체 비교(13칸)
+function sameRowBN(a,b){
+  const A = (a||[]), B=(b||[]);
+  for(let i=0;i<13;i++){
+    if(String(A[i] ?? '') !== String(B[i] ?? '')) return false;
+  }
+  return true;
+}
+
+async function fetchExistingBN(spreadsheetId, sheetName){
+  const res = await gapi.client.sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: `${sheetName}!B2:N`,
+    majorDimension: 'ROWS'
+  });
+  return res.result?.values || [];
+}
+
+// A열 길이로 “번호 있는 마지막 행” 계산용 (A값은 판단에 쓰지 않음)
+async function getLastNumberRowFromA(spreadsheetId, sheetName){
+  const res = await gapi.client.sheets.spreadsheets.values.get({
+    spreadsheetId,
+    range: `${sheetName}!A2:A`,
+    majorDimension: 'ROWS'
+  });
+  const vals = res.result?.values || [];
+  return 1 + vals.length;
+}
+
+// ✅ 기존 시트 인덱스(키 -> bestRow) / “다른 동일 DEL” 행은 건드리지 않음
+function buildExistingBestIndex(existingBN){
+  const mapBest = new Map(); // key -> {rowNumber,bn,seq}
+  for(let i=0;i<existingBN.length;i++){
+    const bn = existingBN[i] || [];
+    const rowNumber = 2 + i;
+    const key = makeMatchKeyFromBN(bn);
+    if(!key) continue;
+
+    const cur = { rowNumber, bn, seq: rowNumber };
+    const prev = mapBest.get(key);
+    mapBest.set(key, chooseBetterEntry(prev, cur));
+  }
+  return mapBest;
+}
+
+async function batchUpdateRows(spreadsheetId, valueInputOption, updates){
+  if(!updates.length) return 0;
+  const res = await gapi.client.sheets.spreadsheets.values.batchUpdate({
+    spreadsheetId,
+    resource: { valueInputOption, data: updates }
+  });
+  return res.result?.totalUpdatedRows ?? updates.length;
+}
+
+// 빈 슬롯 판단: A는 무시, D/E/L이 비면 빈 슬롯
+async function writeNewRowsIntoEmptySlots(spreadsheetId, sheetName, valueInputOption, existingBN, rowsBN){
+  if(!rowsBN.length) return { filled:0, appended:0 };
+
+  const lastNumberRow = await getLastNumberRowFromA(spreadsheetId, sheetName);
+  const maxSlots = Math.max(0, lastNumberRow - 1);
+
+  let startSlot = maxSlots;
+  for(let i=0;i<maxSlots;i++){
+    const bn = existingBN[i] || [];
+    const name  = bn?.[2] ?? '';   // D
+    const phone = bn?.[3] ?? '';   // E
+    const meth  = bn?.[10] ?? '';  // L
+    const k = (normName(name) || canonPhone(phone) || normMethod(meth)) ? 'x' : '';
+    if(!k){ startSlot = i; break; }
+  }
+
+  let startRow = 2 + startSlot;
+  const availableCount = Math.max(0, lastNumberRow - startRow + 1);
+
+  const toFill = rowsBN.slice(0, availableCount);
+  const overflow = rowsBN.slice(availableCount);
+
+  let filled = 0;
+  let appended = 0;
+
+  if(toFill.length){
+    const endRow = startRow + toFill.length - 1;
+    await gapi.client.sheets.spreadsheets.values.update({
+      spreadsheetId,
+      range: `${sheetName}!B${startRow}:N${endRow}`,
+      valueInputOption,
+      resource: { majorDimension:'ROWS', values: toFill }
+    });
+    filled = toFill.length;
+  }
+
+  if(overflow.length){
+    const res = await gapi.client.sheets.spreadsheets.values.append({
       spreadsheetId,
       range: `${sheetName}!B2:N`,
-      majorDimension: 'ROWS'
+      valueInputOption,
+      insertDataOption: 'INSERT_ROWS',
+      resource: { majorDimension:'ROWS', values: overflow }
     });
-    return res.result?.values || [];
+    const updated = res.result?.updates?.updatedRows;
+    appended = (typeof updated === 'number') ? updated : overflow.length;
   }
+  return { filled, appended };
+}
 
-  async function getLastNumberRowFromA(spreadsheetId, sheetName){
-    const res = await gapi.client.sheets.spreadsheets.values.get({
-      spreadsheetId,
-      range: `${sheetName}!A2:A`,
-      majorDimension: 'ROWS'
-    });
-    const vals = res.result?.values || [];
-    return 1 + vals.length;
-  }
+/* =================== 이벤트 =================== */
+window.addEventListener('error', e=> toast('오류: '+(e?.error?.message||e.message||'알 수 없는 오류'),'error'));
+window.addEventListener('unhandledrejection', e=> toast('처리되지 않은 오류: '+(e?.reason?.message||e.reason||'알 수 없는 오류'),'error'));
 
-  function buildExistingIndex(existingBN){
-    const mapAll  = new Map(); // key -> [{rowNumber,bn}...]
+document.addEventListener('DOMContentLoaded', ()=>{
+  loadTokenFromSession();
 
-    for(let i=0;i<existingBN.length;i++){
-      const bn = existingBN[i] || [];
-      const rowNumber = 2 + i;
+  const sheetInput = $('#sheetUrl');
+  if(sheetInput) sheetInput.value = FIXED_SPREADSHEET_ID;
 
-      const name   = bn?.[2] ?? '';   // D
-      const phone  = bn?.[3] ?? '';   // E
-      const amount = bn?.[6] ?? '';   // H
-      const method = bn?.[10] ?? '';  // L
+  $('#csvCard').addEventListener('change', async (e)=>{
+    try{
+      const f=e.target.files?.[0];
+      if(!f){ toast('카드 CSV 선택이 비었습니다','error'); return; }
+      csvCard=await readCsv(f);
+      const cnt=csvCard.filter(r=>Array.isArray(r)&&r.some(c=>String(c).trim()!=='')).length;
+      toast(`카드 CSV 로드: ${csvCard.length}행 (유효 ${cnt}행)`, cnt?'ok':'error');
+    }catch(err){ console.error(err); toast('카드 CSV 읽기 실패','error'); }
+  }, {capture:true});
 
-      const key = makeDELHKey(name, phone, method, amount);
-      if(!key) continue;
+  $('#csvTicket').addEventListener('change', async (e)=>{
+    try{
+      const f=e.target.files?.[0];
+      if(!f){ toast('tickets CSV 선택이 비었습니다','error'); return; }
+      csvTickets=await readCsv(f);
+      const cnt=csvTickets.filter(r=>Array.isArray(r)&&r.some(c=>String(c).trim()!=='')).length;
+      toast(`tickets 로드: ${csvTickets.length}행 (유효 ${cnt}행)`, cnt?'ok':'error');
+    }catch(err){ console.error(err); toast('tickets 읽기 실패','error'); }
+  }, {capture:true});
 
-      if(!mapAll.has(key)) mapAll.set(key, []);
-      mapAll.get(key).push({ rowNumber, bn });
-    }
-    return { mapAll };
-  }
+  $('#csvResp').addEventListener('change', async (e)=>{
+    try{
+      const f=e.target.files?.[0];
+      if(!f){ toast('responses CSV 선택이 비었습니다','error'); return; }
+      csvResp=await readCsv(f);
+      const cnt=csvResp.filter(r=>Array.isArray(r)&&r.some(c=>String(c).trim()!=='')).length;
+      toast(`responses 로드: ${csvResp.length}행 (유효 ${cnt}행)`, cnt?'ok':'error');
+    }catch(err){ console.error(err); toast('responses 읽기 실패','error'); }
+  }, {capture:true});
 
-  async function batchUpdateRows(spreadsheetId, valueInputOption, updates){
-    if(!updates.length) return 0;
-    const res = await gapi.client.sheets.spreadsheets.values.batchUpdate({
-      spreadsheetId,
-      resource: { valueInputOption, data: updates }
-    });
-    return res.result?.totalUpdatedRows ?? updates.length;
-  }
-
-  async function writeNewRowsIntoEmptySlots(spreadsheetId, sheetName, valueInputOption, existingBN, rowsBN){
-    if(!rowsBN.length) return { filled:0, appended:0 };
-
-    const lastNumberRow = await getLastNumberRowFromA(spreadsheetId, sheetName);
-    const maxSlots = Math.max(0, lastNumberRow - 1);
-
-    // 빈 슬롯 판단: A 무시, D/E/L이 비었으면 빈 슬롯로 간주
-    let startSlot = maxSlots;
-    for(let i=0;i<maxSlots;i++){
-      const bn = existingBN[i] || [];
-      const name = bn?.[2] ?? '';
-      const phone = bn?.[3] ?? '';
-      const method = bn?.[10] ?? '';
-      const k = (normName(name) || canonPhone(phone) || normMethod(method)) ? 'x' : '';
-      if(!k){ startSlot = i; break; }
-    }
-
-    let startRow = 2 + startSlot;
-    const availableCount = Math.max(0, lastNumberRow - startRow + 1);
-
-    const toFill = rowsBN.slice(0, availableCount);
-    const overflow = rowsBN.slice(availableCount);
-
-    let filled = 0;
-    let appended = 0;
-
-    if(toFill.length){
-      const endRow = startRow + toFill.length - 1;
-      await gapi.client.sheets.spreadsheets.values.update({
-        spreadsheetId,
-        range: `${sheetName}!B${startRow}:N${endRow}`,
-        valueInputOption,
-        resource: { majorDimension:'ROWS', values: toFill }
-      });
-      filled = toFill.length;
-    }
-
-    if(overflow.length){
-      const res = await gapi.client.sheets.spreadsheets.values.append({
-        spreadsheetId,
-        range: `${sheetName}!B2:N`,
-        valueInputOption,
-        insertDataOption: 'INSERT_ROWS',
-        resource: { majorDimension:'ROWS', values: overflow }
-      });
-      const updated = res.result?.updates?.updatedRows;
-      appended = (typeof updated === 'number') ? updated : overflow.length;
-    }
-    return { filled, appended };
-  }
-
-  /* =================== 이벤트 =================== */
-  window.addEventListener('error', e=> toast('오류: '+(e?.error?.message||e.message||'알 수 없는 오류'),'error'));
-  window.addEventListener('unhandledrejection', e=> toast('처리되지 않은 오류: '+(e?.reason?.message||e.reason||'알 수 없는 오류'),'error'));
-
-  document.addEventListener('DOMContentLoaded', ()=>{
-    loadTokenFromSession();
-
-    const sheetInput = $('#sheetUrl');
-    if(sheetInput) sheetInput.value = FIXED_SPREADSHEET_ID;
-
-    $('#csvCard').addEventListener('change', async (e)=>{
-      try{
-        const f=e.target.files?.[0];
-        if(!f){ toast('카드 CSV 선택이 비었습니다','error'); return; }
-        csvCard=await readCsv(f);
-        const cnt=csvCard.filter(r=>Array.isArray(r)&&r.some(c=>String(c).trim()!=='')).length;
-        toast(`카드 CSV 로드: ${csvCard.length}행 (유효 ${cnt}행)`, cnt?'ok':'error');
-      }catch(err){ console.error(err); toast('카드 CSV 읽기 실패','error'); }
-    }, {capture:true});
-
-    $('#csvTicket').addEventListener('change', async (e)=>{
-      try{
-        const f=e.target.files?.[0];
-        if(!f){ toast('tickets CSV 선택이 비었습니다','error'); return; }
-        csvTickets=await readCsv(f);
-        const cnt=csvTickets.filter(r=>Array.isArray(r)&&r.some(c=>String(c).trim()!=='')).length;
-        toast(`tickets 로드: ${csvTickets.length}행 (유효 ${cnt}행)`, cnt?'ok':'error');
-      }catch(err){ console.error(err); toast('tickets 읽기 실패','error'); }
-    }, {capture:true});
-
-    $('#csvResp').addEventListener('change', async (e)=>{
-      try{
-        const f=e.target.files?.[0];
-        if(!f){ toast('responses CSV 선택이 비었습니다','error'); return; }
-        csvResp=await readCsv(f);
-        const cnt=csvResp.filter(r=>Array.isArray(r)&&r.some(c=>String(c).trim()!=='')).length;
-        toast(`responses 로드: ${csvResp.length}행 (유효 ${cnt}행)`, cnt?'ok':'error');
-      }catch(err){ console.error(err); toast('responses 읽기 실패','error'); }
-    }, {capture:true});
-
-    $('#btnPreviewCsv').addEventListener('click', (e)=>{
-      e.preventDefault();
-      try{
-        if(!csvCard.length && !csvTickets.length){
-          parsedRows=[buildHeader()];
-          renderPreview(parsedRows);
-          toast('CSV를 업로드하세요 (헤더만 표시)','error');
-          return;
-        }
-        buildFinalRows();
-        let rows=parsedRows;
-        if($('#optMaskPhone').checked) rows=maskPhones(rows);
-        rows=equalizeRowLength(rows);
-        renderPreview(rows);
-        toast('미리보기 갱신','ok');
-      }catch(err){ console.error(err); toast('정리 실패: 콘솔 확인','error'); }
-    });
-
-    $('#btnClear').addEventListener('click', (e)=>{
-      e.preventDefault();
-      csvCard=[]; csvTickets=[]; csvResp=[]; parsedRows=[];
-      $('#csvCard').value=''; $('#csvTicket').value=''; $('#csvResp').value='';
-      $('#previewTable').innerHTML=''; $('#summary').textContent='';
-      toast('초기화 완료');
-    });
-
-    $('#btnLoadSheets').addEventListener('click', async (e)=>{
-      e.preventDefault();
-      try{
-        toast('시트 목록을 불러오는 중...');
-        await ensureAuth();
-        const spreadsheetId = parseSpreadsheetId();
-        const titles = await listSheets(spreadsheetId);
-        allSheetTitles = titles || [];
-
-        const dl = $('#sheetList');
-        dl.innerHTML = '';
-        allSheetTitles.forEach(t=>{
-          const opt = document.createElement('option');
-          opt.value = t;
-          dl.appendChild(opt);
-        });
-
-        currentSheetName = allSheetTitles[0] || '';
-        const searchInput = $('#sheetSearch');
-        if (currentSheetName && searchInput) searchInput.value = currentSheetName;
-
-        toast(`시트 ${allSheetTitles.length}개 불러옴`,'ok');
-      }catch(err){
-        console.error(err);
-        toast(err?.message || '시트 목록 불러오기 실패','error');
+  $('#btnPreviewCsv').addEventListener('click', (e)=>{
+    e.preventDefault();
+    try{
+      if(!csvCard.length && !csvTickets.length){
+        parsedRows=[buildHeader()];
+        renderPreview(parsedRows);
+        toast('CSV를 업로드하세요 (헤더만 표시)','error');
+        return;
       }
-    });
-
-    const searchInput = $('#sheetSearch');
-    if (searchInput) {
-      searchInput.addEventListener('change', (e)=>{
-        const val = (e.target.value || '').trim();
-        if (!val) return;
-        if (!allSheetTitles.includes(val)) {
-          toast('해당 이름의 시트를 찾을 수 없습니다. 드롭다운에서 선택해주세요.','error');
-          currentSheetName = '';
-          return;
-        }
-        currentSheetName = val;
-        toast(`선택된 시트: ${currentSheetName}`,'ok');
-      });
-    }
-
-    // 전송: 키 = D/E/L/H
-    $('#btnSend').addEventListener('click', async (e)=>{
-      e.preventDefault();
-      try{
-        await ensureAuth();
-
-        if(!parsedRows.length){
-          toast('먼저 미리보기를 실행하세요','error');
-          return;
-        }
-
-        const spreadsheetId = parseSpreadsheetId();
-        const sheetName = (currentSheetName || allSheetTitles[0] || 'Sheet1');
-        if(!sheetName){
-          toast('시트를 먼저 불러오고 선택해주세요.','error');
-          return;
-        }
-
-        const hasHeader = $('#optHasHeader').checked;
-        const rowsAll   = hasHeader ? parsedRows.slice(1) : parsedRows;
-        if(!rowsAll.length){
-          toast('전송할 데이터 행이 없습니다','error');
-          return;
-        }
-
-        const valueInputOption = $('#valueInputOption').value;
-
-        // 1) incoming: key로 1개(이미 카드 쪽은 합쳐져 있음)
-        const incoming = new Map(); // key -> bn
-        for(const row14 of rowsAll){
-          const row = Array.isArray(row14) ? row14 : [];
-          const name   = row?.[3] ?? '';
-          const phone  = row?.[4] ?? '';
-          const method = row?.[11] ?? '';
-          const amount = row?.[7] ?? '';
-          const key = makeDELHKey(name, phone, method, amount);
-          if(!key) continue;
-
-          const bn = row.slice(1, 14); // B~N(13)
-          while(bn.length < 13) bn.push('');
-          incoming.set(key, bn);
-        }
-
-        if(!incoming.size){
-          toast('유효한 (D/E/L/H) 데이터가 없습니다','error');
-          return;
-        }
-
-        toast('기존 시트와 비교 중...');
-
-        // 2) existing 인덱스
-        const existingBN = await fetchExistingBN(spreadsheetId, sheetName);
-        const { mapAll } = buildExistingIndex(existingBN);
-
-        const updates = [];
-        const toAppend = [];
-
-        for(const [key, bnNew] of incoming.entries()){
-          const hitAll = mapAll.get(key);
-
-          if(hitAll && hitAll.length){
-            for(const h of hitAll){
-              const merged = mergeBNForUpdate(h.bn, bnNew);
-              if(!sameRowBN(h.bn, merged)){
-                updates.push({
-                  range: `${sheetName}!B${h.rowNumber}:N${h.rowNumber}`,
-                  values: [merged]
-                });
-              }
-            }
-          }else{
-            toAppend.push(bnNew);
-          }
-        }
-
-        if(!updates.length && !toAppend.length){
-          toast('변경/추가할 내용이 없습니다','ok');
-          return;
-        }
-
-        $('#btnSend').disabled = true;
-
-        let updatedCnt = 0, addedCnt = 0;
-
-        if(updates.length){
-          toast(`업데이트 ${updates.length}행 처리 중...`);
-          updatedCnt = await batchUpdateRows(spreadsheetId, valueInputOption, updates);
-        }
-
-        if(toAppend.length){
-          toast(`신규 ${toAppend.length}행 추가 중...(A열 무시/번호 유지)`);
-          const r = await writeNewRowsIntoEmptySlots(spreadsheetId, sheetName, valueInputOption, existingBN, toAppend);
-          addedCnt = (r.filled || 0) + (r.appended || 0);
-        }
-
-        toast(`완료: 업데이트 ${updatedCnt} / 신규추가 ${addedCnt}`,'ok');
-
-      }catch(err){
-        console.error(err);
-        toast(err?.message || '전송 실패: 콘솔 확인','error');
-      }finally{
-        $('#btnSend').disabled=false;
-      }
-    });
-
-    $('#btnAuthRefresh').addEventListener('click', (e)=>{
-      e.preventDefault();
-      initGoogleAuth();
-    });
-
-    window.updateAuthUI = ()=>{
-      const dot = $('#authStateDot');
-      const label = $('#authState');
-      if(!dot || !label) return;
-      if(accessToken){
-        dot.style.background = '#22c55e';
-        label.textContent = 'Google 시트 연동 완료';
-      }else{
-        dot.style.background = '#cbd5f5';
-        label.textContent = 'Google 시트 연동 준비 중';
-      }
-    };
-
-    updateAuthUI();
+      buildFinalRows();
+      let rows=parsedRows;
+      if($('#optMaskPhone').checked) rows=maskPhones(rows);
+      rows=equalizeRowLength(rows);
+      renderPreview(rows);
+      toast('미리보기 갱신','ok');
+    }catch(err){ console.error(err); toast('정리 실패: 콘솔 확인','error'); }
   });
-  </script>
+
+  $('#btnClear').addEventListener('click', (e)=>{
+    e.preventDefault();
+    csvCard=[]; csvTickets=[]; csvResp=[]; parsedRows=[];
+    $('#csvCard').value=''; $('#csvTicket').value=''; $('#csvResp').value='';
+    $('#previewTable').innerHTML=''; $('#summary').textContent='';
+    toast('초기화 완료');
+  });
+
+  $('#btnLoadSheets').addEventListener('click', async (e)=>{
+    e.preventDefault();
+    try{
+      toast('시트 목록을 불러오는 중...');
+      await ensureAuth();
+      const spreadsheetId = parseSpreadsheetId();
+      allSheetTitles = await listSheets(spreadsheetId);
+
+      const dl = $('#sheetList');
+      dl.innerHTML = '';
+      allSheetTitles.forEach(t=>{
+        const opt = document.createElement('option');
+        opt.value = t;
+        dl.appendChild(opt);
+      });
+
+      currentSheetName = allSheetTitles[0] || '';
+      const searchInput = $('#sheetSearch');
+      if (currentSheetName && searchInput) searchInput.value = currentSheetName;
+
+      toast(`시트 ${allSheetTitles.length}개 불러옴`,'ok');
+    }catch(err){
+      console.error(err);
+      toast(err?.message || '시트 목록 불러오기 실패','error');
+    }
+  });
+
+  const searchInput = $('#sheetSearch');
+  if (searchInput) {
+    searchInput.addEventListener('change', (e)=>{
+      const val = (e.target.value || '').trim();
+      if (!val) return;
+      if (!allSheetTitles.includes(val)) {
+        toast('해당 이름의 시트를 찾을 수 없습니다. 드롭다운에서 선택해주세요.','error');
+        currentSheetName = '';
+        return;
+      }
+      currentSheetName = val;
+      toast(`선택된 시트: ${currentSheetName}`,'ok');
+    });
+  }
+
+  // ✅ 전송: 신용카드 = DELH+K로 “거래 단위” 매칭 / DEL 같은 다른 행은 절대 안 건드림
+  $('#btnSend').addEventListener('click', async (e)=>{
+    e.preventDefault();
+    try{
+      await ensureAuth();
+
+      if(!parsedRows.length){
+        toast('먼저 미리보기를 실행하세요','error');
+        return;
+      }
+
+      const spreadsheetId = parseSpreadsheetId();
+      const sheetName = (currentSheetName || allSheetTitles[0] || 'Sheet1');
+      if(!sheetName){
+        toast('시트를 먼저 불러오고 선택해주세요.','error');
+        return;
+      }
+
+      const hasHeader = $('#optHasHeader').checked;
+      const rowsAll   = hasHeader ? parsedRows.slice(1) : parsedRows;
+      if(!rowsAll.length){
+        toast('전송할 데이터 행이 없습니다','error');
+        return;
+      }
+
+      const valueInputOption = $('#valueInputOption').value;
+
+      // 1) incoming: 매칭키(카드=DELH+K, 계좌=DELH) 기준으로 “최신 대표” 1개만
+      const incoming = new Map(); // key -> {bn, seq}
+      let seq = 0;
+      for(const r of rowsAll){
+        seq++;
+        const row = Array.isArray(r) ? r : [];
+        const bn = row.slice(1, 14); // B..N(13)
+        while(bn.length < 13) bn.push('');
+
+        const key = makeMatchKeyFromBN(bn);
+        if(!key) continue;
+
+        const cur = { bn, seq };
+        const prev = incoming.get(key);
+        incoming.set(key, chooseBetterEntry(prev, cur));
+      }
+
+      if(!incoming.size){
+        toast('유효한 데이터가 없습니다(키 생성 실패)','error');
+        return;
+      }
+
+      toast('기존 시트와 비교 중...');
+
+      // 2) existing best index (키별 1행만 매칭)
+      const existingBN = await fetchExistingBN(spreadsheetId, sheetName);
+      const existBest = buildExistingBestIndex(existingBN);
+
+      const updates = [];
+      const toAppend = [];
+
+      for(const [key, inc] of incoming.entries()){
+        const hit = existBest.get(key);
+        if(hit){
+          const merged = mergeBNForUpdate(hit.bn, inc.bn);
+          // ✅ 값이 달라질 때만 그 행만 업데이트
+          if(!sameRowBN(hit.bn, merged)){
+            updates.push({
+              range: `${sheetName}!B${hit.rowNumber}:N${hit.rowNumber}`,
+              values: [merged]
+            });
+          }
+        }else{
+          // ✅ 동일 DEL(사람)이 있어도 “다른 거래”면 신규 추가
+          toAppend.push(inc.bn);
+        }
+      }
+
+      if(!updates.length && !toAppend.length){
+        toast('변경/추가할 내용이 없습니다','ok');
+        return;
+      }
+
+      $('#btnSend').disabled = true;
+
+      let updatedCnt = 0, addedCnt = 0;
+
+      if(updates.length){
+        toast(`업데이트 ${updates.length}행 처리 중...`);
+        updatedCnt = await batchUpdateRows(spreadsheetId, valueInputOption, updates);
+      }
+
+      if(toAppend.length){
+        toast(`신규 ${toAppend.length}행 추가 중...(A열 무시/번호 유지)`);
+        const r = await writeNewRowsIntoEmptySlots(spreadsheetId, sheetName, valueInputOption, existingBN, toAppend);
+        addedCnt = (r.filled || 0) + (r.appended || 0);
+      }
+
+      toast(`완료: 업데이트 ${updatedCnt} / 신규추가 ${addedCnt}`,'ok');
+
+    }catch(err){
+      console.error(err);
+      toast(err?.message || '전송 실패: 콘솔 확인','error');
+    }finally{
+      $('#btnSend').disabled=false;
+    }
+  });
+
+  $('#btnAuthRefresh').addEventListener('click', (e)=>{
+    e.preventDefault();
+    initGoogleAuth();
+  });
+
+  window.updateAuthUI = ()=>{
+    const dot = $('#authStateDot');
+    const label = $('#authState');
+    if(!dot || !label) return;
+    if(accessToken){
+      dot.style.background = '#22c55e';
+      label.textContent = 'Google 시트 연동 완료';
+    }else{
+      dot.style.background = '#cbd5f5';
+      label.textContent = 'Google 시트 연동 준비 중';
+    }
+  };
+
+  updateAuthUI();
+});
+</script>
 </body>
 </html>
